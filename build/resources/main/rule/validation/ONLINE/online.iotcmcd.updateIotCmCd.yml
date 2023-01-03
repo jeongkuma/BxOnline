@@ -1,0 +1,105 @@
+HTTP_HEADER:
+  Content-Type:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-APIVERSION:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LOGKEY:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-CHANNEL:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-AUTH:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-VNAME:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LANG:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-MID:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+HTTP_BODY:
+  firstCdId:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    minLength : 1
+    maxLength: 10
+  parentCdId:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    minLength : 1
+    maxLength: 10
+#  cdNm:
+#    dataType: STRING
+#    requiredKey: Y
+#    notNull: Y
+#    noWhitespace: Y
+#    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+#    minLength : 1
+#    maxLength : 16
+  cdId:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    minLength : 1
+    maxLength: 10
+  cdDesc:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N
+    comPatternSkip: Y
+    maxLength : 85
+  paramKey:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    maxLength: 85
+  paramVal:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    maxLength: 85
+  langSet:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9]*$
+  useYn:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+    accept: ^[a-zA-Z]*$
+    minLength : 1
+    maxLength : 1

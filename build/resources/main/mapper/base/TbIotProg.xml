@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.prog.dao.TbIotProgDAO">
+
+	<select id="retrieveTbIotProgList" parameterType="kr.co.scp.common.prog.dto.TbIotProgDTO" resultType="kr.co.scp.common.prog.dto.TbIotProgDTO">
+		SELECT PROG_SEQ
+			 , PROG_NM
+			 , USE_YN
+			 , PARENT_PROG_SEQ
+			 , PROG_ID
+			 , PROG_GUBUN
+			 , PROG_URI
+			 , UI_PATH
+			 , CASE
+				WHEN A.REG_DTTM <![CDATA[ >= ]]>  IFNULL(A.MOD_DTTM, 0) THEN DATE_FORMAT(A.REG_DTTM,'%Y-%m-%d %H:%i:%S')
+				WHEN A.REG_DTTM <![CDATA[ < ]]>  A.MOD_DTTM THEN DATE_FORMAT(A.MOD_DTTM,'%Y-%m-%d %H:%i:%S')
+			  END AS regDttm
+			 , CASE
+				WHEN A.REG_DTTM <![CDATA[ >= ]]> IFNULL(A.MOD_DTTM, 0) THEN (SELECT USR_NM FROM TB_IOT_USR_M WHERE USR_LOGIN_ID = A.REG_USR_ID)
+				WHEN A.REG_DTTM <![CDATA[ < ]]> A.MOD_DTTM THEN (SELECT USR_NM FROM TB_IOT_USR_M WHERE USR_LOGIN_ID = A.MOD_USR_ID)
+			  END AS regUserId
+<!-- 			 , REG_USR_ID AS regUserId -->
+<!-- 			 , DATE_FORMAT(REG_DTTM , '%Y-%m-%d %H:%i:%s') AS regDttm -->
+		FROM TB_IOT_PROG A
+		WHERE PROG_NM LIKE CONCAT(#{progNm},'%')
+		<if test="uiPath != null">
+		  AND UI_PATH LIKE CONCAT(#{uiPath},'%')
+		</if>
+		ORDER BY IFNULL(A.MOD_DTTM, A.REG_DTTM) DESC
+		LIMIT ${currentPage-1}, ${displayRowCount}
+	</select>
+
+	<select id="searchTbIotProgData" parameterType="kr.co.scp.common.prog.dto.TbIotProgDTO" resultType="kr.co.scp.common.prog.dto.TbIotProgDTO">
+		SELECT PROG_SEQ
+			 , PROG_NM
+			 , USE_YN
+			 , PARENT_PROG_SEQ
+			 , PROG_ID
+			 , PROG_GUBUN
+			 , PROG_URI
+			 , UI_PATH
+		FROM TB_IOT_PROG
+		WHERE PROG_SEQ = #{progSeq}
+		ORDER BY PROG_NM
+	</select>
+
+	<select id="retrieveTbIotPorgCount" parameterType="kr.co.scp.common.prog.dto.TbIotProgDTO" resultType="Integer">
+		SELECT COUNT(PROG_SEQ)
+		FROM TB_IOT_PROG
+		WHERE PROG_NM LIKE CONCAT(#{progNm},'%')
+		<if test="uiPath != null">
+		  AND UI_PATH LIKE CONCAT(#{uiPath},'%')
+		</if>
+	</select>
+
+	<insert id="insertTbIotProg" parameterType="kr.co.scp.common.prog.dto.TbIotProgDTO">
+		INSERT INTO TB_IOT_PROG(PROG_NM,
+								 USE_YN,
+								 PARENT_PROG_SEQ,
+								 PROG_ID,
+								 PROG_GUBUN,
+								 PROG_URI,
+								 UI_PATH,
+								 REG_USR_ID,
+								 REG_DTTM)
+			   VALUES (#{progNm},
+					   #{useYn},
+					   #{parentProgSeq},
+					   #{progId},
+					   #{progGubun},
+					   #{progUri},
+					   #{uiPath},
+			   		   #{regUserId},
+					   DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+					  )
+	</insert>
+
+
+	<update id="updateTbIotProg" parameterType="kr.co.scp.common.prog.dto.TbIotProgDTO">
+		UPDATE TB_IOT_PROG
+		  SET PROG_NM = #{progNm}
+		    , USE_YN = #{useYn}
+		    , PROG_URI = #{progUri}
+			, UI_PATH = #{uiPath}
+		    , MOD_USR_ID = #{modUserId}
+		    , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		WHERE PROG_SEQ = #{progSeq}
+	</update>
+
+	<delete id="deleteTbIotProg" parameterType="kr.co.scp.common.prog.dto.TbIotProgDTO">
+		DELETE FROM TB_IOT_PROG
+		WHERE PROG_SEQ = #{progSeq}
+	</delete>
+
+	<select id="duplicationCheck" parameterType="kr.co.scp.common.prog.dto.TbIotProgDTO" resultType="Integer">
+		SELECT COUNT(PROG_SEQ) AS chkCnt
+		FROM TB_IOT_PROG
+		WHERE 1=1
+		<if test="progId != null">
+			AND PROG_ID = #{progId}
+		</if>
+		<if test="uiPath != null">
+			AND UI_PATH = #{uiPath}
+		</if>
+		<if test="progUri != null">
+			AND PROG_URI = #{progUri}
+		</if>
+	</select>
+
+	<select id="retrieveAuthProgList" parameterType="kr.co.scp.common.prog.dto.TbIotAuthProgDTO" resultType="kr.co.scp.common.prog.dto.TbIotAuthProgDTO">
+		SELECT	ROLE.ROLE_SEQ,
+		   		ROLE.ROLE_CD_ID,
+		   		ROLE.SVC_CD,
+		   		ROLE.MENU_PROG_SEQ AS PROG_SEQ,
+		   		PROG.PROG_NM,
+		   		PROG.UI_PATH,
+		   		PROG.PROG_URI
+		FROM	TB_IOT_ROLE_REL ROLE
+		JOIN	TB_IOT_PROG PROG
+		ON		ROLE.MENU_PROG_SEQ = PROG.PROG_SEQ
+		WHERE	ROLE.MENU_PROG_GUBUN = 'P'
+		AND		ROLE.SVC_CD = #{svcCd}
+		AND		ROLE.ROLE_CD_ID = #{roleCdId}
+	</select>
+
+	<select id="autoIotProgId" resultType="HashMap">
+		SELECT CONCAT('P',( REPLACE(MAX(PROG_ID), 'P', '') + 1 )) AS "progId" FROM TB_IOT_PROG
+	</select>
+</mapper>

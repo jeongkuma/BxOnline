@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotuser.dao.IotUsrDAO">
+
+    <!-- 사용자 조회 -->
+    <select id="retrieveIotUsr" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO" resultType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO">
+        SELECT    USR.USR_SEQ
+                , USR.CUST_SEQ
+                , CU.USE_YN AS CUST_USE_YN
+                , USR.USR_LOGIN_ID
+                , CONCAT(SUBSTR(USR.USR_NM, 1, 1), '****', SUBSTR(USR.USR_NM , CHAR_LENGTH(USR.USR_NM), 1)) AS USR_NM
+                , USR.ROLE_CD_ID
+                , CMCD.CD_NM AS ROLE_CD_NM
+                , USR.USE_YN
+                , USR.FIRST_LOGIN_YN
+                , USR.USR_SLP_YN
+                , USR.USR_LCK_YN
+                , USR.SMS_USE_YN
+                , USR.PUSH_USE_YN
+                , USR.ORG_SET_YN
+                , USR.LOGIN_FAIL_CNT
+                , USR.ORG_SEQ
+                , CONCAT(SUBSTR(USR.USR_PHONE_NO, 1, 3), '****' , SUBSTR(USR.USR_PHONE_NO, 8, 4)) AS USR_PHONE_NO
+                , USR.USR_EMAIL
+                , USR.LAST_LOGIN_DTTM
+                , CASE
+                    WHEN USR.MOD_DTTM IS NULL THEN DATE_FORMAT(USR.REG_DTTM,'%Y-%m-%d %H:%i:%S')
+                    ELSE DATE_FORMAT(USR.MOD_DTTM,'%Y-%m-%d %H:%i:%S')
+                END AS REG_DTTM
+                , IFNULL(USR.MOD_USR_ID, USR.REG_USR_ID) AS REG_USR_ID
+        FROM TB_IOT_USR_M USR
+        INNER JOIN TB_IOT_CM_CD CMCD
+        ON USR.ROLE_CD_ID = CMCD.CD_ID
+        AND CMCD.LANG_SET = #{langSet}
+        -- LEFT OUTER JOIN
+        -- (SELECT
+        -- tah.TERMS_AGR_YN
+        -- , tah.TERMS_AGR_DTTM
+        -- , tah.USR_SEQ
+        -- FROM TB_IOT_TERMS_AGR_H tah
+        -- WHERE TERMS_AGR_HIST_SEQ IN (
+        -- SELECT MAX(aa.TERMS_AGR_HIST_SEQ)
+        -- FROM TB_IOT_TERMS_AGR_H aa
+        -- JOIN TB_IOT_USR_M usrr
+        -- ON aa.usr_seq = usrr.usr_seq
+        -- GROUP BY aa.USR_SEQ
+        -- )
+        -- )TERM
+        -- ON USR.USR_SEQ = TERM.USR_SEQ
+        INNER JOIN TB_IOT_CUST_M CU
+        ON USR.CUST_SEQ = CU.CUST_SEQ
+        <where>
+            <if test="roleCdId == 'GN00000038'">
+                <if test="custSeq != null">
+                    AND USR.CUST_SEQ = #{custSeq}
+                </if>
+            </if>
+            <if test="roleCdId == 'GN00000033'">
+                <if test="custSeq != null">
+                    AND USR.CUST_SEQ = #{custSeq}
+                </if>
+                AND USR.ROLE_CD_ID != 'GN00000038'
+            </if>
+            <if test="roleCdId == 'GN00000034'">
+                <if test="custSeq != null">
+                    AND USR.CUST_SEQ = #{custSeq}
+                </if>
+                AND USR.ROLE_CD_ID NOT IN ('GN00000038', 'GN00000033')
+                <!-- 				 	AND USR.ROLE_CD_ID != 'GN00000038'
+                                     AND USR.ROLE_CD_ID != 'GN00000033'				 	 -->
+            </if>
+            <if test="roleCdId == 'GN00000035'">
+                AND USR.CUST_SEQ = #{custSeq}
+            </if>
+            <if test="roleCdId == 'GN00000036'">
+                AND USR.CUST_SEQ = #{custSeq}
+                AND USR.ROLE_CD_ID != 'GN00000035'
+            </if>
+            <choose>
+                <when test=" searchCon == 'id'">
+                    <if test=" null != searchVal">
+                        AND BINARY(USR.USR_LOGIN_ID) LIKE CONCAT('%', #{searchVal}, '%')
+                    </if>
+                </when>
+                <when test=" searchCon == 'usrNm' ">
+                    <if test=" null != searchVal">
+                        AND USR.USR_NM LIKE CONCAT('%', #{searchVal}, '%')
+                    </if>
+                </when>
+                <when test=" searchCon == 'smsRcvNo' ">
+                    <if test=" null != searchVal">
+                        AND USR.USR_PHONE_NO LIKE CONCAT('%',#{searchVal}, '%')
+                    </if>
+                </when>
+            </choose>
+            <if test="usrSlpYn != 'all' and null != usrSlpYn ">
+                AND USR.USR_SLP_YN = #{usrSlpYn}
+            </if>
+            <if test="usrLckYn != 'all' and null != usrLckYn">
+                AND USR.USR_LCK_YN = #{usrLckYn}
+            </if>
+            <if test="roleCdId == 'GN00000034'">
+                AND USR.ROLE_CD_ID != 'GN00000033'
+            </if>
+            <!-- AND CD.LANG_SET = #{langSet} -->
+        </where>
+        ORDER BY IFNULL(USR.MOD_DTTM, USR.REG_DTTM) DESC
+        LIMIT ${currentPage-1}, ${displayRowCount}
+    </select>
+
+    <select id="retrieveIotUsrCount" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO" resultType="String">
+        SELECT  COUNT(USR.USR_SEQ)
+        FROM    TB_IOT_USR_M USR
+        INNER JOIN TB_IOT_CM_CD CD
+        ON USR.ROLE_CD_ID = CD.CD_ID
+        AND CD.LANG_SET = #{langSet}
+        <where>
+            <if test="roleCdId == 'GN00000038'">
+                <if test="custSeq != null">
+                    AND USR.CUST_SEQ = #{custSeq}
+                </if>
+            </if>
+            <if test="roleCdId == 'GN00000033'">
+                <if test="custSeq != null">
+                    AND USR.CUST_SEQ = #{custSeq}
+                </if>
+                AND USR.ROLE_CD_ID != 'GN00000038'
+            </if>
+            <if test="roleCdId == 'GN00000034'">
+                <if test="custSeq != null">
+                    AND USR.CUST_SEQ = #{custSeq}
+                </if>
+                AND USR.ROLE_CD_ID NOT IN ('GN00000038', 'GN00000033')
+            </if>
+            <if test="roleCdId == 'GN00000035'">
+                AND USR.CUST_SEQ = #{custSeq}
+                AND USR.USR_SEQ NOT IN (#{usrSeq})
+            </if>
+            <if test="roleCdId == 'GN00000036'">
+                AND USR.CUST_SEQ = #{custSeq}
+                AND USR.ROLE_CD_ID NOT IN ('GN00000035')
+            </if>
+            <choose>
+                <when test=" searchCon == 'id'">
+                    <if test=" null != searchVal">
+                        AND USR.USR_LOGIN_ID LIKE CONCAT('%',#{searchVal}, '%')
+                    </if>
+                </when>
+                <when test=" searchCon == 'usrNm' ">
+                    <if test=" null != searchVal">
+                        AND USR.USR_NM LIKE CONCAT('%',#{searchVal}, '%')
+                    </if>
+                </when>
+                <when test=" searchCon == 'usrPhoneNo' ">
+                    <if test=" null != searchVal">
+                        AND USR.USR_PHONE_NO LIKE CONCAT('%',#{searchVal}, '%')
+                    </if>
+                </when>
+            </choose>
+            <if test="usrSlpYn != 'all' and null != usrSlpYn ">
+                AND USR.USR_SLP_YN = #{usrSlpYn}
+            </if>
+            <if test="usrLckYn != 'all' and null != usrLckYn">
+                AND USR.USR_LCK_YN = #{usrLckYn}
+            </if>
+        </where>
+    </select>
+
+
+    <!-- 서비스용 사용자 개별 조회 -->
+    <select id="retrieveIotUsrBySeqInner" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO"
+            resultType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO">
+		SELECT
+		       USR_SEQ
+			 , CUST_SEQ
+			 , USR_LOGIN_ID
+			 , USR_PWD
+			 , USR_NM
+			 , SMS_RCV_NO
+			 , ROLE_CD_ID
+			 , SMS_RCV_NO
+			 , USE_YN
+			 , FIRST_LOGIN_YN
+			 , USR_SLP_YN
+			 , USR_LCK_YN
+			 , SMS_USE_YN
+			 , PUSH_USE_YN
+			 , ORG_SET_YN
+			 , LOGIN_FAIL_CNT
+			 , ORG_SEQ
+			 , USR_PHONE_NO
+			 , USR_EMAIL
+		  FROM TB_IOT_USR_M
+		 WHERE USR_SEQ = #{usrSeq}
+	</select>
+
+    <!-- 화면용 사용자 개별 조회 -->
+    <select id="retrieveIotUsrBySeq" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO"
+            resultType="kr.co.scp.ccp.iotuser.dto.TbIotUsrRDTO">
+		SELECT
+		       tbUsr.USR_SEQ
+			 , tbUsr.USR_LOGIN_ID
+			 , tbUsr.USR_NM
+ 			 , tbUsr.SMS_RCV_NO
+			 , tbUsr.ROLE_CD_ID
+			 , cmCd.CD_NM AS ROLE_CD_NM
+			 , tbUsr.USE_YN
+			 , tbUsr.ORG_SEQ
+			 , tbOrg.ORG_NM
+ 			 , tbUsr.USR_PHONE_NO
+			 , tbUsr.USR_EMAIL
+		  FROM TB_IOT_USR_M tbUsr
+		  JOIN TB_IOT_ORG	tbOrg
+		    ON tbUsr.ORG_SEQ = tbOrg.ORG_SEQ
+		  JOIN TB_IOT_CM_CD	cmCd
+		    ON tbUsr.ROLE_CD_ID = cmCd.CD_ID
+		   AND cmCd.LANG_SET = #{langSet}
+		 WHERE tbUsr.USR_SEQ = #{usrSeq}
+	</select>
+
+    <insert id="createIotUsr" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO">
+		INSERT INTO TB_IOT_USR_M
+			(
+			   CUST_SEQ
+			 , USR_LOGIN_ID
+			 , USR_PWD
+			 , USR_NM
+			 , SMS_RCV_NO
+			 , ROLE_CD_ID
+			 , FIRST_LOGIN_YN
+			 , USR_SLP_YN
+			 , USR_LCK_YN
+			 , SMS_USE_YN
+			 , PUSH_USE_YN
+			 , ORG_SET_YN
+			 , LOGIN_FAIL_CNT
+			 , ORG_SEQ
+			 , USR_PHONE_NO
+			 , USR_EMAIL
+			 , REG_USR_ID
+			 , REG_DTTM
+			)
+		VALUES
+			(
+			   #{custSeq}
+			 , #{usrLoginId}
+			 , #{usrPwd}
+			 , #{usrNm}
+			 , #{usrPhoneNo}
+			 , #{roleCdId}
+			 , 'Y'
+			 , 0
+			 , 0
+			 , 1
+			 , 0
+			 , 'Y'
+			 , 0
+			 , #{orgSeq}
+			 , #{usrPhoneNo}
+			 , #{usrEmail}
+			 , #{regUsrId}
+			 , DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+	</insert>
+
+
+    <update id="deleteIotUsr" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO">
+		UPDATE TB_IOT_USR_M
+		   SET USE_YN = 'N'
+		     , MOD_USR_ID = #{modUsrId}
+		     , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE USR_SEQ = #{usrSeq}
+	</update>
+
+    <update id="updateIotUsr" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO">
+        UPDATE TB_IOT_USR_M
+        SET USR_NM = #{usrNm}
+        , USR_EMAIL = #{usrEmail}
+        <if test="null != useYn">
+            , USE_YN = #{useYn}
+            <if test="useYn.equals('N')">
+                , FIRST_LOGIN_YN = 'Y'
+            </if>
+        </if>
+        <if test="null != usrPwd">
+            , USR_PWD = #{usrPwd}
+        </if>
+        , ROLE_CD_ID = #{roleCdId}
+        , ORG_SEQ = #{orgSeq}
+        , USR_PHONE_NO = #{usrPhoneNo}
+        , SMS_RCV_NO = #{usrPhoneNo}
+        , MOD_USR_ID = #{modUsrId}
+        , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+        WHERE USR_SEQ = #{usrSeq}
+    </update>
+
+    <update id="updateIotUsrInfo" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO">
+        UPDATE TB_IOT_USR_M
+        SET MOD_USR_ID = #{modUsrId}
+        , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+        <if test=" arrType == 'pwd' ">
+            , USR_PWD = #{usrPwd}
+            , PWD_MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+            , FIRST_LOGIN_YN = 'Y'
+        </if>
+        <if test=" arrType == 'slp' ">
+            , USR_SLP_YN = 0
+            , USR_SLP_MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+        </if>
+        <if test=" arrType == 'lck' ">
+            , USR_LCK_YN = 0
+            , USR_LCK_MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+        </if>
+        <if test=" arrType == 'rejoin' || arrType == 'unregi'">
+            , USE_YN = #{useYn}
+            , USR_STTS_MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+        </if>
+        WHERE USR_SEQ = #{usrSeq}
+    </update>
+
+    <!-- 사용자아이디 중복확인 -->
+    <select id="retrieveDuplicationLgnId" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO" resultType="String">
+		SELECT COUNT(USR_LOGIN_ID)
+		  FROM TB_IOT_USR_M
+		 WHERE USR_LOGIN_ID = #{usrLoginId}
+		   AND USE_YN = 'Y'
+		   AND CUST_SEQ = #{custSeq}
+	</select>
+
+    <!-- 서비스용 사용자 개별 조회 -->
+    <select id="retrieveIotUsrById" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO"
+            resultType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO">
+		SELECT
+		       usr.USR_SEQ
+			 , usr.CUST_SEQ
+			 , usr.USR_LOGIN_ID
+			 , usr.USR_PWD
+			 , usr.USR_NM
+			 , usr.SMS_RCV_NO
+			 , usr.ROLE_CD_ID
+			 , cmCd.ROLE_CD_NM
+			 , usr.SMS_RCV_NO
+			 , usr.USE_YN
+			 , usr.FIRST_LOGIN_YN
+			 , usr.USR_SLP_YN
+			 , usr.USR_LCK_YN
+			 , usr.SMS_USE_YN
+			 , usr.PUSH_USE_YN
+			 , usr.ORG_SET_YN
+			 , usr.LOGIN_FAIL_CNT
+			 , usr.ORG_SEQ
+			 , usr.USR_PHONE_NO
+			 , usr.USR_EMAIL
+		  FROM TB_IOT_USR_M usr
+		  JOIN TB_IOT_CM_CD	cmCd
+		  ON   usr.ROLE_CD_ID = cmCd.CD_ID
+		  AND cmCd.LANG_SET = #{langSet}
+		 WHERE CUST_SEQ = #{custSeq}
+		   AND USR_LOGIN_ID = #{usrLoginId}
+	</select>
+
+    <select id="retrieveIotUsrAdminRole" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO" resultType="String">
+		SELECT USR_NM
+		  FROM TB_IOT_USR_M
+		 WHERE ROLE_CD_ID = #{roleCdId}
+		   AND CUST_SEQ   = #{custSeq}
+	</select>
+
+    <select id="retrieveIotUstSeq" resultType="String">
+		SELECT MAX(USR_SEQ) + 1 FROM TB_IOT_USR_M
+	</select>
+
+    <select id="retrieveUsrListByCust" parameterType="String" resultType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO">
+		SELECT
+		       USR_SEQ
+			 , CUST_SEQ
+			 , USR_LOGIN_ID
+			 , USR_NM
+			 , USE_YN
+			 , USR_EMAIL
+			 , ROLE_CD_ID
+			 , ORG_SEQ
+			 , USR_PHONE_NO
+		  FROM TB_IOT_USR_M
+		 WHERE CUST_SEQ = #{custSeq}
+	</select>
+
+    <select id="retrieveUsrPhoneDuplChk" parameterType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO"
+            resultType="kr.co.scp.ccp.iotuser.dto.TbIotUsrDTO">
+		SELECT COUNT(USR_PHONE_NO) AS USR_PHONE_NO
+		     , USR_SEQ
+		     , USR_PHONE_NO AS SMS_RCV_NO
+		  FROM TB_IOT_USR_M
+		 WHERE CUST_SEQ   = #{custSeq}
+		   AND USR_PHONE_NO = #{usrPhoneNo}
+		   GROUP BY USR_PHONE_NO, USR_SEQ
+	</select>
+
+    <select id="retrieveIotUsrCustInfo" parameterType="String" resultType="String">
+		SELECT CUST_SEQ
+		  FROM TB_IOT_USR_M
+	     WHERE USR_SEQ = #{useSeq}
+	</select>
+</mapper>

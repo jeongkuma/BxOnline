@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.dash.dao.TbIotUsrDashTmplDAO">
+
+	<select id="retrieveTbIotUsrDashTmplList" parameterType="kr.co.scp.common.dash.dto.TbIotUsrDashTmplDTO" resultType="kr.co.scp.common.dash.dto.TbIotUsrDashTmplDTO">
+		SELECT A.USR_DASH_TMPL_SEQ
+			, A.DASH_LOC_NO
+			, A.ORG_SEQ
+			, A.COORD_X_NO
+			, A.COORD_Y_NO
+			, A.HEIGHT
+			, A.WIDTH
+			, B.TMPL_GUBUN AS USR_TMPL_GUBUN
+			, B.DASH_TMPL_TITLE
+			, B.DASH_TMPL_DESC
+			, C.TMPL_CD_ID
+			, C.TMPL_CD_NM
+			, C.TMPL_GUBUN
+			, C.TMPL_RULE_IMG
+			, T.DAY_TIME
+			, T.RSP_MSG
+			, T.TOPIC_ID
+			, B.COL_NM_CD
+			, B.RSP_MSG AS INIT_MSG
+		FROM TB_IOT_CUR_DASH_TMPL A
+			LEFT OUTER JOIN TB_IOT_USR_DASH_TMPL B
+				ON B.USR_DASH_TMPL_SEQ = A.USR_DASH_TMPL_SEQ
+			LEFT OUTER JOIN TB_IOT_TMPL C
+				ON C.TMPL_SEQ = B.TMPL_SEQ
+			LEFT OUTER JOIN TB_IOT_TOPIC T
+				ON B.TOPIC_ID = T.TOPIC_ID
+					AND B.TMPL_GUBUN = 'T'
+		WHERE 1 = 1
+			AND A.ORG_SEQ = #{orgSeq}
+		ORDER BY A.DASH_LOC_NO
+	</select>
+
+	<select id="retrieveTbIotDashTmplList" parameterType="kr.co.scp.common.dash.dto.TbIotUsrDashTmplDTO" resultType="kr.co.scp.common.dash.dto.TbIotUsrDashTmplDTO">
+		SELECT
+			A.CUST_SEQ
+			, A.USR_DASH_TMPL_SEQ
+			, A.TMPL_SEQ
+			, A.TMPL_GUBUN
+			, A.TOPIC_ID
+			, A.API_SEQ
+			, A.API_URL
+			, A.DASH_TMPL_TITLE
+			, A.DASH_TMPL_DESC
+			, A.REQ_MSG
+			, A.RSP_MSG
+			, A.DEV_CLS_CD
+			, C.DEV_CLS_CD_NM
+			, B.TMPL_CD_ID
+			, B.TMPL_CD_NM
+			, B.TMPL_RULE_IMG
+			, A.COL_NM_CD
+			, B.INIT_DATA AS initMsg
+		FROM TB_IOT_USR_DASH_TMPL A
+			LEFT OUTER JOIN TB_IOT_TMPL B
+				ON B.TMPL_SEQ = A.TMPL_SEQ
+			LEFT OUTER JOIN (
+				SELECT DEV_CLS_CD, DEV_CLS_CD_NM
+				FROM TB_IOT_SVC_DEV_M
+				GROUP BY DEV_CLS_CD, DEV_CLS_CD_NM
+			) C
+				ON C.DEV_CLS_CD = A.DEV_CLS_CD
+		WHERE 1 = 1
+		<!-- 			<if test="custSeq != null">
+				AND A.CUST_SEQ = #{custSeq}
+			</if> -->
+		<if test="usrDashTmplSeq != null">
+			AND A.USR_DASH_TMPL_SEQ = #{usrDashTmplSeq}
+		</if>
+		<if test="userRole != 'GN00000038'">
+			AND A.DEV_CLS_CD IN (SELECT S.DEV_CLS_CD FROM TB_IOT_SVC_M S WHERE S.SVC_CD = #{svcCd})
+		</if>
+		ORDER BY A.USR_DASH_TMPL_SEQ DESC
+		LIMIT ${(currentPage-1) * displayRowCount}, ${displayRowCount}
+	</select>
+
+	<select id="retrieveTbIotDashTmplCnt" parameterType="kr.co.scp.common.dash.dto.TbIotUsrDashTmplDTO" resultType="INTEGER">
+		SELECT COUNT(A.USR_DASH_TMPL_SEQ)
+		FROM TB_IOT_USR_DASH_TMPL A
+		LEFT OUTER JOIN TB_IOT_TMPL B
+		ON B.TMPL_SEQ = A.TMPL_SEQ
+		LEFT OUTER JOIN (
+				SELECT DEV_CLS_CD, DEV_CLS_CD_NM
+				FROM TB_IOT_SVC_DEV_M
+				GROUP BY DEV_CLS_CD, DEV_CLS_CD_NM
+				) C
+		ON C.DEV_CLS_CD = A.DEV_CLS_CD
+		WHERE 1 = 1
+<!-- 		<if test="custSeq != null">
+			AND A.CUST_SEQ = #{custSeq}
+		</if> -->
+		<if test="usrDashTmplSeq != null">
+			AND A.USR_DASH_TMPL_SEQ = #{usrDashTmplSeq}
+		</if>
+		<if test="userRole != 'GN00000038'">
+			AND A.DEV_CLS_CD IN (SELECT S.DEV_CLS_CD FROM TB_IOT_SVC_M S WHERE S.SVC_CD = #{svcCd})
+		</if>
+	</select>
+
+	<insert id="insertTbIotUsrDashTmpl" parameterType="kr.co.scp.common.dash.dto.TbIotUsrDashTmplDTO">
+		INSERT INTO TB_IOT_CUR_DASH_TMPL (
+			ORG_SEQ,
+			DASH_LOC_NO,
+			USR_DASH_TMPL_SEQ,
+			COORD_X_NO,
+			COORD_Y_NO,
+			WIDTH,
+			HEIGHT,
+			REG_USR_ID,
+			REG_DTTM
+		) VALUES (
+			#{orgSeq},
+			#{dashLocNo},
+			#{usrDashTmplSeq},
+			#{coordXNo},
+			#{coordYNo},
+			#{width},
+			#{height},
+			#{regUserId},
+			DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		)
+	</insert>
+
+	<insert id="insertTbIotDashTmpl" parameterType="kr.co.scp.common.dash.dto.TbIotUsrDashTmplDTO">
+		INSERT INTO TB_IOT_USR_DASH_TMPL (
+			CUST_ORG_USR_SEQ,
+			TMPL_SEQ,
+			API_SEQ,
+			API_URL,
+			DASH_TMPL_TITLE,
+			DASH_TMPL_DESC,
+			DEV_CLS_CD,
+			REQ_MSG,
+			RSP_MSG,
+			TMPL_GUBUN,
+			TOPIC_ID,
+			COL_NM_CD,
+			REG_USR_ID,
+			REG_DTTM
+		) VALUES (
+			#{custOrgUsrSeq},
+			#{tmplSeq},
+			#{apiSeq},
+			#{apiUrl},
+			#{dashTmplTitle},
+			#{dashTmplDesc},
+			#{devClsCd},
+			#{reqMsg},
+			#{rspMsg},
+			#{tmplGubun},
+			#{topicId},
+			#{colNmCd},
+			#{regUserId},
+			DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		)
+	</insert>
+
+	<update id="updateTbIotDashTmpl" parameterType="kr.co.scp.common.dash.dto.TbIotUsrDashTmplDTO">
+		UPDATE TB_IOT_USR_DASH_TMPL
+		SET TMPL_SEQ = #{tmplSeq}
+			, DEV_CLS_CD = #{devClsCd}
+			, DASH_TMPL_TITLE = #{dashTmplTitle}
+			, DASH_TMPL_DESC = #{dashTmplDesc}
+			, TMPL_GUBUN = #{tmplGubun}
+			, TOPIC_ID = #{topicId}
+			, API_SEQ = #{apiSeq}
+			, API_URL = #{apiUrl}
+			, REQ_MSG = #{reqMsg}
+			, RSP_MSG = #{rspMsg}
+			, COL_NM_CD = #{colNmCd}
+			, MOD_USR_ID = #{modUserId}
+			, MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		WHERE USR_DASH_TMPL_SEQ = #{usrDashTmplSeq}
+	</update>
+
+	<delete id="deleteTbIotUsrDashTmpl" parameterType="kr.co.scp.common.dash.dto.TbIotUsrDashTmplDTO">
+		DELETE FROM TB_IOT_USR_DASH_TMPL
+		WHERE USR_DASH_TMPL_SEQ = #{usrDashTmplSeq}
+	</delete>
+
+	<delete id="deleteTbIotUsrDashTmplAll" parameterType="kr.co.scp.common.dash.dto.TbIotUsrDashTmplDTO">
+		DELETE FROM TB_IOT_CUR_DASH_TMPL
+		WHERE ORG_SEQ = #{orgSeq}
+	</delete>
+
+</mapper>

@@ -1,0 +1,81 @@
+HTTP_HEADER: 
+  Content-Type:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: N
+  X-APIVERSION:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LOGKEY:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-CHANNEL:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-AUTH:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-VNAME:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LANG:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-MID:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+HTTP_BODY:
+  custNm:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9+_-]*$
+    minLength : 2
+    maxLength : 33
+  custTelNo:
+    dataType: STRING
+    requiredKey: N
+    notNull: N    
+    noWhitespace: N
+    accept: ^[0-9]*$
+    minLength : 10
+    maxLength : 11
+#  smsSndNum:
+#    dataType: STRING
+#    requiredKey: N
+#    notNull: N
+#    noWhitespace: Y
+#    accept: ^[0-9]*$
+  custRegNo:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N
+    accept: ^[0-9]*$
+    length: 10
+  svcCd:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: Y       
+    accept: ^[a-zA-Z0-9+_-]*$
+  deleteSeq:
+    dataType: ARRAY
+    requiredKey: Y
+    notNull: Y    

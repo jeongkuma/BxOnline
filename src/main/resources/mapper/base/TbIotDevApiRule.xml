@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.common.rule.dao.TbIotDevApiRuleDAO">
+<!--
+	파일명    : /mapper/TbIotDevApiRule.xml
+-->
+
+	<!--  검증룰 속성 조회	-->
+	<select id="retrieveTbIotDevApiRule" parameterType="kr.co.scp.common.rule.dto.TbIotDevApiRuleDTO" resultType="java.util.HashMap">
+		SELECT
+			A.CALL_API_SEQ as callApiSeq
+		FROM TB_IOT_DEV_API_RULE A
+		WHERE 1=1
+			AND DEV_SEQ = #{devSeq}
+			AND API_SEQ = #{apiSeq}
+	</select>
+
+	<select id="retrieveTbIotDevApiRuleInputList" parameterType="kr.co.scp.common.rule.dto.TbIotDevApiRuleDTO" resultType="java.util.HashMap">
+		SELECT A.API_SEQ as callApiSeq,
+			CONCAT(A.API_NM, '(' , A.API_SEQ , ')') AS callApiNm
+		FROM   TB_IOT_API A
+	</select>
+
+	<insert id="insertTbIotDevApiRule" 	parameterType="kr.co.scp.common.rule.dto.TbIotDevApiRuleParamDTO">
+		insert into  TB_IOT_DEV_API_RULE
+			(
+				API_SEQ,
+				DEV_SEQ,
+				CALL_API_SEQ,
+				REG_USR_ID,
+				REG_DTTM
+			)
+		values
+			(
+				#{apiSeq},
+				#{devSeq},
+				#{callApiSeq},
+				#{regUsrId},
+				DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+	</insert>
+
+	<delete id="deleteAllTbIotDevApiRule">
+		DELETE FROM TB_IOT_DEV_API_RULE
+		WHERE
+			DEV_SEQ	= #{devSeq}
+			AND API_SEQ	= #{apiSeq}
+	</delete>
+
+
+</mapper>

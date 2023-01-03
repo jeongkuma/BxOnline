@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotSDev.dao.IotSDevDAO">
+    <!--
+        파일명    : /mapper/IotSDevDAO.xml
+        작성일자 :
+        작성자    : 김용진
+        설명      : 서비스별 장비 마스터 정보
+    -->
+    <select id="retrieveSDev" parameterType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevDTO"
+            resultType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevDTO">
+        SELECT S_DEV_SEQ
+        , SVC_CD
+        , DEV_CLS_CD
+        , DEV_CLS_CD_NM
+        , DEV_MDL_CD
+        , DEV_MDL_NM
+        , PARENT_DEV_SEQ
+        , VENDOR_NM
+        , ICON_REG_YN
+        , ICON_FILE
+        , NORMAL_ICON_FILE
+        , STATUS_CD
+        , REG_USR_ID
+        , REG_DTTM
+        , MOD_USR_ID
+        , MOD_DTTM
+        , ABNORMAL_ICON_FILE
+        , ABNORMAL_ICON_FILE2
+        FROM TB_IOT_SVC_DEV_M
+        <where>
+            <if test="sDevSeq != null and !sDevSeq != 0">
+                AND S_DEV_SEQ = #{sDevSeq}
+            </if>
+            <if test="svcCd != null and !svcCd.equals('')">
+                AND SVC_CD = #{svcCd}
+            </if>
+            <if test="statusCd != null and !statusCd.equals('')">
+                AND STATUS_CD = #{statusCd}
+            </if>
+            <if test="devClsCd != null and !devClsCd.equals('')">
+                AND DEV_CLS_CD = #{devClsCd}
+            </if>
+            <if test="devMdlCd != null and !devMdlCd.equals('')">
+                AND DEV_MDL_CD = #{devMdlCd}
+            </if>
+            <if test="statusCd != null and !statusCd.equals('')">
+                AND STATUS_CD = #{statusCd}
+            </if>
+            <if test="vendorNm != null and !vendorNm'')">
+                AND VENDOR_NM = #{vendorNm}
+            </if>
+        </where>
+    </select>
+
+    <select id="retrieveSDevList" parameterType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevDTO"
+            resultType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevDTO">
+        SELECT S_DEV_SEQ
+        , SVC_CD
+        , DEV_CLS_CD
+        , DEV_CLS_CD_NM
+        , DEV_MDL_CD
+        , DEV_MDL_NM
+        , STATUS_CD
+        , PARENT_DEV_SEQ
+        , VENDOR_NM
+        , ABNORMAL_ICON_FILE
+        , ABNORMAL_ICON_FILE2
+        , NORMAL_ICON_FILE
+        , ICON_REG_YN
+        , REG_USR_ID
+        , REG_DTTM
+        , MOD_USR_ID
+        , MOD_DTTM
+        FROM TB_IOT_SVC_DEV_M
+        <where>
+            <if test="sDevSeq != null and !sDevSeq != 0">
+                AND S_DEV_SEQ = #{sDevSeq}
+            </if>
+            <if test="svcCd != null and !svcCd.equals('')">
+                AND SVC_CD = #{svcCd}
+            </if>
+            <if test="statusCd != null and !statusCd.equals('')">
+                AND STATUS_CD = #{statusCd}
+            </if>
+            <if test="devClsCd != null and !devClsCd.equals('')">
+                AND DEV_CLS_CD = #{devClsCd}
+            </if>
+            <if test="devMdlCd != null and !devMdlCd.equals('')">
+                AND DEV_MDL_CD = #{devMdlCd}
+            </if>
+            <if test="statusCd != null and !statusCd.equals('')">
+                AND STATUS_CD = #{statusCd}
+            </if>
+            <if test="vendorNm != null and !vendorNm'')">
+                AND VENDOR_NM = #{vendorNm}
+            </if>
+        </where>
+    </select>
+
+    <select id="retrieveSDevAtbList" parameterType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevDTO"
+            resultType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevAtbDTO">
+        SELECT S_DEV_ATTB_SEQ
+        , S_DEV_SEQ
+        , SVC_CD
+        , DEV_CLS_CD
+        , DEV_CLS_CD_NM
+        , DEV_MDL_CD
+        , DEV_MDL_NM
+        , DEV_ATTB_CD_ID
+        , DEV_ATTB_CD_NM
+        , INPUT_TYPE
+        , PARAM_KEY
+        , COL_NM_CD
+        , CON_NM_CD
+        , STA_AVG_NM_CD
+        , STA_SUM_NM_CD
+        , DET_NM_CD
+        , MAP_YN
+        , UNIT
+        , ORDER_NO
+        , STATUS_CD
+        , REG_USR_ID
+        , REG_DTTM
+        , MOD_USR_ID
+        , MOD_DTTM
+        FROM TB_IOT_S_DEV_ATB
+        <where>
+            <if test="sDevAttbSeq != null and !sDevAttbSeq.equals('')">
+                AND S_DEV_ATTB_SEQ = #{sDevAttbSeq}
+            </if>
+            <if test="sDevSeq != null and !sDevSeq.equals('')">
+                AND S_DEV_SEQ = #{sDevSeq}
+            </if>
+            <if test="svcCd != null and !svcCd.equals('')">
+                AND SVC_CD = #{svcCd}
+            </if>
+            <if test="devClsCd != null and !devClsCd.equals('')">
+                AND DEV_CLS_CD = #{devClsCd}
+            </if>
+            <if test="devMdlCd != null and !devMdlCd.equals('')">
+                AND DEV_MDL_CD = #{devMdlCd}
+            </if>
+            <if test="statusCd != null and !statusCd.equals('')">
+                AND STATUS_CD = #{statusCd}
+            </if>
+        </where>
+    </select>
+
+    <select id="retrieveSDevJoinAttbs" parameterType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevDTO"
+            resultType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevAtbDTO">
+        SELECT A.S_DEV_SEQ
+        , A.SVC_CD
+        , A.S_DEV_ATTB_SEQ
+        , A.DEV_CLS_CD
+        , B.DEV_CLS_CD_NM
+        , A.DEV_MDL_CD
+        , B.DEV_MDL_NM
+        , A.DEV_ATTB_CD_ID
+        , C.CD_NM AS devAttbCdNm
+        , A.INPUT_TYPE
+        , A.STATUS_CD
+        , A.PARAM_KEY
+        , A.COL_NM_CD
+        , A.CON_NM_CD
+        , A.STA_AVG_NM_CD
+        , A.STA_SUM_NM_CD
+        , A.DET_NM_CD
+        , A.MAP_YN
+        , A.UNIT
+        , A.ORDER_NO
+        FROM TB_IOT_S_DEV_ATB A
+        INNER JOIN TB_IOT_SVC_DEV_M B
+        ON A.SVC_CD = B.SVC_CD AND A.DEV_CLS_CD = B.DEV_CLS_CD AND A.DEV_MDL_CD = B.DEV_MDL_CD
+        INNER JOIN TB_IOT_CM_CD C
+        ON C.LANG_SET = #{langSet} AND A.DEV_ATTB_CD_ID = C.CD_ID
+        WHERE A.DEV_MDL_CD = 'LGE_'||A.DEV_CLS_CD
+        AND A.STATUS_CD = 'A'
+        <if test="sDevAttbSeq != null and !sDevAttbSeq.equals('')">
+            AND A.S_DEV_ATTB_SEQ = #{sDevAttbSeq}
+        </if>
+        <if test="devClsCd != null and !devClsCd.equals('')">
+            AND A.DEV_CLS_CD = #{devClsCd}
+        </if>
+    </select>
+
+    <select id="retrieveSDevAtbSetList" parameterType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevAtbDTO"
+            resultType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevAtbSetDTO">
+        SELECT A.S_DEV_ATTB_SET_SEQ
+        , A.S_DEV_ATTB_SEQ
+        , A.SVC_CD
+        , A.SET_PARENT_CD_ID
+        , A.DEV_ATTB_SET_CD_ID
+        , C.CD_NM AS devAttbSetCdNm
+        , A.STATUS_CD
+        , A.REG_USR_ID
+        , A.REG_DTTM
+        , A.MOD_USR_ID
+        , A.MOD_DTTM
+        FROM TB_IOT_S_DEV_ATB_SET A
+        INNER JOIN TB_IOT_CM_CD C
+        ON C.LANG_SET = #{langSet} AND A.DEV_ATTB_SET_CD_ID = C.CD_ID
+        WHERE 1=1
+        AND A.S_DEV_ATTB_SEQ = #{sDevAttbSeq}
+        AND A.SVC_CD = #{svcCd}
+        <if test="devAttbCdId != null and !devAttbCdId.equals('')">
+            AND A.SET_PARENT_CD_ID = #{devAttbCdId}
+        </if>
+        AND STATUS_CD = 'A'
+    </select>
+
+    <select id="retrieveSvcDevClsList" parameterType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevDTO"
+            resultType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevDTO">
+        SELECT DEV_CLS_CD, DEV_CLS_CD_NM
+        FROM TB_IOT_SVC_DEV_M
+        WHERE DEV_MDL_CD NOT LIKE 'LGE_%'
+        AND USE_YN = 'Y'
+        <if test="svcCd != null and !svcCd.equals('')">
+            AND SVC_CD = #{svcCd}
+        </if>
+        <if test="devClsCd != null and !devClsCd.equals('')">
+            AND DEV_CLS_CD = #{devClsCd}
+        </if>
+        <if test="statusCd != null and !statusCd.equals('')">
+            AND STATUS_CD = #{statusCd}
+        </if>
+        GROUP BY DEV_CLS_CD , DEV_CLS_CD_NM
+    </select>
+
+    <select id="retrieveSvcDevMdlList" parameterType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevDTO"
+            resultType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevDTO">
+        SELECT DEV_MDL_CD, DEV_MDL_NM
+        FROM TB_IOT_SVC_DEV_M
+        WHERE DEV_MDL_CD NOT LIKE 'LGE_%'
+        AND USE_YN = 'Y'
+        <if test="devClsCd != null and !devClsCd.equals('')">
+            AND DEV_CLS_CD = #{devClsCd}
+        </if>
+        <if test="devMdlCd != null and !devMdlCd.equals('')">
+            AND DEV_MDL_CD = #{devMdlCd}
+        </if>
+        <if test="svcCd != null and !svcCd.equals('')">
+            AND SVC_CD = #{svcCd}
+        </if>
+        <if test="statusCd != null and !statusCd.equals('')">
+            AND STATUS_CD = #{statusCd}
+        </if>
+        GROUP BY DEV_MDL_CD, DEV_MDL_NM
+    </select>
+
+
+    <select id="retrieveSDevSndColPeriodList" parameterType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevAtbDTO"
+            resultType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevAtbSetDTO">
+        SELECT  B.CD_NM AS devAttbSetCdNm,
+				A.DEV_ATTB_SET_VAL
+		FROM TB_IOT_S_DEV_ATB_SET A
+        INNER JOIN TB_IOT_CM_CD B
+        ON B.LANG_SET=#{langSet} AND A.DEV_ATTB_SET_CD_ID = B.CD_ID
+		WHERE A.S_DEV_ATTB_SEQ = (
+				SELECT S_DEV_ATTB_SEQ
+				FROM TB_IOT_S_DEV_ATB
+				WHERE DEV_CLS_CD = #{devClsCd}
+				AND DEV_MDL_CD = #{devMdlCd}
+				AND DEV_ATTB_CD_ID = #{devAttbCdId}
+			)
+			AND A.SET_PARENT_CD_ID =#{devSetAttbCdId}
+			AND A.STATUS_CD = 'A'
+		ORDER BY A.DEV_ATTB_SET_CD_ID
+	</select>
+
+    <select id="retrieveSDevColAttbList" parameterType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevDTO"
+            resultType="kr.co.scp.ccp.iotSDev.dto.TbIotSDevAtbDTO">
+		SELECT b.CD_NM as DEV_ATTB_CD_NM
+			 , a.COL_NM_CD
+		FROM TB_IOT_S_DEV_ATB a
+		INNER JOIN TB_IOT_CM_CD b
+			ON b.LANG_SET = #{langSet}
+			AND a.DEV_ATTB_CD_ID = b.CD_ID
+		WHERE a.COL_NM_CD IS NOT NULL
+		AND a.DEV_CLS_CD = #{devClsCd}
+		GROUP BY CD_NM, COL_NM_CD
+		ORDER BY COL_NM_CD
+	</select>
+</mapper>

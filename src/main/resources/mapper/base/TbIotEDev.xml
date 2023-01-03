@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.ccp.iotEDev.dao.IotEDevDAO">
+<!--
+	파일명    : /mapper/TbIotEdev.xml
+	작성일자 :
+	작성자    : 정병수
+	설명      : 삼천리 장비관리
+-->
+	<!-- 고객사 가입서비스: CTN으로 Ucube 고객정보 조회 -->
+	<select id="retrieveCustInfoByCtn" parameterType="kr.co.scp.ccp.iotCust.dto.TbIotCustDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO">
+		SELECT
+			  ENTR_DEV_SEQ
+			, HLDR_CUST_NO
+			, CUST_SEQ
+			, DEV_UUID
+			, CTN
+		 FROM TB_IOT_ENTR_DEV_M
+	    WHERE CTN = #{custTelNo}
+	</select>
+
+
+	<select id="retrieveIotEDev" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO">
+		SELECT
+				M.ENTR_DEV_SEQ ,
+			    M.DEV_CLS_CD ,
+			    S.DEV_CLS_CD_NM ,
+			    M.DEV_MDL_CD ,
+			    S.DEV_MDL_NM ,
+			    M.SVC_CD ,
+			    M.HLDR_CUST_NO ,
+			    M.STATUS_CD ,
+			    IFNULL((SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.PARENT_CD_ID = 'GN00000022' AND C.PARAM_KEY = M.STATUS_CD AND C.LANG_SET = #{charSet}), '') AS STATUS_NM ,
+			    M.EVENT_CODE ,
+			    M.IAG_EVENT_CODE ,
+			    M.ENTR_NO ,
+			    M.ACENO ,
+			    M.CHNG_BFR_PROD_NO ,
+			    M.PROD_NO ,
+			    M.ITEM_ID ,
+			    M.MANF_SERIAL_NO ,
+			    M.PREV_MANF_SERIAL_NO ,
+			    M.DEV_ESN ,
+			    M.CUST_SEQ ,
+			    M.ORG_SEQ ,
+			    IFNULL((SELECT O.ORG_NM FROM TB_IOT_ORG O WHERE O.ORG_SEQ = M.ORG_SEQ), '') AS ORG_NM ,
+			    M.DEV_UUID ,
+			    M.CTN ,
+			    M.DEV_UNAME ,
+			    M.MACHINE_NO ,
+			    M.USING_NO ,
+			    M.INST_NO ,
+			    M.DEV_BUILDING_NM,
+			    M.DEV_IMG_PATH ,
+			    M.DEV_IMG_FILE_NM ,
+			    M.BOOT_DTM ,
+			    M.COL_PERIOD ,
+			    M.COL_UNIT ,
+			    M.SND_PERIOD ,
+			    M.SND_UNIT ,
+			    DATE_FORMAT(M.DEV_REGI_DT, '%Y-%m-%d') AS devRegiDt,
+			    DATE_FORMAT(M.INST_DTTM, '%Y-%m-%d') AS instDttm,
+			    M.REG_USR_ID ,
+			    M.REG_DTTM ,
+			    M.MOD_USR_ID ,
+			    M.MOD_DTTM ,
+			    L.INST_ADDR ,
+			    L.INST_ADDR_DETAIL ,
+			    L.INST_LAT ,
+			    L.INST_LON
+			FROM
+				TB_IOT_ENTR_DEV_M M
+			LEFT OUTER JOIN TB_IOT_E_DEV_INS_LOC L
+			   ON  M.ENTR_DEV_SEQ = L.ENTR_DEV_SEQ
+			INNER JOIN TB_IOT_SVC_DEV_M S
+			   ON M.SVC_CD = S.SVC_CD AND M.DEV_CLS_CD = S.DEV_CLS_CD AND M.DEV_MDL_CD = S.DEV_MDL_CD
+		<where>
+			<if test="svcCd != null and !svcCd.equals('')">
+				AND		M.SVC_CD = #{svcCd}
+			</if>
+			<if test="custSeq!= null and !custSeq.equals('')">
+				AND		M.CUST_SEQ = #{custSeq}
+			</if>
+			<if test="devClsCd != null and devClsCd != 'all' ">
+				AND		M.DEV_CLS_CD = #{devClsCd}
+			</if>
+			<if test="devMdlCd != null and devMdlCd != 'all' ">
+				AND		M.DEV_MDL_CD = #{devMdlCd}
+			</if>
+			<if test="statusCd != null and statusCd != 'all' ">
+				AND		M.STATUS_CD = #{statusCd}
+			</if>
+			<if test="searchKey != null and searchKey != '' ">
+				<choose>
+                    <when test="searchType == 'ctn'">
+                        AND     M.CTN LIKE CONCAT('%',#{searchKey},'%')
+                    </when>
+                    <when test="searchType == 'devUname'">
+                        AND     M.DEV_UNAME LIKE CONCAT('%',#{searchKey},'%')
+                    </when>
+                    <when test="searchType == 'entityId'">
+                        AND     M.DEV_UUID LIKE CONCAT('%',#{searchKey},'%')
+                    </when>
+				</choose>
+			</if>
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				AND DATE_FORMAT(M.REG_DTTM,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{startDate},'%Y-%m-%d')
+	    													AND DATE_FORMAT(#{endDate},'%Y-%m-%d')
+			</if>
+		</where>
+		ORDER BY IFNULL(M.MOD_DTTM, M.REG_DTTM) DESC, M.ENTR_DEV_SEQ
+		LIMIT ${startPage - 1}, ${displayRowCount}
+	</select>
+
+	<select id="retrieveIotEDevTCnt" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO" resultType="java.lang.Integer">
+		SELECT COUNT(M.ENTR_DEV_SEQ)
+		  FROM TB_IOT_ENTR_DEV_M M
+		  LEFT OUTER JOIN TB_IOT_E_DEV_INS_LOC L
+		    ON  M.ENTR_DEV_SEQ = L.ENTR_DEV_SEQ
+		 INNER JOIN TB_IOT_SVC_DEV_M S
+		   ON M.SVC_CD = S.SVC_CD AND M.DEV_CLS_CD = S.DEV_CLS_CD AND M.DEV_MDL_CD = S.DEV_MDL_CD
+		<where>
+			<if test="svcCd != null and !svcCd.equals('') ">
+				AND		M.SVC_CD = #{svcCd}
+			</if>
+			<if test="custSeq!= null and !custSeq.equals('') ">
+				AND		M.CUST_SEQ = #{custSeq}
+			</if>
+			<if test="devClsCd != null and devClsCd != 'all' ">
+				AND		M.DEV_CLS_CD = #{devClsCd}
+			</if>
+			<if test="devMdlCd != null and devMdlCd != 'all' ">
+				AND		M.DEV_MDL_CD = #{devMdlCd}
+			</if>
+			<if test="statusCd != null and statusCd != 'all' ">
+				AND		M.STATUS_CD = #{statusCd}
+			</if>
+			<if test="searchKey != null and searchKey != '' ">
+				<choose>
+                    <when test="searchType == 'ctn'">
+                        AND     M.CTN LIKE CONCAT('%',#{searchKey},'%')
+                    </when>
+                    <when test="searchType == 'devUname'">
+                        AND     M.DEV_UNAME LIKE CONCAT('%',#{searchKey},'%')
+                    </when>
+					<when test="searchType == 'entityId'">
+						AND     M.DEV_UUID LIKE CONCAT('%',#{searchKey},'%')
+					</when>
+				</choose>
+			</if>
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				AND DATE_FORMAT(M.REG_DTTM,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{startDate},'%Y-%m-%d')
+	    													AND DATE_FORMAT(#{endDate},'%Y-%m-%d')
+			</if>
+		</where>
+	</select>
+
+	<select id="retrieveIotEDevAttb" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO">
+		  SELECT 	   B.ATTB_NM
+	           	,  B.DET_NM
+	           	,  B.DEV_VAL
+	 			,  C.SEND_MSG
+	      FROM   TB_IOT_ENTR_DEV_M A
+	            ,TB_IOT_E_DEV_CUR_VAL B
+	            ,TB_IOT_E_DEV_DET_SET C
+	      WHERE  1=1
+	        AND  A.ENTR_DEV_SEQ = B.ENTR_DEV_SEQ
+	        AND  B.ENTR_DEV_SEQ = C.DEV_DET_SET_SEQ
+	       	<if test = "devClsCdNm != null">
+	   			AND  DEV_CLS_CD_NM = #{devClsCdNm}
+	   		</if>
+			<if test = "devMdlNm == null">
+				AND  DEV_MDL_CD = #{devMdlCd}
+	   		</if>
+	   		<if test = "devMdlCd == null">
+				AND  DEV_MDL_NM = #{devMdlNm}
+	   		</if>
+	</select>
+
+	<!-- <select id="retrieveIotEDevAddr"
+		parameterType="tbIotEDevDTO" resultType="tbIotEDevDTO">
+    SELECT   G.CUST_SEQ
+            ,G.ORG_NM
+            ,G.ORG_LVL
+            ,G.ORG_ORDER
+            ,G.USE_YN
+            ,G.ORG_PATH
+      FROM
+            TB_IOT_E_DEV_DET_SET C
+           ,TB_IOT_E_DEV_DET_SMS D
+           ,TB_IOT_USR_M E
+           ,TB_IOT_CUST F
+           ,TB_IOT_ORG G
+     WHERE  1=1
+       AND  C.E_DEV_DET_SET_SEQ = D.E_DEV_DET_SET_SEQ
+       AND  D.USR_SEQ = E.USR_SEQ
+       AND  E.CUST_SEQ = F.CUST_SEQ
+       AND  F.CUST_SEQ = G.CUST_SEQ
+          <if test = "devClsCdNm != null">
+   AND  DEV_CLS_CD_NM = #{devClsCdNm}
+   </if>
+   <if test = "devMdlNm == null">
+      AND  DEV_MDL_CD = #{devMdlCd}
+   </if>
+   <if test = "devMdlCd == null">
+      AND  DEV_MDL_NM = #{devMdlNm}
+   </if>
+	</select>
+
+		<select id="retrieveIotEDevSend"
+		parameterType="tbIotEDevDTO" resultType="tbIotEDevDTO">
+       SELECT  C.SEND_MSG
+               ,C.SEND_FUBUN
+         FROM  TB_IOT_ENTR_DEV_M A
+              ,TB_IOT_DEV_ATB_VAL B
+              ,TB_IOT_E_DEV_DET_SET C
+        WHERE  1=1
+          AND  A.ENTR_DEV_SEQ = B.ENTR_DEV_SEQ
+          AND  B.ENTR_DEV_SEQ = C.ENTR_DEV_SEQ
+             	<if test="devClsCdNm == null">
+       				   <if test ="devMdlCd != null">
+       				    AND A.DEV_MDL_CD = #{devMdlCd}
+       				   </if>
+       				   <if test ="devMdlNm != null">
+       				    AND A.DEV_MDL_NM = #{devMdlNm}
+       				   </if>
+       		</if>
+       		<if test="devClsCdNm != null">
+       		        AND  A.DEV_CLS_CD_NM = #{devClsCdNm}
+       		       <if test ="devMdlCd != null">
+       				    AND  A.DEV_MDL_CD = #{devMdlCd}
+       				   </if>
+       				   <if test ="devMdlNm != null">
+       				    AND  A.DEV_MDL_NM = #{devMdlNm}
+       				   </if>
+       		</if>
+	</select> -->
+
+	<!-- 템플릿 헤더 동적 조회 -->
+	<select id="retrieveTemplateList" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDetHistDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDetHistDTO">
+		SELECT A.COL_NAME_DATA , A.COL_MODEL_DATA
+	   	FROM TB_IOT_TMPL_HDR_GRID A, TB_IOT_PROG C , TB_IOT_TMPL D
+	   	WHERE A.TMPL_SEQ = D.TMPL_SEQ
+		  AND D.PROG_SEQ = C.PROG_SEQ
+		  AND A.LANG_SET = #{charSet}
+		  AND C.PROG_ID = #{progId}
+		  AND A.DEV_CLS_CD = #{devClsCd}
+       	ORDER BY A.COL_ORDER,A.TMPL_HDR_ATTB_SEQ
+	</select>
+
+	<!-- 장비 유형 목록 조회 -->
+	<select id="retrieveIotDevCls" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDetHistDTO">
+		SELECT CD_ID AS "devClsCd"
+			 , CD_NM AS "devClsCdNm"
+		 FROM TB_IOT_CM_CD
+		WHERE PARENT_CD_ID = 'SD00000002'
+		ORDER BY CD_NM != '전체' ASC
+	</select>
+
+	<!-- 장애 수준 목록 조회 -->
+	<select id="retrieveIotDetStatus" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDetHistDTO">
+		SELECT CD_ID AS "detStatusCd"
+	 		 , CD_NM AS "detStatusNm"
+		FROM TB_IOT_CM_CD
+		WHERE PARENT_CD_ID = 'GN00000049'
+	</select>
+
+	<!-- 장비 모델 목록 조회 -->
+	<select id="retrieveDevMdlList" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDetHistDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDetHistDTO">
+		SELECT DEV_MDL_CD AS "devMdlCd"
+			 , DEV_MDL_NM AS "devMdlNm"
+		  FROM TB_IOT_SVC_DEV_M
+		 <where>
+			 <if test="custSeq != null and !custSeq.equals('')" >
+			   AND CUST_SEQ = #{custSeq}
+			 </if>
+			 <if test="svcCd != null and !svcCd.equals('')" >
+			   AND SVC_CD = #{svcCd}
+			 </if>
+			 <if test="devClsCd != null and !devClsCd.equals('')" >
+			   AND DEV_CLS_CD = #{devClsCd}
+	   		 </if>
+   		 </where>
+	</select>
+
+	<!-- 장애이력 데이터 조회 -->
+	<select id="retrieveIotEntrDevDetList" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDetHistDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDetHistDTO">
+		SELECT
+			DATE_FORMAT(HIST.COL_DATE, '%Y-%m-%d %H:%i:%s') COL_DATE,
+			M.CTN,
+            M.USING_NO,
+            CD_CLS.CD_NM  DEV_CLS_CD_NM,
+            CD_DET.CD_NM DET_STATUS_NM,
+            HIST.COMMAND,
+		    CD_COMM.CD_NM COMM_STATUS_NM,
+		    HIST.DET_SET_DESC,
+		    LOC.INST_ADDR,
+		    CD_MDL.DEV_MDL_NM DEV_MDL_NM,
+		    HIST.ATTB_VL01,
+		    HIST.ATTB_VL02,
+		    HIST.ATTB_VL03,
+		    HIST.ATTB_VL04,
+		    HIST.ATTB_VL05,
+		    HIST.ATTB_VL06,
+		    HIST.ATTB_VL07,
+		    HIST.ATTB_VL08,
+		    HIST.ATTB_VL09,
+		    HIST.ATTB_VL10,
+		    HIST.ATTB_VL11,
+		    HIST.ATTB_VL12,
+		    HIST.ATTB_VL13,
+		    HIST.ATTB_VL14,
+		    HIST.ATTB_VL15,
+		    HIST.ATTB_VL16,
+		    HIST.ATTB_VL17,
+		    HIST.ATTB_VL18,
+		    HIST.ATTB_VL19,
+		    HIST.ATTB_VL20,
+		    HIST.ATTB_VL21,
+		    HIST.ATTB_VL22,
+		    HIST.ATTB_VL23,
+		    HIST.ATTB_VL24,
+		    HIST.ATTB_VL25,
+		    HIST.ATTB_VL26,
+		    HIST.ATTB_VL27,
+		    HIST.ATTB_VL28,
+		    HIST.ATTB_VL29,
+		    HIST.ATTB_VL30,
+		    (SELECT CMCD2.CD_NM
+				FROM TB_IOT_CM_CD CMCD1, TB_IOT_CM_CD CMCD2
+				WHERE CMCD1.PARENT_CD_ID = (SELECT CD_ID FROM TB_IOT_CM_CD WHERE PARAM_VAL = #{devClsCd} AND PARENT_CD_ID = 'CM00000002')
+				AND CMCD1.PARAM_KEY = HIST.COMMAND
+				AND CMCD1.PARAM_VAL = CMCD2.CD_ID
+				AND CMCD2.LANG_SET = #{langSet}
+				AND CMCD1.LANG_SET = #{langSet}
+			) AS SPEC_DV_NM
+			FROM 	TB_IOT_ENTR_DEV_M M
+			INNER JOIN TB_IOT_E_DEV_INS_LOC LOC
+				ON M.ENTR_DEV_SEQ = LOC.ENTR_DEV_SEQ
+			INNER JOIN TB_IOT_E_DET_HIST HIST
+				ON M.ENTR_DEV_SEQ = HIST.ENTR_DEV_SEQ
+			LEFT OUTER JOIN TB_IOT_CM_CD CD_DET
+				ON HIST.DET_STATUS_CD_ID = CD_DET.CD_ID
+			LEFT OUTER JOIN TB_IOT_CM_CD CD_COMM
+				ON HIST.COMM_STATUS_CD_ID = CD_COMM.CD_ID
+			LEFT OUTER JOIN TB_IOT_SVC_DEV_M CD_MDL
+				ON M.DEV_MDL_CD = CD_MDL.DEV_MDL_CD
+			LEFT OUTER JOIN TB_IOT_CM_CD CD_CLS
+				ON M.DEV_CLS_CD = CD_CLS.CD_ID
+				AND CD_CLS.LANG_SET = #{langSet}
+			WHERE 1=1
+			  AND (HIST.COMMAND IN (SELECT DISTINCT PARAM_KEY FROM TB_IOT_CM_CD WHERE PARAM_VAL IN ('CM00000015', 'CM00000016', 'CM00000017')) OR  HIST.COMMAND='99')
+			<if test="custSeq != null">
+		    	AND HIST.CUST_SEQ = #{custSeq}
+    		</if>
+			<if test="devClsCd != null and devClsCd != 'C000071'">
+		    	AND M.DEV_CLS_CD = #{devClsCd}
+    		</if>
+		    <if test="devMdlCd != null">
+		    	AND M.DEV_MDL_CD = #{devMdlCd}
+    		</if>
+    		<if test="detStatusCd != null">
+		    	AND HIST.DET_STATUS_CD_ID = #{detStatusCd}
+    		</if>
+    		<if test="usingNo != null">
+		    	AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+    		</if>
+    		<if test="ctn != null">
+		    	AND M.CTN LIKE CONCAT(#{ctn},'%')
+    		</if>
+    		<if test="devUname != null">
+		    	AND M.DEV_UNAME LIKE CONCAT(#{devUname},'%')
+    		</if>
+    		<if test="searchStartDttm != null and searchEndDttm != null">
+				AND DATE_FORMAT(HIST.COL_DATE,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{searchStartDttm},'%Y-%m-%d')
+    													AND DATE_FORMAT(#{searchEndDttm},'%Y-%m-%d')
+			</if>
+			<if test="searchStartDttm != null">
+				AND DATE_FORMAT(HIST.COL_DATE,'%Y-%m-%d') <![CDATA[ <= ]]> DATE_FORMAT(NOW(),'%Y-%m-%d')
+			</if>
+    	ORDER BY HIST.COL_DATE DESC
+    	<if test="startPage != 0 and displayRowCount != 0">
+		LIMIT #{startPage} - 1, #{displayRowCount}
+		</if>
+	</select>
+
+	<!-- 장애이력 갯수 조회 -->
+	<select id="retrieveIotEntrDevDetCount" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDetHistDTO" resultType="java.lang.Integer">
+
+		SELECT
+			COUNT(1)
+		FROM 	TB_IOT_ENTR_DEV_M M
+		INNER JOIN TB_IOT_E_DEV_INS_LOC LOC
+			ON M.ENTR_DEV_SEQ = LOC.ENTR_DEV_SEQ
+		INNER JOIN TB_IOT_E_DET_HIST HIST
+			ON M.ENTR_DEV_SEQ = HIST.ENTR_DEV_SEQ
+		LEFT OUTER JOIN TB_IOT_CM_CD CD_DET
+			ON HIST.DET_STATUS_CD_ID = CD_DET.CD_ID
+			AND CD_DET.LANG_SET = #{langSet}
+		WHERE 1=1
+		    AND (HIST.COMMAND IN (SELECT DISTINCT PARAM_KEY FROM TB_IOT_CM_CD WHERE PARAM_VAL IN ('CM00000015', 'CM00000016', 'CM00000017')) OR  HIST.COMMAND='99')
+		    <if test="custSeq != null">
+		    	AND HIST.CUST_SEQ = #{custSeq}
+    		</if>
+		    <if test="devClsCd != null and devClsCd != 'C000071'">
+		    	AND M.DEV_CLS_CD = #{devClsCd}
+    		</if>
+		    <if test="devMdlCd != null">
+		    	AND M.DEV_MDL_CD = #{devMdlCd}
+    		</if>
+    		<if test="detStatusCd != null">
+		    	AND HIST.DET_STATUS_CD_ID = #{detStatusCd}
+    		</if>
+    		<if test="usingNo != null">
+		    	AND M.USING_NO LIKE CONCAT('%',#{usingNo},'%')
+    		</if>
+    		<if test="ctn != null">
+		    	AND M.CTN LIKE CONCAT('%',#{ctn},'%')
+    		</if>
+    		<if test="devUname != null">
+		    	AND M.DEV_UNAME LIKE CONCAT('%',#{devUname},'%')
+    		</if>
+    		<if test="searchStartDttm != null and searchEndDttm != null">
+				AND DATE_FORMAT(HIST.COL_DATE,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{searchStartDttm},'%Y-%m-%d')
+    													AND DATE_FORMAT(#{searchEndDttm},'%Y-%m-%d')
+			</if>
+			<if test="searchStartDttm != null">
+				AND DATE_FORMAT(HIST.COL_DATE,'%Y-%m-%d') <![CDATA[ <= ]]> DATE_FORMAT(NOW(),'%Y-%m-%d')
+			</if>
+	</select>
+
+
+	<select id="retrieveEntrDevDownInfo" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO">
+		SELECT
+                  M.ENTR_DEV_SEQ
+				, M.DEV_CLS_CD
+                , CD_CLS.CD_NM  DEV_CLS_CD_NM
+				, M.DEV_MDL_CD
+			    , CD_MDL.DEV_MDL_NM DEV_MDL_NM
+				, M.SVC_CD
+				, M.ORG_SEQ
+				, IFNULL((SELECT O.ORG_NM FROM TB_IOT_ORG O WHERE O.ORG_SEQ = M.ORG_SEQ), '') AS ORG_NM
+				, M.DEV_UUID
+				, M.USING_NO
+				, L.INST_ADDR
+				, L.INST_ADDR_DETAIL
+				, L.INST_LAT
+				, L.INST_LON
+				, M.INST_NO
+				, M.MACHINE_NO
+				, M.DEV_REGI_DT
+				, M.INST_DTTM
+				, M.ACENO
+				, M.PROD_NO
+				, M.CHNG_BFR_PROD_NO
+				, M.HLDR_CUST_NO
+				, M.ENTR_NO
+				, M.EVENT_CODE
+				, M.IAG_EVENT_CODE
+				, M.DEV_ESN
+				, M.MANF_SERIAL_NO
+				, M.ITEM_ID
+				, M.PREV_MANF_SERIAL_NO
+		FROM TB_IOT_ENTR_DEV_M M
+		LEFT OUTER JOIN TB_IOT_E_DEV_INS_LOC L
+		ON M.ENTR_DEV_SEQ = L.ENTR_DEV_SEQ
+		LEFT OUTER JOIN TB_IOT_ORG O
+		ON O.ORG_SEQ = M.ORG_SEQ
+		LEFT OUTER JOIN TB_IOT_SVC_DEV_M CD_MDL
+		ON M.DEV_MDL_CD = CD_MDL.DEV_MDL_CD
+		LEFT OUTER JOIN TB_IOT_CM_CD CD_CLS
+		ON M.DEV_CLS_CD = CD_CLS.CD_ID
+ 		<where>
+ 			<if test="devClsCd != null and devClsCd != 'all' ">
+				AND		M.DEV_CLS_CD = #{devClsCd}
+			</if>
+			<if test="devMdlCd != null and devMdlCd != 'all' ">
+				AND		M.DEV_MDL_CD = #{devMdlCd}
+			</if>
+			<if test="searchKey != null and !searchKey.equals('') ">
+				<choose>
+                    <when test="searchType == 'manfSerialNo'">
+                        AND     M.MANF_SERIAL_NO = #{searchKey}
+                    </when>
+                    <when test="searchType == 'ctn'">
+                        AND     M.CTN = #{searchKey}
+                    </when>
+                    <when test="searchType == 'devUname'">
+                        AND     M.DEV_UNAME = #{searchKey}
+                    </when>
+				</choose>
+			</if>
+			<if test="startDate != null and !startDate.equals('') and endDate != null and !endDate.equals('')">
+				AND DATE_FORMAT(M.REG_DTTM,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{startDate},'%Y-%m-%d')
+	    													AND DATE_FORMAT(#{endDate},'%Y-%m-%d')
+			</if>
+ 		</where>
+	</select>
+
+    <!-- 장비등록 목록갯수 (출입관리기) -->
+    <select id="retrieveIotEDevTCntDoor" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO" resultType="java.lang.Integer">
+        SELECT COUNT(M.ENTR_DEV_SEQ)
+          FROM TB_IOT_ENTR_DEV_M M
+         INNER JOIN TB_IOT_SVC_DEV_M S ON M.SVC_CD = S.SVC_CD AND M.DEV_CLS_CD = S.DEV_CLS_CD AND M.DEV_MDL_CD = S.DEV_MDL_CD
+        <where>
+            <if test="svcCd != null and !svcCd.equals('') ">
+                AND     M.SVC_CD = #{svcCd}
+            </if>
+            <if test="custSeq!= null and !custSeq.equals('') ">
+                AND     M.CUST_SEQ = #{custSeq}
+            </if>
+            <if test="devClsCd != null and devClsCd != 'all' ">
+                AND     M.DEV_CLS_CD = #{devClsCd}
+            </if>
+            <if test="devMdlCd != null and devMdlCd != 'all' ">
+                AND     M.DEV_MDL_CD = #{devMdlCd}
+            </if>
+            <if test="statusCd != null and statusCd != 'all' ">
+                AND     M.STATUS_CD = #{statusCd}
+            </if>
+            <if test="searchKey != null and searchKey != '' ">
+                <choose>
+                    <when test="searchType == 'manfSerialNo'">
+                        AND     M.MANF_SERIAL_NO = #{searchKey}
+                    </when>
+                    <when test="searchType == 'ctn'">
+                        AND     M.CTN = #{searchKey}
+                    </when>
+                    <when test="searchType == 'devUname'">
+                        AND     M.DEV_UNAME = #{searchKey}
+                    </when>
+                </choose>
+            </if>
+            <if test="startDate != null and !startDate.equals('') and endDate != null and !endDate.equals('')">
+                AND M.DEV_REGI_DT BETWEEN TO_DATE(REPLACE(#{startDate},'-', '') || '000000', 'YYYYMMDDHH24MISS') AND TO_DATE(REPLACE(#{endDate}, '-', '') || '235959', 'YYYYMMDDHH24MISS')
+            </if>
+        </where>
+    </select>
+
+    <!-- 장비등록 목록조회 (출입관리기) -->
+    <select id="retrieveIotEDevDoor" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO">
+        SELECT M.ENTR_DEV_SEQ
+             , M.CTN
+             , M.MANF_SERIAL_NO
+             , M.DEV_CLS_CD
+             , S.DEV_CLS_CD_NM
+             , M.DEV_MDL_CD
+             , S.DEV_MDL_NM
+             , M.SVC_CD
+             , M.STATUS_CD
+             , NVL((SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.PARENT_CD_ID = 'GN00000022' AND C.PARAM_KEY = M.STATUS_CD AND C.LANG_SET = #{charSet}), '') AS STATUS_NM
+             , M.DEV_UUID
+             , M.CUST_SEQ
+             , M.ORG_SEQ
+             , M.DEV_UNAME
+             , M.USING_NO
+             , M.INST_NO
+             , M.MACHINE_NO
+             , TO_CHAR(M.DEV_REGI_DT, 'YYYY-MM-DD') AS devRegiDt
+             , TO_CHAR(M.INST_DTTM, 'YYYY-MM-DD') AS instDttm
+             , M.REG_USR_ID
+             , M.REG_DTTM
+             , M.MOD_USR_ID
+             , M.MOD_DTTM
+          FROM TB_IOT_ENTR_DEV_M M
+         INNER JOIN TB_IOT_SVC_DEV_M S ON M.SVC_CD = S.SVC_CD AND M.DEV_CLS_CD = S.DEV_CLS_CD AND M.DEV_MDL_CD = S.DEV_MDL_CD
+        <where>
+            <if test="svcCd != null and !svcCd.equals('') ">
+                AND     M.SVC_CD = #{svcCd}
+            </if>
+            <if test="custSeq!= null and !custSeq.equals('') ">
+                AND     M.CUST_SEQ = #{custSeq}
+            </if>
+            <if test="devClsCd != null and devClsCd != 'all' ">
+                AND     M.DEV_CLS_CD = #{devClsCd}
+            </if>
+            <if test="devMdlCd != null and devMdlCd != 'all' ">
+                AND     M.DEV_MDL_CD = #{devMdlCd}
+            </if>
+            <if test="statusCd != null and statusCd != 'all' ">
+                AND     M.STATUS_CD = #{statusCd}
+            </if>
+            <if test="searchKey != null and searchKey != '' ">
+                <choose>
+                    <when test="searchType == 'manfSerialNo'">
+                        AND     M.MANF_SERIAL_NO = #{searchKey}
+                    </when>
+                    <when test="searchType == 'ctn'">
+                        AND     M.CTN = #{searchKey}
+                    </when>
+                    <when test="searchType == 'devUname'">
+                        AND     M.DEV_UNAME = #{searchKey}
+                    </when>
+                </choose>
+            </if>
+            <if test="startDate != null and !startDate.equals('') and endDate != null and !endDate.equals('')">
+                AND M.DEV_REGI_DT BETWEEN TO_DATE(REPLACE(#{startDate},'-', '') || '000000', 'YYYYMMDDHH24MISS') AND TO_DATE(REPLACE(#{endDate}, '-', '') || '235959', 'YYYYMMDDHH24MISS')
+            </if>
+        </where>
+        ORDER BY M.ENTR_DEV_SEQ DESC
+        <if test="startPage != 0 and displayRowCount != 0">
+        LIMIT #{startPage} - 1, #{displayRowCount}
+        </if>
+    </select>
+</mapper>

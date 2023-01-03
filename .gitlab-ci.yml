@@ -1,0 +1,63 @@
+image: docker:latest
+services:
+  - docker:dind
+
+stages:
+  - job
+#  - build
+#  - package
+#  - deploy
+
+variables:
+  DOCKER_HOST: tcp://172.17.0.1:2375
+  IMAGE_VERSION : 0.0.1
+  IMAGE_NAME: slc.conv.site:13206/scp:$IMAGE_VERSION
+
+cache:
+  paths:
+    - .gradle/wrapper
+    - .gradle/caches
+
+job:
+  script: echo 'test'
+  only:
+    - merge_requests
+
+#package:
+#  stage: build
+#  image: gradle:jdk11
+#  script:
+#    - pwd
+#    - gradle bootJar
+#  artifacts:
+#    paths:
+#      - build/libs/scp.jar
+#  only:
+#    - merge_requests
+#    - master
+#
+#build:
+#  stage: package
+#  script:
+#    - ls -al
+#    - docker container ls -a
+##    - docker rmi $(docker images -f "dangling=true" -q)
+#    - docker build . -t $IMAGE_NAME
+#    - docker push $IMAGE_NAME
+#    - docker images | grep 'scp'
+#  only:
+#    - merge_requests
+#    - master
+#
+#deploy:
+#  stage: deploy
+#  script:
+#    - docker container ls -a
+##    - docker container rmi $(docker images -f "dangling=true" -q)
+#    - docker container stop scp
+#    - docker container rm scp
+#    - docker run --restart always -v /root/apps/files:/files -v /root/apps/scp/logs:/logs -itd -p 8800:8800 --env JAVA_OPTS='-Dspring.profiles.active=local -Dlogging.level.root=info -Djava.net.preferIPv4Stack=true -DloggerPathFile=/logs/scp/scp.log -DloggerPath=/logs/scp -Dfile.encoding=UTF-8' -t --name scp $IMAGE_NAME
+#    - docker container ls -a
+#  only:
+#    - merge_requests
+#    - master

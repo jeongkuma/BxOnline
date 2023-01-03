@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.common.iotCmCd.dao.IotCmCdDAO">
+<!--
+	파일명    : /mapper/TbIotCmcd.xml
+	작성일자 : 2019-04.02
+	작성자    : 지정호
+	설명      : 공통코드 관리
+-->
+
+	<!--  공통코드 조회	-->
+	<select id="retrieveIotCmCd" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO">
+		SELECT
+			  a.CD_SEQ
+			, a.LANG_SET
+			, a.CD_ID
+			, a.CD_NM
+			, a.CD_DESC
+			, a.USE_YN
+			, a.PARENT_CD_ID
+			, d.CD_NM AS LEVEL1
+            , c.CD_NM AS LEVEL2
+            , b.CD_NM AS PARENT_CD_NM
+			, a.FIRST_CD_ID
+			, a.LVL
+			, a.CD_ORDER
+			, a.PARAM_KEY
+			, a.PARAM_VAL
+			, CASE
+				WHEN a.MOD_DTTM IS NULL THEN DATE_FORMAT(a.REG_DTTM,'%Y-%m-%d %H:%i:%S')
+				ELSE DATE_FORMAT(a.MOD_DTTM,'%Y-%m-%d %H:%i:%S')
+			  END AS REG_DTTM
+			, CASE
+				WHEN a.MOD_USR_ID IS NULL THEN a.REG_USR_ID
+				ELSE a.MOD_USR_ID
+			  END AS REG_USR_ID
+		 FROM TB_IOT_CM_CD a
+		 LEFT OUTER JOIN TB_IOT_CM_CD b ON b.CD_ID = a.PARENT_CD_ID AND b.LANG_SET = #{langSet}
+		 LEFT OUTER JOIN TB_IOT_CM_CD c ON c.CD_ID = b.PARENT_CD_ID AND c.LANG_SET = #{langSet}
+         LEFT OUTER JOIN TB_IOT_CM_CD d ON d.CD_ID = c.PARENT_CD_ID AND d.LANG_SET = #{langSet}
+		<where>
+		AND a.LANG_SET = #{langSet}
+			<if test=" useYn != 'all' ">
+			  AND a.USE_YN = #{useYn}
+			</if>
+			<choose>
+				<when test=" searchCon == 'parentCdNm'">
+					<if test=" null != searchVal">
+						AND a.PARENT_CD_ID IN
+										 (
+											(SELECT b.CD_ID
+											  FROM TB_IOT_CM_CD b
+										     WHERE b.CD_NM LIKE CONCAT(#{searchVal}, '%')
+										     )
+										 )
+					</if>
+				</when>
+				<when test=" searchCon == 'parentCdId' ">
+					<if test=" null != searchVal">
+				    	AND a.PARENT_CD_ID = #{searchVal}
+				    </if>
+				</when>
+				<when test=" searchCon == 'cdNm' ">
+					<if test=" null != searchVal">
+				    	AND a.CD_NM LIKE CONCAT(#{searchVal}, '%')
+				    </if>
+				</when>
+				<when test=" searchCon == 'code' ">
+					<if test=" null != searchVal">
+						AND a.CD_ID = #{searchVal}
+					</if>
+				</when>
+			</choose>
+		</where>
+		ORDER BY IFNULL(a.MOD_DTTM, a.REG_DTTM) DESC,  a.PARENT_CD_ID ASC, a.CD_ORDER ASC
+		LIMIT ${currentPage-1}, ${displayRowCount}
+	</select>
+
+	<!--  공통코드 조회	(페이징용)-->
+	<select id="retrieveIotCmCdCount" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="java.lang.Integer">
+		SELECT
+			  COUNT(a.CD_SEQ)
+		 FROM TB_IOT_CM_CD a
+		 LEFT OUTER JOIN TB_IOT_CM_CD b ON b.CD_ID = a.PARENT_CD_ID AND b.LANG_SET = #{langSet}
+		 LEFT OUTER JOIN TB_IOT_CM_CD c ON c.CD_ID = b.PARENT_CD_ID AND c.LANG_SET = #{langSet}
+         LEFT OUTER JOIN TB_IOT_CM_CD d ON d.CD_ID = c.PARENT_CD_ID AND d.LANG_SET = #{langSet}
+		<where>
+		AND a.LANG_SET = #{langSet}
+			<if test=" useYn != 'all' ">
+			  AND a.USE_YN = #{useYn}
+			</if>
+			<choose>
+				<when test=" searchCon == 'parentCdNm'">
+					<if test=" null != searchVal">
+						AND a.PARENT_CD_ID IN
+										 (
+											(SELECT b.CD_ID
+											  FROM TB_IOT_CM_CD b
+										     WHERE b.CD_NM LIKE CONCAT(#{searchVal}, '%')
+										     )
+										 )
+					</if>
+				</when>
+				<when test=" searchCon == 'parentCdId' ">
+					<if test=" null != searchVal">
+				    	AND a.PARENT_CD_ID = #{searchVal}
+				    </if>
+				</when>
+				<when test=" searchCon == 'cdNm' ">
+					<if test=" null != searchVal">
+				    	AND a.CD_NM LIKE CONCAT(#{searchVal}, '%')
+				    </if>
+				</when>
+				<when test=" searchCon == 'cdId' ">
+					<if test=" null != searchVal">
+						AND a.CD_ID = #{searchVal}
+					</if>
+				</when>
+			</choose>
+		</where>
+	</select>
+
+	<!-- 공통코드 seq로 조회  -->
+	<select id="retrieveIotCmCdById" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdUDTO">
+		SELECT
+			  a.CD_SEQ
+			, a.LANG_SET
+			, a.CD_ID
+			, a.CD_NM
+			, a.CD_DESC
+			, a.USE_YN
+			, CASE
+                 WHEN a.USE_YN = 'Y' then '사용'
+                 WHEN a.USE_YN = 'N' then '미사용'
+                 WHEN a.USE_YN = 'T' then '테스트'
+              END AS USE_YN_VAL
+			, a.PARENT_CD_ID
+            , d.CD_NM AS LEVEL1
+            , c.CD_NM AS LEVEL2
+            , b.CD_NM AS PARENT_CD_NM
+			, a.FIRST_CD_ID
+			, a.CD_ORDER
+			, a.PARAM_KEY
+			, a.PARAM_VAL
+			, a.MOD_USR_ID
+			, a.lvl
+		 FROM TB_IOT_CM_CD a
+ 		 LEFT OUTER JOIN TB_IOT_CM_CD b ON b.CD_ID = a.PARENT_CD_ID AND b.LANG_SET = #{langSet}
+		 LEFT OUTER JOIN TB_IOT_CM_CD c ON c.CD_ID = b.PARENT_CD_ID AND c.LANG_SET = #{langSet}
+         LEFT OUTER JOIN TB_IOT_CM_CD d ON d.CD_ID = c.PARENT_CD_ID AND d.LANG_SET = #{langSet}
+		WHERE a.CD_SEQ = #{cdSeq}
+	</select>
+
+	<!-- 공통코드 코드값으로 조회  -->
+	<select id="retrieveIotCmCdByCdId" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdUDTO">
+		SELECT
+			  CD_SEQ
+			, LANG_SET
+			, CD_ID
+			, CD_NM
+			, CD_DESC
+			, USE_YN
+			, CASE
+                 WHEN USE_YN = 'Y' then '사용'
+                 WHEN USE_YN = 'N' then '미사용'
+                 WHEN USE_YN = 'T' then '테스트'
+              END AS USE_YN_VAL
+			, PARENT_CD_ID
+			, FIRST_CD_ID
+			, CD_ORDER
+			, PARAM_KEY
+			, PARAM_VAL
+			, MOD_USR_ID
+		 FROM TB_IOT_CM_CD
+		WHERE CD_ID = #{cdId}
+		  <if test="langSet != 'skip'">
+		  	AND LANG_SET = #{langSet}
+		  </if>
+	</select>
+
+	<!-- 공통코드 화면: 부모코드 조회 -->
+	<select id="retrieveIotParentCmCd" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdPDTO">
+		SELECT
+			  CD_SEQ
+			, CD_ID
+			, CD_NM
+ 			, PARENT_CD_ID
+			, FIRST_CD_ID
+		 FROM TB_IOT_CM_CD
+		WHERE USE_YN = 'Y'
+       	  AND LANG_SET = #{langSet}
+		<if test=" lvl == 1 ">
+			AND PARENT_CD_ID IS NULL
+			AND FIRST_CD_ID  IS NULL
+		</if>
+		<if test=" lvl == 2 ">
+			AND FIRST_CD_ID  = #{firstCdId}
+			AND PARENT_CD_ID  = #{firstCdId}
+		</if>
+		<if test=" lvl == 3 ">
+			AND PARENT_CD_ID = #{parentCdId}
+		    AND FIRST_CD_ID  = #{firstCdId}
+		</if>
+		<if test=" lvl == 4 ">
+			AND PARENT_CD_ID = #{parentCdId}
+		    <!-- AND FIRST_CD_ID  = #{firstCdId} -->
+		</if>
+		<if test=" lvl == 5 ">
+			AND PARENT_CD_ID = #{parentCdId}
+		    <!-- AND FIRST_CD_ID  = #{firstCdId} -->
+		</if>
+		ORDER BY CD_ORDER
+	</select>
+
+	<!-- 부모코드 조회 -->
+	<select id="retrieveIotByParentCmCd" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO">
+		SELECT
+		      A.CD_ID
+			, A.CD_SEQ
+			, A.CD_NM
+ 			, A.PARENT_CD_ID
+			, A.FIRST_CD_ID
+			, A.PARAM_KEY
+			, (SELECT COUNT(*)
+		         FROM TB_IOT_CM_CD
+		         WHERE PARENT_CD_ID  = A.CD_ID
+		           AND LANG_SET = #{langSet}
+	           ) AS childrenCnt
+		 FROM TB_IOT_CM_CD A
+		WHERE USE_YN = 'Y'
+		  AND LANG_SET     = #{langSet}
+		  AND PARENT_CD_ID = #{parentCdId}
+		  <if test=" lvl == 2">
+		  	AND CD_ID NOT IN ('GN00000038')
+		  </if>
+		  <if test=" lvl == 3">
+		  	AND CD_ID NOT IN ('GN00000033', 'GN00000038')
+		  </if>
+		  <if test=" lvl == 4">
+		  	AND CD_ID NOT IN ('GN00000033', 'GN00000034', 'GN00000038')
+		  </if>
+		  <if test=" lvl == 5">
+		  	AND CD_ID NOT IN ('GN00000033', 'GN00000034', 'GN00000035', 'GN00000036', 'GN00000038')
+		  </if>
+		ORDER BY CD_ORDER
+	</select>
+
+	<!-- 부모코드 조회 -->
+	<select id="retrieveIotByParentCmCdOnly" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="java.util.HashMap">
+		SELECT CD_ID AS cdId
+		     , CD_NM AS cdNm
+		     , CD_ORDER  AS cdOrder
+		 FROM TB_IOT_CM_CD
+		WHERE USE_YN = 'Y'
+		  AND PARENT_CD_ID = #{parentCdId}
+		  AND LANG_SET     = #{langSet}
+		  ORDER BY CD_ORDER
+	</select>
+
+
+	<!-- 부모코드 조회 -->
+	<select id="retrieveIotByParentCmCdTwo" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO" resultType="java.util.HashMap">
+		SELECT 'A' AS userOrder
+		     , CD_ID AS cdId
+		     , CD_NM AS cdNm
+		     , CD_ORDER AS cdOrder
+		  FROM TB_IOT_CM_CD
+		 WHERE USE_YN = 'Y'
+		   AND PARENT_CD_ID = #{parentCdId1}
+		   AND LANG_SET = #{langSet}
+		 UNION
+		 SELECT 'A' AS userOrder
+		     , CD_ID AS cdId
+		     , CD_NM AS cdNm
+		     , CD_ORDER AS cdOrder
+		  FROM TB_IOT_CM_CD
+		 WHERE USE_YN = 'Y'
+		   AND PARENT_CD_ID = #{parentCdId2}
+		   AND LANG_SET     = #{langSet}
+		 ORDER BY userOrder, cdOrder
+	</select>
+
+
+	<!-- 부모코드 조회 ( 실행 파일 ) -->
+	<select id="retrieveIotByParentCmCdRuntime" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT PARAM_KEY AS CD_ID
+			 , CD_NM
+			 , CD_ORDER
+		 FROM TB_IOT_CM_CD
+		WHERE USE_YN = 'Y'
+		  AND PARENT_CD_ID = #{parentCdId}
+		  AND LANG_SET     = #{langSet}
+	    ORDER BY CD_ORDER
+	</select>
+
+	<!-- 공통코드 신규  -->
+	<insert id="createIotCmCd" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO">
+		<selectKey keyProperty="cdSeq" resultType="String" order="BEFORE">
+			SELECT MAX(CD_SEQ)+1 AS CD_SEQ FROM TB_IOT_CM_CD
+		</selectKey>
+		INSERT INTO TB_IOT_CM_CD
+	 		(CD_SEQ
+	 		, LANG_SET
+			, CD_ID
+			, CD_NM
+			, CD_DESC
+			, USE_YN
+			, PARAM_KEY
+			, PARAM_VAL
+			, PARENT_CD_ID
+			, FIRST_CD_ID
+			, CD_ORDER
+			, REG_USR_ID
+			, REG_DTTM
+			, LVL
+			)
+			VALUES
+			(#{cdSeq}
+			, #{langSet}
+			, #{cdId}
+			, #{cdNm}
+			, #{cdDesc}
+			, #{useYn}
+			, #{paramKey}
+			, #{paramVal}
+ 			, #{parentCdId}
+  			, #{firstCdId}
+  			<if test=" lvl == 2 ">
+  			, (
+				SELECT
+					   MAX(c.CD_ORDER)+1
+				  FROM TB_IOT_CM_CD c
+				 WHERE c.FIRST_CD_ID  = #{firstCdId}
+				   AND c.PARENT_CD_ID = #{firstCdId}
+				   AND c.LANG_SET = #{langSet}
+			  )
+  			</if>
+  			<if test=" lvl == 3 ">
+			, (
+				SELECT
+					   CASE
+					      WHEN b.CD_ORDER IS NULL THEN 1
+					      ELSE MAX(b.CD_ORDER)+1
+					   END
+				  FROM TB_IOT_CM_CD b
+				 WHERE b.PARENT_CD_ID = #{parentCdId}
+				   AND b.FIRST_CD_ID  = #{parentCdId}
+				   AND b.LANG_SET = #{langSet}
+			  )
+  			</if>
+  			<if test=" lvl == 4 || lvl == 5">
+			, (
+				SELECT
+				       CASE
+					      WHEN b.CD_ORDER IS NULL THEN 1
+					      ELSE MAX(b.CD_ORDER)+1
+					   END
+				  FROM TB_IOT_CM_CD b
+				 WHERE b.PARENT_CD_ID = #{parentCdId}
+				   AND b.FIRST_CD_ID  = #{firstCdId}
+				   AND b.LANG_SET = #{langSet}
+			  )
+  			</if>
+			, #{regUsrId}
+			, DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			, #{lvl}
+			)
+	</insert>
+
+	<!--  공통코드 수정	-->
+	<update id="updateIotCmCd" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO">
+		UPDATE TB_IOT_CM_CD
+		   SET LANG_SET   = #{langSet}
+			 , CD_DESC    = #{cdDesc}
+			 , CD_NM      = #{cdNm}
+			 , PARAM_KEY  = #{paramKey}
+			 , PARAM_VAL  = #{paramVal}
+			 , USE_YN     = #{useYn}
+			 , MOD_USR_ID = #{modUsrId}
+			 , MOD_DTTM   = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE CD_SEQ     = #{cdSeq}
+	</update>
+
+	<!--  부모코드 수정
+	<update id="updateIotParentCmId" parameterType="tbIotCmCdDTO">
+		UPDATE TB_IOT_CM_CD
+		   SET PARENT_CD_ID = #{parentCdId}
+			 , MOD_USR_ID = #{modUsrId}
+			 , MOD_DTTM   = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE CD_SEQ = #{cdSeq}
+	</update> -->
+
+	<!-- 공통코드 삭제  -->
+	<update id="deleteIotCmCd" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO">
+		 UPDATE TB_IOT_CM_CD
+		   SET USE_YN = 'N'
+  		     , MOD_USR_ID = #{modUsrId}
+		     , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE CD_SEQ = #{cdSeq}
+	</update>
+
+	<!-- 공통코드명 중복조회 -->
+	<select id="retrieveDuplicatedCdNm" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="java.lang.Integer">
+		SELECT COUNT(CD_NM)
+		  FROM TB_IOT_CM_CD
+		 WHERE CD_NM    = #{cdNm}
+		   AND PARENT_CD_ID = #{parentCdId}
+		   AND LANG_SET = #{langSet}
+		   <if test="cdSeq != null">
+		   	AND CD_SEQ != #{cdSeq}
+		   </if>
+	</select>
+
+	<!-- 공통코드 중복조회 -->
+	<select id="retrieveDuplicatedCdId" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="java.lang.Integer">
+		SELECT COUNT(CD_ID)
+		  FROM TB_IOT_CM_CD
+		 WHERE CD_ID    = #{cdId}
+		   AND LANG_SET = #{langSet}
+	</select>
+
+	<!-- 공통코드명으로 공통코드 조회 -->
+	<select id="retrieveCdIdByCdNm" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="java.lang.String">
+		SELECT CD_ID
+		  FROM TB_IOT_CM_CD
+		 WHERE CD_NM  = #{cdNm}
+		   AND LANG_SET = #{langSet}
+		   <!-- AND USE_YN = 'Y' -->
+	</select>
+
+	<select id="retrieveIotCmCdBySubString" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="java.lang.String">
+		SELECT SUBSTR(A.CD_ID,2,9)
+		  FROM TB_IOT_CM_CD A
+         WHERE PARENT_CD_ID = #{parentCdId}
+           AND LANG_SET = #{langSet}
+	</select>
+
+	<!-- 부모코드 조회 ( 실행 파일 ) -->
+<!-- 	<select id="retrieveIotByParentCmCdRuntime" parameterType="tbIotCmCdDTO" resultType="tbIotCmCdOptionDTO">
+		SELECT PARAM_KEY AS CD_ID
+			 , CD_NM
+		 FROM TB_IOT_CM_CD
+		WHERE USE_YN = 'Y'
+		  AND PARENT_CD_ID = #{parentCdId}
+	</select> -->
+
+	<!-- 엑셀다운로드용 조회 -->
+	<select id="retrieveIotCmCdExcel" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO">
+		SELECT
+		a.CD_SEQ
+		, a.LANG_SET
+		, a.CD_ID
+		, a.CD_NM
+		, a.CD_DESC
+		, a.USE_YN
+		, a.PARENT_CD_ID
+		, d.CD_NM AS LEVEL1
+		, c.CD_NM AS LEVEL2
+		, b.CD_NM AS PARENT_CD_NM
+		, a.FIRST_CD_ID
+		, a.LVL
+		, a.CD_ORDER
+		, a.PARAM_KEY
+		, a.PARAM_VAL
+		, CASE
+		WHEN a.MOD_DTTM IS NULL THEN DATE_FORMAT(a.REG_DTTM,'%Y-%m-%d %H:%i:%S')
+		ELSE DATE_FORMAT(a.MOD_DTTM,'%Y-%m-%d %H:%i:%S')
+		END AS REG_DTTM
+		, CASE
+		WHEN a.MOD_USR_ID IS NULL THEN a.REG_USR_ID
+		ELSE a.MOD_USR_ID
+		END AS REG_USR_ID
+		FROM TB_IOT_CM_CD a
+		LEFT OUTER JOIN TB_IOT_CM_CD b ON b.CD_ID = a.PARENT_CD_ID AND b.LANG_SET = #{langSet}
+		LEFT OUTER JOIN TB_IOT_CM_CD c ON c.CD_ID = b.PARENT_CD_ID AND c.LANG_SET = #{langSet}
+		LEFT OUTER JOIN TB_IOT_CM_CD d ON d.CD_ID = c.PARENT_CD_ID AND d.LANG_SET = #{langSet}
+		<where>
+			AND a.LANG_SET = #{langSet}
+			<if test=" useYn != 'all' ">
+				AND a.USE_YN = #{useYn}
+			</if>
+			<choose>
+				<when test=" searchCon == 'parentCdNm'">
+					<if test=" null != searchVal">
+						AND a.PARENT_CD_ID IN
+						(
+						(SELECT b.CD_ID
+						FROM TB_IOT_CM_CD b
+						WHERE b.CD_NM LIKE CONCAT(#{searchVal}, '%')
+						)
+						)
+					</if>
+				</when>
+				<when test=" searchCon == 'parentCdId' ">
+					<if test=" null != searchVal">
+						AND a.PARENT_CD_ID = #{searchVal}
+					</if>
+				</when>
+				<when test=" searchCon == 'cdNm' ">
+					<if test=" null != searchVal">
+						AND a.CD_NM LIKE CONCAT(#{searchVal}, '%')
+					</if>
+				</when>
+				<when test=" searchCon == 'code' ">
+					<if test=" null != searchVal">
+						AND a.CD_ID = #{searchVal}
+					</if>
+				</when>
+			</choose>
+		</where>
+		ORDER BY IFNULL(a.MOD_DTTM, a.REG_DTTM) DESC,  a.PARENT_CD_ID ASC, a.CD_ORDER ASC
+	</select>
+
+	<!-- 서비스 설정, 공통모드 메뉴 코드 아이디 값 자동 채번 -->
+	<select id="retrieveIotMaxOrder" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT
+		       IFNULL(MAX(CD_ID), 1)
+	      FROM TB_IOT_CM_CD
+	     WHERE CD_ID LIKE CONCAT(SUBSTR(#{parentCdId}, 1, 2),'%')
+	       AND LANG_SET = #{langSet}
+	</select>
+</mapper>

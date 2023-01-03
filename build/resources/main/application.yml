@@ -1,0 +1,97 @@
+﻿########################################
+###  외부 파일
+########################################
+myconfig:
+  islocal: false
+  multiLang: classpath:/config/message/multi
+  exception: /config/message/exception.yml
+  validation: classpath:/rule/validation
+  label: classpath:/config/message/label
+  targetMapper: classpath:/rule/mapping
+  requestParser: classpath:/rule/parser
+  processing: classpath:/rule/processing
+  jwtExpirationInMs: 60
+  userMsg: /userMsg/userMsg.yml
+  dbbaseMapperLocation: classpath:/mapper/*.xml
+  loginFailCntMax: 5
+  omsMappingPath: classpath:/oms
+  servermsg: classpath:/config/message/sermsg
+  servermsgYn: Y
+  smsAuthFailCntMax: 5
+  authApiConfig: classpath:/config/message/authApi
+
+mymsg:
+  messageList:
+    - /config/message/multi/en.yml
+    - /config/message/multi/ko.yml
+
+############## Resttemplete 셋팅 ##############
+resttemplete:
+  config:
+    socketTimeout: 5000
+    connectTimeout: 5000
+    connectionRequestTimeout: 5000
+    maxConnection: 200
+    maxConnectionPerRoute: 200
+    bufferSize: 8192
+
+############## Request 전문 허용값 ##############
+permissive:
+  header_chars: '[0-9|a-z|A-Z| |ㄱ-ㅎ|ㅏ-ㅣ|가-힝|/|;|=|-|-|_|.|]*'
+  body_chars: '[0-9|a-z|A-Z| |ㄱ-ㅎ|ㅏ-ㅣ|가-힝|[|]|{|}|:|,|-|-|@|.|_|%|/|!|;|=|\n|^|+|]*'
+
+jasypt:
+  encryptor:
+    bean: jasyptStringEncryptor
+
+# jwt:
+#   scretKey:f5z3e4JPDLRVl/sjGi4fwIW25hPnuj5fSLEeSx4geSchLhEyP8b3yStVGpfcxctZSW8dOQUx7hb8CcKZiOoIbw==
+
+########################################
+###  로그 레벨
+########################################
+
+logging:
+  config: classpath:config/logs/logback-spring.xml
+  level:
+    debug: true
+    root: DEBUG ##
+    org.springframework: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+#    com.zaxxer.hikari: DEBUG
+#    org.h2.server.web: DEBUG
+#    io.netty: INFO
+
+# oneM2M 연동
+# 공인ip
+# 19091~19099 포트(U+ 방화벽 없음)
+onem2m:
+#  poa: http://{serverIp}:19091/onem2m
+  poa: http://fineman79.iptime.org:19091/ccp/onem2m/collector
+
+server:
+  error:
+    whitelabel:
+      enabled: false
+
+# 공통서버 여부 확인 속성 추가:
+# # isAdmin true -> 공통서버
+# # isAdmin false -> 서비스서버
+management:
+  isAdmin: true
+
+
+iag:
+  cctv:
+    uri: /scp/event/temp
+    url: http://localhost:10211/scp/event/temp
+    custSeq: 404
+    orgSeq: 404
+
+
+iot:
+  syncIntrnSvr:
+    url: http://106.103.228.159:7001/collector/serverInfo/initSetting
+  reSend:
+    url: http://106.103.228.159:7001/gateouif/resendOutMsg

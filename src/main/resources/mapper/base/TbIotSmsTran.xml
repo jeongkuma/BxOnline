@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.ccp.common.smsTran.dao.SmsTranDAO">
+
+	<insert id="insertTbIotSmsTran" parameterType="kr.co.scp.ccp.common.smsTran.dto.TbIotSmsTranDTO">
+		INSERT INTO TB_IOT_SMS_TRAN (TR_SENDDATE,
+									 TR_SENDSTAT,
+									 TR_MSGTYPE,
+									 TR_PHONE,
+									 TR_CALLBACK,
+									 TR_MSG,
+									 TR_ETC1,
+									 TR_ETC2,
+									 TR_ETC3,
+									 TR_ETC4,
+									 TR_ETC5,
+									 TR_ETC6)
+							 VALUES (STR_TO_DATE(#{trSendDate}, '%Y%m%d%H%i%s'),
+									 #{trSendStat},
+									 #{trMsgType},
+									 #{trPhone},
+									 #{trCallback},
+									 #{trMsg},
+									 #{trEtc1},
+									 #{trEtc2},
+									 #{trEtc3},
+									 #{trEtc4},
+									 #{trEtc5},
+									 #{trEtc6})
+	</insert>
+
+</mapper>

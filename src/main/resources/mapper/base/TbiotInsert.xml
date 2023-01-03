@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.iotInsert.dao.IotInsertDAO">
+
+	<select id="retrieveIotSDevCnt" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevMDTO" resultType="java.lang.Integer">
+           SELECT COUNT(*) 
+             FROM TB_IOT_SVC_DEV_M
+            WHERE S_DEV_SEQ = #{svcDevSeq}
+	</select>
+
+	<select id="retrieveIotSDevAttbCnt" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevAttbDTO" resultType="java.lang.Integer">
+           SELECT COUNT(*) 
+             FROM TB_IOT_S_DEV_ATB
+            WHERE S_DEV_SEQ = #{svcDevSeq}
+	          AND S_DEV_ATTB_SEQ = #{svcDevAttbSeq}
+	</select>
+	
+	<select id="retrieveIotSDevAttbSetCnt" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevAttbSetDTO" resultType="java.lang.Integer">
+           SELECT COUNT(*) 
+             FROM TB_IOT_S_DEV_ATB_SET
+            WHERE S_DEV_ATTB_SEQ = #{svcDevAttbSeq}
+	          AND S_DEV_ATTB_SET_SEQ = #{svcDevAttbSetSeq}
+	</select>
+	
+	<select id="retrieveIotSDevDetSetCnt" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevDetSetDTO" resultType="java.lang.Integer">
+           SELECT COUNT(*) 
+             FROM TB_IOT_S_DEV_DET_SET
+            WHERE S_DEV_ATTB_SEQ = #{svcDevAttbSeq}
+	          AND S_DEV_DET_SET_SEQ = #{svcDevDetSetSeq}
+	</select>
+
+
+
+	<delete id="deleteIotSDevCnt" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevMDTO">
+           DELETE 
+             FROM TB_IOT_SVC_DEV_M
+            WHERE S_DEV_SEQ = #{svcDevSeq}
+	</delete>
+
+	<delete id="deleteIotSDevAttbCnt" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevAttbDTO">
+           DELETE
+             FROM TB_IOT_S_DEV_ATB
+            WHERE S_DEV_SEQ = #{svcDevSeq}
+	          AND S_DEV_ATTB_SEQ = #{svcDevAttbSeq}
+	</delete>
+	
+	<delete id="deleteIotSDevAttbSetCnt" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevAttbSetDTO" >
+           DELETE 
+             FROM TB_IOT_S_DEV_ATB_SET
+            WHERE S_DEV_ATTB_SEQ = #{svcDevAttbSeq}
+	          AND S_DEV_ATTB_SET_SEQ = #{svcDevAttbSetSeq}
+	</delete>
+	
+	<delete id="deleteIotSDevDetSetCnt" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevDetSetDTO">
+           DELETE
+             FROM TB_IOT_S_DEV_DET_SET
+            WHERE S_DEV_ATTB_SEQ = #{svcDevAttbSeq}
+	          AND S_DEV_DET_SET_SEQ = #{svcDevDetSetSeq}
+	</delete>
+
+	<!--장비 속성 등록 -->
+	<insert id="insertSDevM" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevMDTO">
+	    INSERT INTO TB_IOT_SVC_DEV_M
+	         (
+	             S_DEV_SEQ
+	             ,SVC_CD
+	             ,DEV_CLS_CD
+	             ,DEV_CLS_CD_NM
+	             ,DEV_MDL_CD
+	             ,DEV_MDL_NM
+	             ,STATUS_CD
+	             ,PARENT_DEV_SEQ
+	             ,VENDOR_NM
+	             ,ABNORMAL_ICON_FILE
+	             ,ABNORMAL_ICON_FILE2
+	             ,NORMAL_ICON_FILE
+	             ,ICON_REG_YN
+	             ,DEV_SEQ
+	             ,DEV_MDL_VAL
+	             ,REG_USR_ID
+	             ,REG_DTTM
+	            )
+	    VALUES
+	            ( 
+	              #{svcDevSeq}    
+	             ,#{svcCd}
+	             ,#{devClsCd}
+	             ,#{devClsCdNm}
+	             ,#{devMdlCd}
+	             ,#{devMdlNm}
+	             ,#{statusCd}
+	             ,#{parentDevSeq}
+	             ,#{vendorNm}
+	             ,#{abnormalIconFile}
+	             ,#{abnormalIconFile2}
+	             ,#{normalIconFile}
+	             ,#{iconRegYn}
+	             ,#{devSeq}
+	             ,#{devMdlVal}
+	             ,#{regUsrId}
+	             ,DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+	            )
+	</insert>
+	
+	
+	<insert id="insertSDevAttb" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevAttbDTO">
+	    INSERT INTO TB_IOT_S_DEV_ATB
+	         (
+	             S_DEV_ATTB_SEQ
+	             ,S_DEV_SEQ
+	             ,SVC_CD
+	             ,DEV_CLS_CD
+	             ,DEV_MDL_CD
+	             ,DEV_ATTB_CD_ID
+	             ,INPUT_TYPE
+	             ,DEV_ATTB_TYPE
+	             ,STATUS_CD
+	             ,PARAM_KEY
+	             ,COL_NM_CD
+	             ,CON_NM_CD
+	             ,STA_AVG_NM_CD
+	             ,STA_SUM_NM_CD
+	             ,DET_NM_CD
+	             ,MAP_YN
+	             ,UNIT
+	             ,ORDER_NO
+	             ,REG_USR_ID
+	             ,REG_DTTM)
+	    VALUES
+	            ( 
+	              #{svcDevAttbSeq}    
+	             ,#{svcDevSeq}
+	             ,#{svcCd}
+	             ,#{devClsCd}
+	             ,#{devMdlCd}
+	             ,#{devAttbCdId}
+	             ,#{inputType}
+	             ,#{devAttbType}
+	             ,#{statusCd}
+	             ,#{paramKey}
+	             ,#{colNmCd}
+	             ,#{conNmCd}
+	             ,#{staAvgNmCd}
+	             ,#{staSumNmCd}
+	             ,#{detNmCd}
+	             ,#{mapYn}
+	             ,#{unit}
+	             ,#{orderNo}
+	             ,#{regUsrId}
+	             ,DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+	            )
+	</insert>
+	
+	
+	<insert id="insertSDevAttbSet" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevAttbSetDTO">
+	    INSERT INTO TB_IOT_S_DEV_ATB_SET
+	            ( S_DEV_ATTB_SET_SEQ
+	             ,S_DEV_ATTB_SEQ
+	             ,SVC_CD
+	             ,DEV_ATTB_SET_CD_ID
+	             ,STATUS_CD
+	             ,DEV_ATTB_SET_VAL
+	             ,SET_PARENT_CD_ID
+	             ,REG_USR_ID
+	             ,REG_DTTM
+	            )
+	      VALUES 
+	          (#{svcDevAttbSetSeq}
+	           ,#{svcDevAttbSeq}
+	           ,#{svcCd}
+	           ,#{devAttbSetCdId}
+	           ,#{statusCd}
+	           ,#{devAttbSetVal}
+	           ,#{setParentCdId}
+	           ,#{regUsrId}
+	           ,DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+	          )     
+	  </insert>
+	  
+	
+   
+   	<insert id="insertSDevDetSet" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertDevDetSetDTO">
+	    INSERT INTO TB_IOT_S_DEV_DET_SET
+		    ( S_DEV_DET_SET_SEQ
+			,S_DEV_ATTB_SEQ
+			,SVC_CD
+			,DEV_DET_SET_CD_ID
+			,DET_SET_COND
+			,STATUS_CD
+			,ICON_URL
+			,DET_SET_DESC
+			,REG_USR_ID
+			,REG_DTTM
+		    )
+		VALUES 
+		  (
+			#{svcDevDetSetSeq},
+			#{svcDevAttbSeq},
+			#{svcCd},
+			#{devDetSetCdId},
+			#{detSetCond},
+			#{statusCd},
+			#{iconUrl},
+			#{detSetDesc},
+			#{regUsrId},
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		  )         
+	  </insert>
+   
+
+</mapper>

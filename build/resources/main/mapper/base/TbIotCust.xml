@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.ccp.iotCust.dao.IotCustDAO">
+<!--
+	파일명    : /mapper/TbIotCust.xml
+	작성일자 : 2019-04.01
+	작성자    : 지정호
+	설명      : 고객사 관리
+-->
+
+	<!--  고객사 조회	-->
+	<select id="retrieveIotCust" parameterType="kr.co.scp.ccp.iotCust.dto.TbIotCustDTO" resultType="kr.co.scp.ccp.iotCust.dto.TbIotCustDTO">
+	<![CDATA[
+		SELECT
+			  a.CUST_SEQ
+			, a.CUST_LOGIN_ID
+			, a.CUST_NM
+			, b.CD_NM AS CUST_TYPE_NM
+			, a.CUST_REG_NO
+			, ( SELECT c.CD_NM FROM TB_IOT_CM_CD c WHERE a.SVC_CD = c.CD_ID AND c.LANG_SET = #{langSet}) AS SVC_NM
+			, CONCAT(
+			         SUBSTR(a.CUST_TEL_NO, 1, 3)
+			       , '****'
+			       , SUBSTR(a.CUST_TEL_NO, 8, 4)
+			        ) AS CUST_TEL_NO
+			, CASE
+				WHEN a.REG_DTTM > IFNULL(a.MOD_DTTM, 0) THEN DATE_FORMAT(a.REG_DTTM,'%Y-%m-%d %H:%i:%S')
+				WHEN a.REG_DTTM <  a.MOD_DTTM THEN DATE_FORMAT(a.MOD_DTTM,'%Y-%m-%d %H:%i:%S')
+			  END AS REG_DTTM
+			]]>
+			, c.USR_NM AS REG_USR_ID
+  			, a.USE_YN
+		 FROM TB_IOT_CUST_M a
+	     JOIN TB_IOT_CM_CD b
+	 	   ON b.CD_ID = a.CUST_TYPE_CD_ID
+	 	  AND b.LANG_SET = #{langSet}
+	 	 LEFT OUTER JOIN TB_IOT_USR_M c
+	 	   ON NVL(a.MOD_USR_ID, a.REG_USR_ID) = c.USR_LOGIN_ID
+	 	  AND c.CUST_SEQ = #{custSeq}
+	 	WHERE a.SVC_CD = #{svcCd}
+	       AND a.CUST_TYPE_CD_ID NOT IN ('GN00000031')
+			<if test=" useYn != 'all' ">
+			  AND a.USE_YN = #{useYn}
+			</if>
+			<choose>
+   			    <when test=" searchCon == 'ctn'">
+					<if test=" null != searchVal">
+						AND a.CUST_TEL_NO LIKE CONCAT(#{searchVal}, '%')
+<!-- 						AND a.CUST_TEL_NO LIKE CONCAT('%', #{searchVal}, '%') -->
+					</if>
+				</when>
+				<when test=" searchCon == 'custNm'">
+					<if test=" null != searchVal">
+						AND binary(a.CUST_NM) LIKE CONCAT(#{searchVal}, '%')
+<!-- 						AND binary(a.CUST_NM) LIKE CONCAT('%', #{searchVal}, '%')  -->
+					</if>
+				</when>
+				<when test=" searchCon == 'custTypeNm'">
+					<if test=" null != searchVal">
+						AND b.CD_ID IN ( SELECT c.CD_ID FROM TB_IOT_CM_CD c WHERE binary(c.CD_NM) LIKE CONCAT(#{searchVal}, '%'))
+<!-- 						AND b.CD_ID IN ( SELECT c.CD_ID FROM TB_IOT_CM_CD c WHERE binary(c.CD_NM) LIKE CONCAT('%', #{searchVal}, '%')) -->
+					</if>
+				</when>
+			</choose>
+		ORDER BY IFNULL(a.MOD_DTTM, a.REG_DTTM) DESC
+		LIMIT ${currentPage-1}, ${displayRowCount}
+	</select>
+
+	<!--  고객사 데이터 카운트	-->
+	<select id="retrieveIotCustCount" parameterType="kr.co.scp.ccp.iotCust.dto.TbIotCustDTO" resultType="java.lang.String">
+		SELECT
+			  COUNT(a.CUST_SEQ)
+		 FROM TB_IOT_CUST_M a
+	     JOIN TB_IOT_CM_CD b
+	 	   ON b.CD_ID = a.CUST_TYPE_CD_ID
+	 	  AND b.LANG_SET = #{langSet}
+	 	 LEFT OUTER JOIN TB_IOT_USR_M c
+	 	   ON NVL(a.MOD_USR_ID, a.REG_USR_ID) = c.USR_LOGIN_ID
+	 	  AND c.CUST_SEQ = #{custSeq}
+	 	WHERE a.SVC_CD = #{svcCd}
+	      AND a.CUST_TYPE_CD_ID NOT IN ('GN00000031')
+			<if test=" useYn != 'all' ">
+			  AND a.USE_YN = #{useYn}
+			</if>
+			<choose>
+   			    <when test=" searchCon == 'ctn'">
+					<if test=" null != searchVal">
+						AND a.CUST_TEL_NO LIKE CONCAT(#{searchVal}, '%')
+					</if>
+				</when>
+				<when test=" searchCon == 'custNm'">
+					<if test=" null != searchVal">
+						AND binary(a.CUST_NM) LIKE CONCAT(#{searchVal}, '%')
+					</if>
+				</when>
+				<when test=" searchCon == 'custTypeNm'">
+					<if test=" null != searchVal">
+						AND b.CD_ID IN ( SELECT c.CD_ID FROM TB_IOT_CM_CD c WHERE binary(c.CD_NM) LIKE CONCAT(#{searchVal}, '%'))
+					</if>
+				</when>
+			</choose>
+	</select>
+
+	<!--  고객 정보 조회	-->
+	<select id="retrieveIotCustBySeq" parameterType="kr.co.scp.ccp.iotCust.dto.TbIotCustDTO" resultType="kr.co.scp.ccp.iotCust.dto.TbIotCustUDTO">
+		SELECT
+			  a.CUST_SEQ
+			, a.CUST_LOGIN_ID
+			, c.CD_NM AS SVC_CD_NM
+			, a.SVC_CD
+			, a.CUST_NM
+            , a.CUST_TYPE_CD_ID
+			, b.CD_NM AS CUST_TYPE_NM
+			, a.LOGIN_STEP_CNT
+			, a.CUST_TEL_NO
+			, a.USE_YN
+			, a.CUST_WLOGO_FILE
+			, a.CUST_MLOGO_FILE
+			, a.CUST_REG_NO
+		 FROM TB_IOT_CUST_M a
+		 	  INNER JOIN
+			  TB_IOT_CM_CD b
+		   ON b.CD_ID    = a.CUST_TYPE_CD_ID
+		  AND b.LANG_SET = #{langSet}
+		 	  INNER JOIN
+			  TB_IOT_CM_CD c
+		   ON c.CD_ID    = a.SVC_CD
+		  AND c.LANG_SET = #{langSet}
+		WHERE a.CUST_SEQ = #{custSeq}
+	</select>
+
+	<!-- 고객사 신규  -->
+	<insert id="createIoTCust" parameterType="kr.co.scp.ccp.iotCust.dto.TbIotCustCombineDTO">
+		INSERT INTO TB_IOT_CUST_M
+			(
+			  CUST_LOGIN_ID
+			, CUST_NM
+			, CUST_TYPE_CD_ID
+			, SVC_CD
+			, CUST_TEL_NO
+			, CUST_WLOGO_FILE
+			, CUST_MLOGO_FILE
+			, LOGIN_STEP_CNT
+			, CUST_REG_NO
+			, USE_YN
+			, DEL_YN
+			, REG_USR_ID
+			, REG_DTTM
+			)
+			VALUES
+			(
+			  #{custLoginId}
+			, #{custNm}
+			, #{custTypeCdId}
+			, #{svcCd}
+			, #{custTelNo}
+			, #{custWlogoFile}
+			, #{custMlogoFile}
+			, #{loginStepCnt}
+			, #{custRegNo}
+			, 'Y'
+			, 'N'
+			, #{regUsrId}
+			, DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+		<selectKey keyProperty="custSeq" order="BEFORE" resultType="String">
+			SELECT MAX(CUST_SEQ)+1 AS CUST_SEQ FROM TB_IOT_CUST_M
+		</selectKey>
+	</insert>
+
+	<!--  고객사 수정	-->
+	<update id="updateIotCust" parameterType="kr.co.scp.ccp.iotCust.dto.TbIotCustDTO">
+		UPDATE TB_IOT_CUST_M
+		   SET
+		     <!--   CUST_LOGIN_ID   = #{custLoginId} -->
+		       CUST_NM         = #{custNm}
+			 , CUST_TEL_NO     = #{custTelNo}
+			 , LOGIN_STEP_CNT  = #{loginStepCnt}
+			 , CUST_WLOGO_FILE = #{custWlogoFile}
+			 , CUST_MLOGO_FILE = #{custMlogoFile}
+			 , CUST_REG_NO     = #{custRegNo}
+			 , USE_YN          = #{useYn}
+			 , MOD_USR_ID      = #{modUsrId}
+			 , MOD_DTTM        = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE CUST_SEQ = #{custSeq}
+	</update>
+
+	<!-- 고객사 삭제  -->
+	<update id="deleteIotCust" parameterType="kr.co.scp.ccp.iotCust.dto.TbIotCustDTO">
+		UPDATE TB_IOT_CUST_M
+		   SET USE_YN = #{useYn}
+  		     , MOD_USR_ID = #{modUsrId}
+		     , MOD_DTTM   = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE CUST_SEQ   = #{custSeq}
+	</update>
+
+	<select id="retrieveDuplicatedCustId" parameterType="kr.co.scp.ccp.iotCust.dto.TbIotCustDTO" resultType="java.lang.String">
+		SELECT COUNT(CUST_LOGIN_ID)
+		  FROM TB_IOT_CUST_M
+		 WHERE CUST_LOGIN_ID = #{custLoginId}
+	</select>
+
+	<select id="retrieveDuplicatedCustNm" parameterType="kr.co.scp.ccp.iotCust.dto.TbIotCustDTO" resultType="java.lang.String">
+		SELECT COUNT(CUST_NM)
+		  FROM TB_IOT_CUST_M
+		 WHERE CUST_NM = #{custNm}
+	</select>
+
+	<select id="retrieveIotCustSelect" parameterType="java.lang.String" resultType="kr.co.scp.ccp.iotCust.dto.TbIotCustSDTO">
+		SELECT
+			  CUST_NM
+			, CUST_SEQ
+	     FROM TB_IOT_CUST_M
+	    WHERE SVC_CD =  #{svcCd}
+	      AND CUST_TYPE_CD_ID != 'GN00000031'
+	</select>
+
+</mapper>

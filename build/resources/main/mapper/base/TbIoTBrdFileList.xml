@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.common.brdFile.dao.BrdFileListDAO">
+<!-- 
+	파일명    : /mapper/TbIotBrdFileList.xml 
+	작성일자 : 2019-04.02
+	작성자    : 김희운
+	설명       : 게시물 파일 관리 
+-->
+
+	<!-- 파일 상세보기 조회 -->
+	<select id="retrieveTbIoTBrdFileListDetail" parameterType="kr.co.scp.ccp.common.brdFile.dto.TbIoTBrdFileListDTO" resultType="kr.co.scp.ccp.common.brdFile.dto.TbIoTBrdFileListDTO">
+		SELECT FILE_LIST_SEQ  
+			 , CONTENT_SEQ 
+			 , CONTENT_TYPE 
+			 , FILE_PATH  
+			 , FILE_NAME 
+			 , ORG_FILE_NAME
+			 , FILE_SIZE  
+			 , FILE_ORDER 
+			 , 'S' AS MODE 
+		FROM TB_IOT_BRD_FILE_LIST  
+		WHERE CONTENT_TYPE = #{contentType}
+			AND CONTENT_SEQ = #{contentSeq}
+	     ORDER BY FILE_ORDER
+	</select>
+	
+	<!-- 파일 리스트 조회 -->
+	<select id="retrieveTbIoTBrdFileList" parameterType="kr.co.scp.ccp.common.brdFile.dto.TbIoTBrdFileListDTO" resultType="kr.co.scp.ccp.common.brdFile.dto.TbIoTBrdFileDTO">
+		SELECT FILE_LIST_SEQ  
+			 , CONTENT_SEQ 
+			 , CONTENT_TYPE 
+			 , FILE_PATH  
+			 , FILE_NAME 
+			 , ORG_FILE_NAME
+			 , FILE_SIZE  
+			 , FILE_ORDER
+		FROM TB_IOT_BRD_FILE_LIST  
+		WHERE CONTENT_TYPE = #{contentType}
+		  AND CONTENT_SEQ = #{contentSeq}	    
+	</select>
+	
+	<!-- 파일 다중 삭제 -->
+	<delete id="deleteTbIoTBrdFileList" parameterType="kr.co.scp.ccp.common.brdFile.dto.TbIoTBrdFileListDTO" >
+		DELETE FROM TB_IOT_BRD_FILE_LIST
+		      WHERE CONTENT_TYPE = #{contentType} 
+		      	AND CONTENT_SEQ = #{contentSeq}
+	</delete>
+	
+	<!-- 파일 삽입 -->
+	<insert id="insertTbIoTBrdFileListDTO" parameterType="kr.co.scp.ccp.common.brdFile.dto.TbIoTBrdFileListDTO">
+	  
+		<selectKey resultType="int" keyProperty="fileOrder" order="BEFORE">
+        	SELECT CASE
+				   WHEN FILE_ORDER IS NULL THEN 1
+				   ELSE MAX(FILE_ORDER)+1
+				   END AS FILEORDER
+			FROM TB_IOT_BRD_FILE_LIST
+            WHERE CONTENT_SEQ = #{contentSeq}
+    	</selectKey>
+		
+		INSERT INTO TB_IOT_BRD_FILE_LIST(CONTENT_SEQ,
+									CONTENT_TYPE,
+									FILE_PATH,
+									FILE_NAME,
+									ORG_FILE_NAME,
+									FILE_SIZE,
+									FILE_ORDER,
+									REG_USR_ID,
+									REG_DTTM
+									)
+			  VALUES (#{contentSeq},
+					  #{contentType},
+	                  #{filePath},
+	                  #{fileName},
+	                  #{orgFileName},
+	                  #{fileSize},
+	                  #{fileOrder},
+	                  #{regUsrId},
+	                  DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')                
+	                  )
+	</insert>
+	
+	<!-- 파일 이름 조회 -->
+	<select id="selectFileName" parameterType="kr.co.scp.ccp.common.brdFile.dto.TbIoTBrdFileListDTO" resultType="kr.co.scp.ccp.common.brdFile.dto.TbIoTBrdFileListDTO">
+		SELECT FILE_NAME
+	       	 , ORG_FILE_NAME
+	       	 , FILE_PATH
+		FROM TB_IOT_BRD_FILE_LIST
+		WHERE FILE_LIST_SEQ = #{fileListSeq}
+	</select>
+	
+	<!-- 파일 단일 삭제 -->
+	<delete id="deleteTbIoTBrdFile" parameterType="kr.co.scp.ccp.common.brdFile.dto.TbIoTBrdFileListDTO" >
+		DELETE FROM TB_IOT_BRD_FILE_LIST
+		      WHERE FILE_LIST_SEQ = #{fileListSeq}
+	</delete>
+	
+</mapper>

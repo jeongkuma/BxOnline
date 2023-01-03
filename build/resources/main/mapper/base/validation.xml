@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.abacus.common.api.dao.ValidationDAO">
+
+	<!-- 검증 룰 목록 조회  -->
+	<select id="getValidationRules" parameterType="kr.co.abacus.common.api.dto.ValidationDTO" resultType="map">
+		SELECT
+		A.API_URI AS RULE_URI, VR.VAL_RULE_NAME, VR.RULE_KIND, VR.RULE_KIND,
+		VR.DEFAULT_YN, VR.NULL_YN, VR.EMPTY_YN,
+		VR.DATA_TYPE, VR.DATA_SIZE, VR.DATA_MIN, VR.DATA_MAX,
+		VR.ALLOW_REGEX, VR.NOTALLOW_REGEX
+		FROM TB_IOT_API A JOIN TB_IOT_VAL_RULE VR
+		ON VR.API_SEQ = A.API_SEQ
+		<if test="uuid != null">
+			JOIN TB_IOT_SVC_DEV_M D
+			ON D.DEV_SEQ = VR.DEV_SEQ
+			JOIN (SELECT DISTINCT CUST_SEQ, DEV_CLS_CD, DEV_MDL_CD
+			FROM TB_IOT_ENTR_DEV_M
+			WHERE 1=1
+			AND DEV_UUID = #{uuid}
+			) ED
+			ON ED.SVC_CD = D.SVC_CD AND ED.DEV_CLS_CD = D.DEV_CLS_CD AND ED.DEV_MDL_CD = D.DEV_MDL_CD
+		</if>
+		WHERE 1 = 1
+		<if test="httpUri != null">
+			AND A.API_URI = #{httpUri}
+		</if>
+	</select>
+
+	<select id="getValidationDetail" parameterType="kr.co.abacus.common.api.dto.ValidationDTO" resultType="kr.co.abacus.common.api.dto.ValidationDTO">
+		SELECT VALIDATION_SEQ
+			   , HTTP_URI
+			   , JSON_DATA
+			   , REG_USR_ID
+			   , REG_DTTM
+			   , MOD_USR_ID
+			   , MOD_DTTM
+		  FROM TB_IOT_VALIDATION
+		 WHERE 1=1
+		<if test="validationSeq != null">
+		   AND VALIDATION_SEQ = #{validationSeq}
+		</if>
+		<if test="httpUri != null">
+		   AND HTTP_URI = #{httpUri}
+		</if>
+	</select>
+
+	<select id="getValidationDetailMap" parameterType="kr.co.abacus.common.api.dto.ValidationDTO" resultType="HashMap">
+		SELECT VALIDATION_SEQ
+			   , HTTP_URI
+			   , JSON_DATA
+			   , REG_USR_ID
+			   , REG_DTTM
+			   , MOD_USR_ID
+			   , MOD_DTTM
+		  FROM TB_IOT_VALIDATION
+		 WHERE 1=1
+		<if test="validationSeq != null">
+		   AND VALIDATION_SEQ = #{validationSeq}
+		</if>
+		<if test="httpUri != null">
+		   AND HTTP_URI = #{httpUri}
+		</if>
+	</select>
+
+	<insert id="insertValidation" parameterType="kr.co.abacus.common.api.dto.ValidationDTO">
+		INSERT INTO TB_IOT_VALIDATION
+		(
+			HTTP_URI
+		    , JSON_DATA
+		    , REG_USR_ID
+		    , REG_DTTM
+		    , MOD_USR_ID
+		    , MOD_DTTM
+		)
+		VALUES
+		(
+			#{httpUri, jdbcType=VARCHAR}
+			, #{jsonData, jdbcType=VARCHAR}
+			, #{regUsrId, jdbcType=VARCHAR}
+			, DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			, #{modUsrId, jdbcType=VARCHAR}
+			, DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		)
+		<selectKey keyProperty="validationSeq" resultType="java.math.BigInteger" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+	<update id="updateValidation" parameterType="kr.co.abacus.common.api.dto.ValidationDTO">
+		UPDATE TB_IOT_VALIDATION
+		   SET HTTP_URI = #{httpUri, jdbcType=VARCHAR}
+		       , HTTP_TYPE = #{jsonData, jdbcType=VARCHAR}
+		       , MOD_USR_ID = #{modUsrId, jdbcType=VARCHAR}
+		       , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE VALIDATION_SEQ = #{validationSeq}
+	</update>
+
+
+</mapper>

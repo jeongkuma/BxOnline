@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotDev.dao.IotDevCtlDAO">
+	<!--
+		 장비 중복 조회
+	-->
+	<select id="retrieveIotDup" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" resultType="java.lang.Integer">
+           SELECT COUNT(*)
+             FROM TB_IOT_SVC_DEV_M
+            WHERE DEV_MDL_CD = #{devMdlCd}
+              AND STATUS_CD != 'C'
+              AND STATUS_CD = 'A'
+	          AND 1=1
+	</select>
+
+    	<select id="retrieveIotMdlDup" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" resultType="java.lang.Integer">
+           SELECT COUNT(*)
+             FROM TB_IOT_SVC_DEV_M
+            WHERE DEV_MDL_NM = #{devMdlNm}
+              AND STATUS_CD = 'A'
+	          AND 1=1
+	</select>
+
+	<select id="retrieveIotDevMdlValCnt" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" resultType="java.lang.Integer">
+          SELECT COUNT(*) AS CNT
+            FROM TB_IOT_SVC_DEV_M
+           WHERE DEV_MDL_VAL = #{devMdlVal}
+             AND STATUS_CD = 'A'
+             AND 1=1
+	</select>
+
+
+    <select id="retrieveIotHdbyCls" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO">
+               SELECT CD_ID AS "cdId",
+                      CD_NM AS "cdNm"
+     		  FROM TB_IOT_CM_CD
+             WHERE CD_ID IN (SELECT   B.SVC_CD
+                               FROM   TB_IOT_SVC_M B
+                              WHERE   1=1
+                                AND   B.DEV_CLS_CD = #{devClsCd}
+                            )
+	</select>
+    <select id="retrieveIotClsbyHd" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO">
+     SELECT
+               A.DEV_CLS_CD AS "cdId"
+             , C.CD_NM AS "cdNm"
+       FROM    TB_IOT_SVC_M A
+               LEFT OUTER JOIN
+               TB_IOT_CM_CD B
+               ON A.SVC_CD  = B.CD_ID
+               LEFT OUTER JOIN
+               TB_IOT_CM_CD C
+         ON    A.DEV_CLS_CD = C.CD_ID
+      WHERE    SVC_CD = #{cdId}
+        AND    DEV_CLS_CD IS NOT NULL
+
+	</select>
+
+     <select id="retrieveIotSvcbyHd" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO">
+            SELECT CD_ID AS "cdId",
+                   CD_NM AS "cdNm"
+     		  FROM TB_IOT_CM_CD
+             WHERE CD_ID IN (SELECT   B.SVC_CD
+                               FROM   TB_IOT_SVC_M B
+                              WHERE   1=1
+                                AND   B.DEV_CLS_CD IS NULL
+                             )
+	</select>
+
+ <insert id="insertIotDevSeq" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" >
+		INSERT INTO TB_IOT_SVC_DEV_M (
+		DEV_CLS_CD
+       ,DEV_CLS_CD_NM
+       ,DEV_MDL_CD
+       ,DEV_MDL_NM
+       ,USE_YN
+       ,STATUS_CD
+       ,PARENT_DEV_SEQ
+       ,VENDOR_NM
+       ,REG_USR_ID
+       ,REG_DTTM
+       ,MOD_USR_ID
+       ,MOD_DTTM
+       ,NORMAL_ICON_FILE
+       ,ABNORMAL_ICON_FILE
+       ,ABNORMAL_ICON_FILE2
+       ,DEV_MDL_VAL
+     	)
+	 VALUES (
+	          (SELECT A.DEV_CLS_CD
+	             FROM TB_IOT_SVC_DEV_M A
+	            WHERE DEV_SEQ = #{devSeq})
+	          ,(SELECT A.DEV_CLS_CD_NM
+	             FROM TB_IOT_SVC_DEV_M A
+	            WHERE DEV_SEQ = #{devSeq})
+	         ,#{devMdlCd}
+	         ,#{devMdlNm}
+	         ,#{useYn}
+	         ,(SELECT PARAM_KEY
+	             FROM TB_IOT_CM_CD
+	            WHERE CD_ID = 'GN00000148')
+	         ,(SELECT A.PARENT_DEV_SEQ
+
+	             FROM TB_IOT_SVC_DEV_M A
+	            WHERE DEV_SEQ = #{devSeq})
+	         ,#{vendorNm}
+	         ,#{regUsrId}
+	         ,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+	         ,null
+	         ,null
+           ,(SELECT A.NORMAL_ICON_FILE
+	             FROM TB_IOT_SVC_DEV_M A
+	            WHERE DEV_SEQ = #{devSeq})
+           ,(SELECT A.ABNORMAL_ICON_FILE
+	             FROM TB_IOT_SVC_DEV_M A
+	            WHERE DEV_SEQ = #{devSeq})
+           ,(SELECT A.ABNORMAL_ICON_FILE2
+	             FROM TB_IOT_SVC_DEV_M A
+	            WHERE DEV_SEQ = #{devSeq})
+	        ,(SELECT A.DEV_MDL_VAL
+	             FROM TB_IOT_SVC_DEV_M A
+	            WHERE DEV_SEQ = #{devSeq})
+	        )
+	    <selectKey keyProperty="orgDevSeq" resultType="String" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+
+    <!--
+		 장비 속성 순번 조회
+	-->
+	<select id="retrieveIotAttbSeq" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" resultType="java.lang.String">
+          SELECT DEV_ATTB_SEQ
+             FROM TB_IOT_S_DEV_ATB
+            WHERE DEV_SEQ = #{devSeq}
+	          AND 1=1
+	</select>
+
+    <insert id="insertIotDevAttrSeq" >
+     INSERT INTO TB_IOT_S_DEV_ATB
+         (
+           DEV_SEQ,
+           DEV_CLS_CD,
+           DEV_CLS_CD_NM,
+           DEV_MDL_CD,
+           DEV_MDL_NM,
+           DEV_ATTB_CD_ID,
+           DEV_ATTB_CD_NM,
+           INPUT_TYPE,
+           STATUS_CD,
+           DEV_ATTB_TYPE,
+           PARAM_KEY,
+           COL_NM_CD,
+           CON_NM_CD,
+           STA_AVG_NM_CD,
+           STA_SUM_NM_CD,
+           DET_NM_CD,
+           MAP_YN,
+           UNIT,
+           ORDER_NO,
+           REG_USR_ID,
+           REG_DTTM,
+           MOD_USR_ID,
+           MOD_DTTM)
+   VALUES (
+           #{orgDevSeq}
+          ,(SELECT A.DEV_CLS_CD
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.DEV_CLS_CD_NM
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.DEV_MDL_CD
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.DEV_MDL_NM
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.DEV_ATTB_CD_ID
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.DEV_ATTB_CD_NM
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.INPUT_TYPE
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.STATUS_CD
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.DEV_ATTB_TYPE
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.PARAM_KEY
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.COL_NM_CD
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.CON_NM_CD
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.STA_AVG_NM_CD
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.STA_SUM_NM_CD
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.DET_NM_CD
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.MAP_YN
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.UNIT
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.ORDER_NO
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.REG_USR_ID
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.REG_DTTM
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.MOD_USR_ID
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+          ,(SELECT A.MOD_DTTM
+              FROM TB_IOT_S_DEV_ATB A
+             WHERE DEV_ATTB_SEQ = #{devAttbSeq})
+   )
+        <selectKey keyProperty="orgDevSetSeq" resultType="String" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+    </insert>
+
+
+    <!--
+		장비 속성SET 순번 조회
+	-->
+	<select id="retrieveIotDevAttrSetSeq" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" resultType="java.lang.String">
+           SELECT DEV_ATTB_SET_SEQ
+             FROM TB_IOT_DEV_ATB_SET
+            WHERE 1=1
+	          AND DEV_ATTB_SEQ = #{devAttbSeq}
+	</select>
+
+	    <!--
+		장비 이상징후SET 순번 조회
+	-->
+	<select id="retrieveIotDevDetSetSeq" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" resultType="java.lang.String">
+           SELECT DEV_DET_SET_SEQ
+             FROM TB_IOT_DEV_DET_SET
+            WHERE 1=1
+	          AND DEV_ATTB_SEQ = #{devAttbSeq}
+	</select>
+
+
+
+
+	<!-- 장비 속성SET 등록 -->
+<insert id="insertIotDevAttrSetSeq" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" >
+    INSERT INTO TB_IOT_DEV_ATB_SET
+          (
+            DEV_ATTB_SEQ
+           ,DEV_ATTB_SET_CD_ID
+           ,DEV_ATTB_SET_CD_NM
+           ,DEV_ATTB_SET_VAL
+           ,SET_PARENT_CD_ID
+           ,STATUS_CD
+           ,REG_USR_ID
+           ,REG_DTTM
+           ,MOD_USR_ID
+           ,MOD_DTTM
+          )
+    VALUES (
+    #{orgDevSetSeq}
+   ,(SELECT A.DEV_ATTB_SET_CD_ID
+       FROM  TB_IOT_DEV_ATB_SET A
+      WHERE DEV_ATTB_SET_SEQ = #{devAttbSetSeq})
+   ,(SELECT A.DEV_ATTB_SET_CD_NM
+       FROM  TB_IOT_DEV_ATB_SET A
+      WHERE DEV_ATTB_SET_SEQ = #{devAttbSetSeq})
+   ,(SELECT A.DEV_ATTB_SET_VAL
+       FROM  TB_IOT_DEV_ATB_SET A
+      WHERE DEV_ATTB_SET_SEQ = #{devAttbSetSeq})
+   ,(SELECT A.SET_PARENT_CD_ID
+       FROM  TB_IOT_DEV_ATB_SET A
+      WHERE DEV_ATTB_SET_SEQ = #{devAttbSetSeq})
+   ,(SELECT A.STATUS_CD
+       FROM  TB_IOT_DEV_ATB_SET A
+      WHERE DEV_ATTB_SET_SEQ = #{devAttbSetSeq})
+   ,(SELECT A.REG_USR_ID
+       FROM  TB_IOT_DEV_ATB_SET A
+      WHERE DEV_ATTB_SET_SEQ = #{devAttbSetSeq})
+   ,(SELECT A.REG_DTTM
+       FROM  TB_IOT_DEV_ATB_SET A
+      WHERE DEV_ATTB_SET_SEQ = #{devAttbSetSeq})
+   ,(SELECT A.MOD_USR_ID
+       FROM  TB_IOT_DEV_ATB_SET A
+      WHERE DEV_ATTB_SET_SEQ = #{devAttbSetSeq})
+   ,(SELECT A.MOD_DTTM
+       FROM  TB_IOT_DEV_ATB_SET A
+      WHERE DEV_ATTB_SET_SEQ = #{devAttbSetSeq})
+    )
+
+
+
+
+</insert>
+
+<insert id="insertIotDevDetSetSeq" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevCtlDTO" >
+   INSERT INTO TB_IOT_DEV_DET_SET
+        (
+           DEV_ATTB_SEQ
+          ,DEV_DET_SET_CD_ID
+          ,DEV_DET_SET_CD_NM
+          ,DET_SET_COND
+          ,STATUS_CD
+          ,ICON_URL
+          ,DET_SET_DESC
+          ,REG_USR_ID
+          ,REG_DTTM
+          ,MOD_USR_ID
+          ,MOD_DTTM)
+  VALUES (
+           #{orgDevSetSeq}
+          ,(SELECT A.DEV_DET_SET_CD_ID
+       		  FROM  TB_IOT_DEV_DET_SET A
+             WHERE DEV_DET_SET_SEQ = #{devDetSetSeq})
+          ,(SELECT A.DEV_DET_SET_CD_NM
+       		  FROM  TB_IOT_DEV_DET_SET A
+             WHERE DEV_DET_SET_SEQ = #{devDetSetSeq})
+          ,(SELECT A.DET_SET_COND
+       		  FROM  TB_IOT_DEV_DET_SET A
+             WHERE DEV_DET_SET_SEQ = #{devDetSetSeq})
+          ,(SELECT A.STATUS_CD
+       		  FROM  TB_IOT_DEV_DET_SET A
+             WHERE DEV_DET_SET_SEQ = #{devDetSetSeq})
+          ,(SELECT A.ICON_URL
+       		  FROM  TB_IOT_DEV_DET_SET A
+             WHERE DEV_DET_SET_SEQ = #{devDetSetSeq})
+          ,(SELECT A.DET_SET_DESC
+       		  FROM  TB_IOT_DEV_DET_SET A
+             WHERE DEV_DET_SET_SEQ = #{devDetSetSeq})
+          ,(SELECT A.REG_USR_ID
+       		  FROM  TB_IOT_DEV_DET_SET A
+             WHERE DEV_DET_SET_SEQ = #{devDetSetSeq})
+          ,(SELECT A.REG_DTTM
+       		  FROM  TB_IOT_DEV_DET_SET A
+             WHERE DEV_DET_SET_SEQ = #{devDetSetSeq})
+          ,(SELECT A.MOD_USR_ID
+       		  FROM  TB_IOT_DEV_DET_SET A
+             WHERE DEV_DET_SET_SEQ = #{devDetSetSeq})
+          ,(SELECT A.MOD_DTTM
+       		  FROM  TB_IOT_DEV_DET_SET A
+             WHERE DEV_DET_SET_SEQ = #{devDetSetSeq})
+           )
+</insert>
+</mapper>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotDev.dao.IotDevAttrDAO">
+
+
+	<select id="retrieveIotDevAttr" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrDTO">
+		SELECT
+               B.S_DEV_ATTB_SEQ AS DEV_ATTB_SEQ
+              ,B.DEV_ATTB_CD_ID
+              ,(SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.CD_ID = B.DEV_ATTB_CD_ID AND C.LANG_SET = #{langSet}) AS DEV_ATTB_CD_NM
+              ,B.INPUT_TYPE
+              ,B.PARAM_KEY
+              ,B.COL_NM_CD
+              ,B.CON_NM_CD
+              ,B.STA_AVG_NM_CD
+              ,B.STA_SUM_NM_CD
+              ,B.DET_NM_CD
+              ,B.MAP_YN
+              ,B.UNIT
+              ,B.ORDER_NO
+              ,B.DEV_CLS_CD
+              ,(SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.CD_ID = B.DEV_CLS_CD AND C.LANG_SET = #{langSet}) AS DEV_CLS_CD_NM
+              ,B.DEV_MDL_CD
+	    FROM   TB_IOT_SVC_DEV_M A
+	          ,TB_IOT_S_DEV_ATB B
+	   WHERE   A.DEV_SEQ = B.S_DEV_SEQ
+	     AND   B.S_DEV_SEQ = #{devSeq}
+	     AND   B.STATUS_CD != 'C'
+	   ORDER BY B.ORDER_NO ASC
+	</select>
+
+	<insert id="insertIotDevAttrAll" >
+	  INSERT INTO TB_IOT_S_DEV_ATB
+	         (
+	           S_DEV_SEQ,
+	           DEV_ATTB_CD_ID,
+	           DEV_CLS_CD,
+	           DEV_MDL_CD,
+	           INPUT_TYPE,
+	           PARAM_KEY,
+	           COL_NM_CD,
+	           CON_NM_CD,
+	           STA_AVG_NM_CD,
+	           STA_SUM_NM_CD,
+	           DET_NM_CD,
+	           MAP_YN,
+	           UNIT,
+	           ORDER_NO,
+	           STATUS_CD,
+	           DEV_ATTB_TYPE,
+	           REG_USR_ID,
+	           REG_DTTM,
+	           MOD_USR_ID,
+	           MOD_DTTM)
+	    VALUES
+	            (
+				#{devSeq}
+	             ,#{devAttbCdId}
+	             ,#{devClsCd}
+	             ,#{devMdlCd}
+	             ,#{devMdlNm}
+	             ,#{inputType}
+	             ,#{paramKey}
+	             ,#{colNmCd}
+	             ,#{conNmCd}
+	             ,#{staAvgNmCd}
+	             ,#{staSumNmCd}
+	             ,#{detNmCd}
+	             ,#{mapYn}
+	             ,#{unit}
+	             ,#{orderNo}
+	             ,(SELECT A.PARAM_KEY FROM TB_IOT_CM_CD A WHERE CD_ID = 'GN00000148')
+	             ,#{devAttbType}
+	             ,#{regUsrId}
+	             ,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+	             ,null
+	             ,null
+	            )
+	</insert>
+
+
+
+</mapper>

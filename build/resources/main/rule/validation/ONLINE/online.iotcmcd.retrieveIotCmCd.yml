@@ -1,0 +1,86 @@
+HTTP_HEADER:
+  Content-Type:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-APIVERSION:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LOGKEY:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-CHANNEL:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-AUTH:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-VNAME:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LANG:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-MID:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+HTTP_BODY:
+  currentPage:
+    dataType: INTEGER
+    requiredKey: Y
+    notNull: Y
+    accept: ^[0-9]*$
+  displayRowCount:
+    dataType: INTEGER
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+    accept: ^[0-9]*$
+  parentCdId:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    minLength : 1
+    maxLength: 10
+  firstCdId:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    minLength : 1
+    maxLength: 10
+  searchCon:
+    dataType: STRING
+    requiredKey: N
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+  searchVal:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N
+    accept: ^[ㄱ-ㅎ|ㅏ-ㅣ|가-힣|a-zA-Z|0-9_-]*$
+#  useYn:
+#    dataType: STRING
+#    requiredKey: Y
+#    notNull: Y
+#    noWhitespace: Y
+#    accept: ^[a-zA-Z]*$
+#    minLength : 1
+#    maxLength : 3

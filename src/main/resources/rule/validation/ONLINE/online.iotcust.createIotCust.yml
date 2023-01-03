@@ -1,0 +1,124 @@
+HTTP_HEADER: 
+  Content-Type:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: N
+  X-APIVERSION:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LOGKEY:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-CHANNEL:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-AUTH:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-VNAME:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LANG:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-MID:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+HTTP_BODY:
+  custLoginId:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y  
+    accept: ^[a-zA-Z0-9_-]*$
+    minLength : 2
+    maxLength : 20
+  custNm:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9+_-]*$
+    minLength : 2
+    maxLength : 33
+  custTypeCdId:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y            
+  custTelNo:
+    dataType: STRING
+    requiredKey: N
+    notNull: N    
+    noWhitespace: N
+    accept: ^[0-9]*$
+    minLength : 10
+    maxLength : 11
+  custRegNo:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N
+    accept: ^[0-9]*$
+    length: 10
+  svcCd:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: Y
+    accept: ^[a-zA-Z0-9+_-]*$
+  usrLoginId:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+    accept: ^[a-zA-Z0-9_-]*$
+    minLength : 2
+    maxLength : 20    
+  usrNm:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    minLength : 2
+    maxLength : 33 
+  usrPhoneNo:
+    dataType: STRING
+    requiredKey: Y     
+    notNull: Y
+    noWhitespace: Y
+    minLength: 10
+    maxLength: 11
+    accept: ^[0-9]*$
+  usrEmail:
+    dataType: STRING
+    requiredKey: N
+    noWhitespace: N
+#    accept: ^[_a-zA-Z0-9-\\.]+@[\\.a-zA-Z0-9-]+\\.[a-zA-Z]+$
+  roleCdId:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+    accept: ^[a-zA-Z0-9_-]*$
+  roleCdNm:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    noWhitespace: N
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$

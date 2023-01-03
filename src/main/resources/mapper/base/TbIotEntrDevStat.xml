@@ -1,0 +1,1820 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotEntrDevStat.dao.IotEntrDevStatDAO">
+	<!-- 시간별 통계(합계)  조회 갯수-->
+	<select id="retrieveHourStatListCount" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO"  resultType="java.lang.Integer">
+		SELECT COUNT(H.TIME_COL_DATE)
+		  FROM TB_IOT_E_DEV_INS_LOC L
+		  JOIN TB_IOT_ENTR_DEV_M M 
+		  	ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ 
+		 RIGHT OUTER JOIN TB_IOT_STAT_HOUR_S H 
+		    ON M.DEV_UUID = H.DEV_UUID
+	     WHERE 1=1
+		 <if test = "devClsCd != null">
+		   AND H.DEV_CLS_CD = #{devClsCd}
+		 </if> 
+		 <if test = "devMdlCd != null">
+		   AND H.DEV_MDL_CD = #{devMdlCd} 
+		 </if> 
+		 <if test = "searchStartDttm != null and searchEndDttm != null">
+		   AND H.TIME_COL_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+		 </if>
+		 <if test = "usingNo != null">
+		   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+		 </if>
+	</select>
+	
+	<!-- 일별 통계(합계)  조회 갯수-->
+	<select id="retrieveDayStatListCount" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO"  resultType="java.lang.Integer">
+		SELECT COUNT(D.DAY_STAT_DATE)
+		  FROM TB_IOT_E_DEV_INS_LOC L 
+		  JOIN TB_IOT_ENTR_DEV_M M 
+		  	ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ 
+		 RIGHT OUTER JOIN TB_IOT_STAT_DAY_S D
+		    ON M.DEV_UUID = D.DEV_UUID
+	     WHERE 1=1
+		 <if test = "devClsCd != null">
+		   AND D.DEV_CLS_CD = #{devClsCd}
+		 </if> 
+		 <if test = "devMdlCd != null">
+		   AND D.DEV_MDL_CD = #{devMdlCd}
+		 </if>
+		 <if test = "searchStartDttm != null and searchEndDttm != null">
+		   AND D.DAY_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+		 </if>
+		  <if test = "usingNo != null">
+		   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+		 </if>
+	</select>
+	
+	<!-- 주별 통계(합계)  조회 갯수-->
+	<select id="retrieveWeekStatListCount" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO"  resultType="java.lang.Integer">
+		SELECT COUNT(W.WEEK_STAT_DATE)
+		  FROM TB_IOT_E_DEV_INS_LOC L 
+		  JOIN TB_IOT_ENTR_DEV_M M 
+		  	ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ 
+		 RIGHT OUTER JOIN TB_IOT_STAT_WEEK_S W
+		    ON M.DEV_UUID = W.DEV_UUID
+	     WHERE 1=1
+		 <if test = "devClsCd != null">
+		   AND W.DEV_CLS_CD = #{devClsCd}
+		 </if> 
+		 <if test = "devMdlCd != null">
+		   AND W.DEV_MDL_CD = #{devMdlCd}
+		 </if> 
+		 <if test = "searchStartDttm != null and searchEndDttm != null">
+		   AND W.WEEK_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+		 </if>
+	  	 <if test = "usingNo != null">
+		   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+		 </if>
+	</select>
+	
+	<!-- 월별 통계(합계)  조회 갯수-->
+	<select id="retrieveMonthStatListCount" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO"  resultType="java.lang.Integer">
+		SELECT COUNT(S.MON_STAT_DATE)
+		  FROM TB_IOT_E_DEV_INS_LOC L 
+		  JOIN TB_IOT_ENTR_DEV_M M 
+		  	ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ 
+		 RIGHT OUTER JOIN TB_IOT_STAT_MONTH_S S
+		    ON M.DEV_UUID = S.DEV_UUID
+	     WHERE 1=1
+		 <if test = "devClsCd != null">
+		   AND S.DEV_CLS_CD = #{devClsCd}
+		 </if> 
+		 <if test = "devMdlCd != null">
+		   AND S.DEV_MDL_CD = #{devMdlCd}
+		 </if>
+		 <if test = "searchStartDttm != null and searchEndDttm != null">
+		   AND S.MON_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+		 </if>
+		 <if test = "usingNo != null">
+		   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+		 </if>
+	</select>
+	
+	
+	<!-- 시간별 통계(합계)  조회 -->
+	<select id="retrieveHourStatList" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+	
+      	SELECT
+		TIME_COL_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+	      	SELECT 
+		    M.CTN
+		    , M.USING_NO
+		    , L.INST_ADDR
+		    , M.INST_NO
+		    , M.MACHINE_NO
+		    , M.DEV_MDL_NM
+		    , H.TIME_COL_DATE
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+		    FROM TB_IOT_E_DEV_INS_LOC L
+		    JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+		    LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_SUM_NM_CD IS NOT NULL
+		    RIGHT OUTER JOIN TB_IOT_STAT_HOUR_S H ON M.DEV_UUID = H.DEV_UUID
+		     WHERE 1=1
+			 <if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if> 
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.TIME_COL_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+		) A GROUP BY A.TIME_COL_DATE
+		ORDER BY A.TIME_COL_DATE DESC
+		LIMIT ${startPage-1}, ${(startPage-1)+displayRowCount}
+	
+	</select>
+	
+	<!-- 일별 통계(합계)  조회 -->
+	<select id="retrieveDayStatList" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+	
+		SELECT
+		DAY_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.DAY_STAT_DATE
+			,case when D.STA_SUM_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_SUM_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_SUM_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_SUM_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_SUM_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_SUM_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_SUM_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_SUM_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_SUM_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_SUM_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_SUM_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_SUM_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_SUM_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_SUM_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_SUM_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_SUM_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_SUM_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_SUM_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_SUM_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_SUM_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_SUM_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_SUM_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_SUM_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_SUM_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_SUM_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_SUM_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_SUM_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_SUM_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_SUM_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_SUM_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_SUM_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_DAY_S H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			<if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if>
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.DAY_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			  <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+
+		) A GROUP BY A.DAY_STAT_DATE
+		ORDER BY A.DAY_STAT_DATE DESC
+ 		LIMIT ${startPage-1}, ${(startPage-1)+displayRowCount}
+	</select>
+	
+	<!-- 주별 통계(합계)  조회 -->
+	<select id="retrieveWeekStatList" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+	
+		SELECT
+		WEEK_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.WEEK_STAT_DATE
+			,case when D.STA_SUM_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_SUM_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_SUM_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_SUM_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_SUM_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_SUM_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_SUM_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_SUM_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_SUM_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_SUM_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_SUM_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_SUM_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_SUM_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_SUM_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_SUM_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_SUM_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_SUM_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_SUM_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_SUM_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_SUM_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_SUM_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_SUM_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_SUM_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_SUM_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_SUM_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_SUM_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_SUM_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_SUM_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_SUM_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_SUM_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_SUM_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_WEEK_S H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			 <if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if> 
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.WEEK_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+		  	 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+		  	
+		) A GROUP BY A.WEEK_STAT_DATE
+		ORDER BY A.WEEK_STAT_DATE DESC
+		LIMIT ${startPage-1}, ${(startPage-1)+displayRowCount}
+	</select>
+	
+	<!-- 월별 통계(합계)  조회 -->
+	<select id="retrieveMonthStatList" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+		
+		SELECT
+		MON_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.MON_STAT_DATE
+			,case when D.STA_SUM_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_SUM_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_SUM_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_SUM_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_SUM_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_SUM_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_SUM_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_SUM_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_SUM_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_SUM_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_SUM_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_SUM_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_SUM_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_SUM_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_SUM_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_SUM_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_SUM_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_SUM_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_SUM_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_SUM_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_SUM_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_SUM_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_SUM_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_SUM_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_SUM_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_SUM_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_SUM_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_SUM_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_SUM_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_SUM_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_SUM_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_MONTH_S H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			<if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if>
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.MON_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+			 
+		) A GROUP BY A.MON_STAT_DATE
+		ORDER BY A.MON_STAT_DATE DESC
+		LIMIT ${startPage-1}, ${(startPage-1)+displayRowCount}
+	</select>
+	
+	
+	
+	<!-- 시간별 통계(평균)  조회 갯수-->
+	<select id="retrieveHourStatAvgListCount" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO"  resultType="java.lang.Integer">
+		SELECT COUNT(H.TIME_COL_DATE)
+		  FROM TB_IOT_E_DEV_INS_LOC L
+		  JOIN TB_IOT_ENTR_DEV_M M 
+		  	ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ 
+		 RIGHT OUTER JOIN TB_IOT_STAT_HOUR H 
+		    ON M.DEV_UUID = H.DEV_UUID
+	     WHERE 1=1
+		 <if test = "devClsCd != null">
+		   AND H.DEV_CLS_CD = #{devClsCd}
+		 </if> 
+		 <if test = "devMdlCd != null">
+		   AND H.DEV_MDL_CD = #{devMdlCd} 
+		 </if> 
+		 <if test = "searchStartDttm != null and searchEndDttm != null">
+		   AND H.TIME_COL_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+		 </if>
+		 <if test = "usingNo != null">
+		   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+		 </if>
+	</select>
+	
+	<!-- 일별 통계(평균)  조회 갯수-->
+	<select id="retrieveDayStatAvgListCount" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO"  resultType="java.lang.Integer">
+		SELECT COUNT(D.DAY_STAT_DATE)
+		  FROM TB_IOT_E_DEV_INS_LOC L 
+		  JOIN TB_IOT_ENTR_DEV_M M 
+		  	ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ 
+		 RIGHT OUTER JOIN TB_IOT_STAT_DAY D
+		    ON M.DEV_UUID = D.DEV_UUID
+	     WHERE 1=1
+		 <if test = "devClsCd != null">
+		   AND D.DEV_CLS_CD = #{devClsCd}
+		 </if> 
+		 <if test = "devMdlCd != null">
+		   AND D.DEV_MDL_CD = #{devMdlCd}
+		 </if>
+		 <if test = "searchStartDttm != null and searchEndDttm != null">
+		   AND D.DAY_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+		 </if>
+		  <if test = "usingNo != null">
+		   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+		 </if>
+	</select>
+	
+	<!-- 주별 통계(평균)  조회 갯수-->
+	<select id="retrieveWeekStatAvgListCount" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO"  resultType="java.lang.Integer">
+		SELECT COUNT(W.WEEK_STAT_DATE)
+		  FROM TB_IOT_E_DEV_INS_LOC L 
+		  JOIN TB_IOT_ENTR_DEV_M M 
+		  	ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ 
+		 RIGHT OUTER JOIN TB_IOT_STAT_WEEK W
+		    ON M.DEV_UUID = W.DEV_UUID
+	     WHERE 1=1
+		 <if test = "devClsCd != null">
+		   AND W.DEV_CLS_CD = #{devClsCd}
+		 </if> 
+		 <if test = "devMdlCd != null">
+		   AND W.DEV_MDL_CD = #{devMdlCd}
+		 </if> 
+		 <if test = "searchStartDttm != null and searchEndDttm != null">
+		   AND W.WEEK_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+		 </if>
+	  	 <if test = "usingNo != null">
+		   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+		 </if>
+	</select>
+	
+	<!-- 월별 통계(평균)  조회 갯수-->
+	<select id="retrieveMonthStatAvgListCount" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO"  resultType="java.lang.Integer">
+		SELECT COUNT(S.MON_STAT_DATE)
+		  FROM TB_IOT_E_DEV_INS_LOC L 
+		  JOIN TB_IOT_ENTR_DEV_M M 
+		  	ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ 
+		 RIGHT OUTER JOIN TB_IOT_STAT_MONTH S
+		    ON M.DEV_UUID = S.DEV_UUID
+	     WHERE 1=1
+		 <if test = "devClsCd != null">
+		   AND S.DEV_CLS_CD = #{devClsCd}
+		 </if> 
+		 <if test = "devMdlCd != null">
+		   AND S.DEV_MDL_CD = #{devMdlCd}
+		 </if>
+		 <if test = "searchStartDttm != null and searchEndDttm != null">
+		   AND S.MON_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+		 </if>
+		 <if test = "usingNo != null">
+		   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+		 </if>
+	</select>
+	
+	
+	<!-- 시간별 통계(평균)  조회 -->
+	<select id="retrieveHourStatAvgList" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+	
+      	SELECT
+		TIME_COL_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+	      	SELECT 
+		    M.CTN
+		    , M.USING_NO
+		    , L.INST_ADDR
+		    , M.INST_NO
+		    , M.MACHINE_NO
+		    , M.DEV_MDL_NM
+		    , H.TIME_COL_DATE
+		    ,case when D.STA_AVG_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_AVG_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_AVG_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_AVG_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_AVG_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_AVG_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_AVG_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_AVG_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_AVG_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_AVG_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_AVG_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_AVG_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_AVG_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_AVG_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_AVG_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_AVG_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_AVG_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_AVG_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_AVG_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_AVG_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_AVG_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_AVG_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_AVG_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_AVG_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_AVG_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_AVG_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_AVG_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_AVG_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_AVG_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_AVG_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_AVG_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_HOUR H ON M.DEV_UUID = H.DEV_UUID
+		     WHERE 1=1
+			 <if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if> 
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.TIME_COL_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+		) A GROUP BY A.TIME_COL_DATE
+		ORDER BY A.TIME_COL_DATE DESC
+		LIMIT ${startPage-1}, ${(startPage-1)+displayRowCount}
+	</select>
+	
+	<!-- 일별 통계(평균)  조회 -->
+	<select id="retrieveDayStatAvgList" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+	
+		SELECT
+		DAY_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.DAY_STAT_DATE
+			,case when D.STA_AVG_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_AVG_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_AVG_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_AVG_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_AVG_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_AVG_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_AVG_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_AVG_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_AVG_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_AVG_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_AVG_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_AVG_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_AVG_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_AVG_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_AVG_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_AVG_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_AVG_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_AVG_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_AVG_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_AVG_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_AVG_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_AVG_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_AVG_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_AVG_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_AVG_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_AVG_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_AVG_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_AVG_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_AVG_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_AVG_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_AVG_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_DAY H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			<if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if>
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.DAY_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			  <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+
+		) A GROUP BY A.DAY_STAT_DATE
+		ORDER BY A.DAY_STAT_DATE DESC
+ 		LIMIT ${startPage-1}, ${(startPage-1)+displayRowCount}
+	</select>
+	
+	<!-- 주별 통계(평균)  조회 -->
+	<select id="retrieveWeekStatAvgList" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+	
+		SELECT
+		WEEK_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.WEEK_STAT_DATE
+			,case when D.STA_AVG_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_AVG_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_AVG_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_AVG_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_AVG_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_AVG_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_AVG_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_AVG_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_AVG_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_AVG_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_AVG_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_AVG_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_AVG_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_AVG_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_AVG_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_AVG_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_AVG_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_AVG_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_AVG_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_AVG_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_AVG_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_AVG_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_AVG_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_AVG_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_AVG_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_AVG_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_AVG_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_AVG_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_AVG_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_AVG_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_AVG_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_WEEK H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			 <if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if> 
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.WEEK_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+		  	 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+		  	
+		) A GROUP BY A.WEEK_STAT_DATE
+		ORDER BY A.WEEK_STAT_DATE DESC
+		LIMIT ${startPage-1}, ${(startPage-1)+displayRowCount}
+	</select>
+	
+	<!-- 월별 통계(평균)  조회 -->
+	<select id="retrieveMonthStatAvgList" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+
+		
+		SELECT
+		MON_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.MON_STAT_DATE
+			,case when D.STA_AVG_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_AVG_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_AVG_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_AVG_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_AVG_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_AVG_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_AVG_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_AVG_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_AVG_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_AVG_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_AVG_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_AVG_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_AVG_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_AVG_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_AVG_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_AVG_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_AVG_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_AVG_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_AVG_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_AVG_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_AVG_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_AVG_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_AVG_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_AVG_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_AVG_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_AVG_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_AVG_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_AVG_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_AVG_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_AVG_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_AVG_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_MONTH H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			<if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if>
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.MON_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+			 
+		) A GROUP BY A.MON_STAT_DATE
+		ORDER BY A.MON_STAT_DATE DESC
+		LIMIT ${startPage-1}, ${(startPage-1)+displayRowCount}
+	</select>
+	
+	
+	<!-- 시간별 통계(합계) 엑셀다운로드 -->
+	<select id="retrieveHourStatListExcel" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+		SELECT
+		TIME_COL_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+	      	SELECT 
+		    M.CTN
+		    , M.USING_NO
+		    , L.INST_ADDR
+		    , M.INST_NO
+		    , M.MACHINE_NO
+		    , M.DEV_MDL_NM
+		    , H.TIME_COL_DATE
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+		    ,case when D.STA_SUM_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+		    FROM TB_IOT_E_DEV_INS_LOC L
+		    JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+		    LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_SUM_NM_CD IS NOT NULL
+		    RIGHT OUTER JOIN TB_IOT_STAT_HOUR_S H ON M.DEV_UUID = H.DEV_UUID
+		     WHERE 1=1
+			 <if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if> 
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.TIME_COL_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+		) A GROUP BY A.TIME_COL_DATE
+		ORDER BY A.TIME_COL_DATE DESC 
+	</select>
+	<!-- 일별 통계(합계) 엑셀다운로드 -->
+	<select id="retrieveDayStatListExcel" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+		SELECT
+		DAY_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.DAY_STAT_DATE
+			,case when D.STA_SUM_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_SUM_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_SUM_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_SUM_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_SUM_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_SUM_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_SUM_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_SUM_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_SUM_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_SUM_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_SUM_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_SUM_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_SUM_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_SUM_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_SUM_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_SUM_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_SUM_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_SUM_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_SUM_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_SUM_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_SUM_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_SUM_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_SUM_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_SUM_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_SUM_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_SUM_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_SUM_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_SUM_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_SUM_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_SUM_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_SUM_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_DAY_S H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			<if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if>
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.DAY_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			  <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+
+		) A GROUP BY A.DAY_STAT_DATE
+		ORDER BY A.DAY_STAT_DATE DESC
+	</select>
+	<!-- 주별 통계(합계) 엑셀다운로드 -->
+	<select id="retrieveWeekStatListExcel" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+		SELECT
+		WEEK_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.WEEK_STAT_DATE
+			,case when D.STA_SUM_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_SUM_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_SUM_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_SUM_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_SUM_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_SUM_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_SUM_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_SUM_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_SUM_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_SUM_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_SUM_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_SUM_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_SUM_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_SUM_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_SUM_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_SUM_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_SUM_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_SUM_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_SUM_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_SUM_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_SUM_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_SUM_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_SUM_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_SUM_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_SUM_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_SUM_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_SUM_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_SUM_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_SUM_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_SUM_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_SUM_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_WEEK_S H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			 <if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if> 
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.WEEK_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+		  	 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+		  	
+		) A GROUP BY A.WEEK_STAT_DATE
+		ORDER BY A.WEEK_STAT_DATE DESC
+	</select>
+	<!-- 월별 통계(합계) 엑셀다운로드 -->
+	<select id="retrieveMonthStatListExcel" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+		SELECT
+		MON_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.MON_STAT_DATE
+			,case when D.STA_SUM_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_SUM_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_SUM_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_SUM_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_SUM_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_SUM_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_SUM_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_SUM_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_SUM_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_SUM_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_SUM_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_SUM_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_SUM_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_SUM_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_SUM_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_SUM_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_SUM_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_SUM_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_SUM_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_SUM_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_SUM_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_SUM_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_SUM_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_SUM_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_SUM_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_SUM_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_SUM_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_SUM_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_SUM_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_SUM_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_SUM_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_MONTH_S H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			<if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if>
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.MON_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+			 
+		) A GROUP BY A.MON_STAT_DATE
+		ORDER BY A.MON_STAT_DATE DESC
+	</select>
+	
+	
+	<!-- 시간별 통계(평균) 엑셀다운로드 -->
+	<select id="retrieveHourStatAvgListExcel" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+		 SELECT
+		TIME_COL_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+	      	SELECT 
+		    M.CTN
+		    , M.USING_NO
+		    , L.INST_ADDR
+		    , M.INST_NO
+		    , M.MACHINE_NO
+		    , M.DEV_MDL_NM
+		    , H.TIME_COL_DATE
+		    ,case when D.STA_AVG_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_AVG_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_AVG_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_AVG_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_AVG_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_AVG_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_AVG_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_AVG_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_AVG_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_AVG_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_AVG_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_AVG_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_AVG_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_AVG_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_AVG_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_AVG_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_AVG_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_AVG_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_AVG_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_AVG_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_AVG_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_AVG_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_AVG_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_AVG_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_AVG_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_AVG_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_AVG_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_AVG_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_AVG_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_AVG_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_AVG_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_HOUR H ON M.DEV_UUID = H.DEV_UUID
+		     WHERE 1=1
+			 <if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if> 
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.TIME_COL_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+		) A GROUP BY A.TIME_COL_DATE
+		ORDER BY A.TIME_COL_DATE DESC
+	</select>
+	
+	<!-- 일별 통계(평균) 엑셀다운로드 -->
+	<select id="retrieveDayStatAvgListExcel" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+		SELECT
+		DAY_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.DAY_STAT_DATE
+			,case when D.STA_AVG_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_AVG_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_AVG_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_AVG_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_AVG_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_AVG_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_AVG_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_AVG_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_AVG_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_AVG_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_AVG_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_AVG_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_AVG_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_AVG_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_AVG_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_AVG_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_AVG_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_AVG_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_AVG_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_AVG_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_AVG_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_AVG_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_AVG_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_AVG_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_AVG_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_AVG_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_AVG_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_AVG_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_AVG_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_AVG_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_AVG_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_DAY H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			<if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if>
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.DAY_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			  <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+
+		) A GROUP BY A.DAY_STAT_DATE
+		ORDER BY A.DAY_STAT_DATE DESC
+	</select>
+
+	<!-- 주별 통계(평균) 엑셀다운로드 -->
+	<select id="retrieveWeekStatAvgListExcel" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+		SELECT
+		WEEK_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.WEEK_STAT_DATE
+			,case when D.STA_AVG_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_AVG_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_AVG_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_AVG_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_AVG_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_AVG_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_AVG_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_AVG_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_AVG_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_AVG_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_AVG_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_AVG_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_AVG_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_AVG_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_AVG_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_AVG_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_AVG_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_AVG_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_AVG_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_AVG_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_AVG_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_AVG_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_AVG_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_AVG_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_AVG_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_AVG_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_AVG_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_AVG_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_AVG_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_AVG_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_AVG_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_WEEK H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			 <if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if> 
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.WEEK_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+		  	 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+		  	
+		) A GROUP BY A.WEEK_STAT_DATE
+		ORDER BY A.WEEK_STAT_DATE DESC
+	</select>
+	
+	<!-- 월별 통계(평균) 엑셀다운로드 -->
+	<select id="retrieveMonthStatAvgListExcel" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO">
+		SELECT
+		MON_STAT_DATE
+		,MAX(A.CTN) AS CTN
+		,MAX(A.USING_NO) AS USING_NO
+		,MAX(A.INST_ADDR) AS INST_ADDR
+		,MAX(A.INST_NO) AS INST_NO
+		,MAX(A.MACHINE_NO) AS MACHINE_NO
+		,MAX(A.DEV_MDL_NM) AS DEV_MDL_NM
+		,MAX(ATTB_VL01) AS ATTB_VL01
+		,MAX(ATTB_VL02) AS ATTB_VL02
+		,MAX(ATTB_VL03) AS ATTB_VL03
+		,MAX(ATTB_VL04) AS ATTB_VL04
+		,MAX(ATTB_VL05) AS ATTB_VL05
+		,MAX(ATTB_VL06) AS ATTB_VL06
+		,MAX(ATTB_VL07) AS ATTB_VL07
+		,MAX(ATTB_VL08) AS ATTB_VL08
+		,MAX(ATTB_VL09) AS ATTB_VL09
+		,MAX(ATTB_VL10) AS ATTB_VL10
+		,MAX(ATTB_VL11) AS ATTB_VL11
+		,MAX(ATTB_VL12) AS ATTB_VL12
+		,MAX(ATTB_VL13) AS ATTB_VL13
+		,MAX(ATTB_VL14) AS ATTB_VL14
+		,MAX(ATTB_VL15) AS ATTB_VL15
+		,MAX(ATTB_VL16) AS ATTB_VL16
+		,MAX(ATTB_VL17) AS ATTB_VL17
+		,MAX(ATTB_VL18) AS ATTB_VL18
+		,MAX(ATTB_VL19) AS ATTB_VL19
+		,MAX(ATTB_VL20) AS ATTB_VL20
+		,MAX(ATTB_VL21) AS ATTB_VL21
+		,MAX(ATTB_VL22) AS ATTB_VL22
+		,MAX(ATTB_VL23) AS ATTB_VL23
+		,MAX(ATTB_VL24) AS ATTB_VL24
+		,MAX(ATTB_VL25) AS ATTB_VL25
+		,MAX(ATTB_VL26) AS ATTB_VL26
+		,MAX(ATTB_VL27) AS ATTB_VL27
+		,MAX(ATTB_VL28) AS ATTB_VL28
+		,MAX(ATTB_VL29) AS ATTB_VL29
+		,MAX(ATTB_VL30) AS ATTB_VL30
+		FROM (
+			SELECT 
+			M.CTN
+			, M.USING_NO
+			, L.INST_ADDR
+			, M.INST_NO
+			, M.MACHINE_NO
+			, M.DEV_MDL_NM
+			, H.MON_STAT_DATE
+			,case when D.STA_AVG_NM_CD='ATTB_VL01' then H.ATTB_VL01 END AS ATTB_VL01
+			,case when D.STA_AVG_NM_CD='ATTB_VL02' then H.ATTB_VL02 END AS ATTB_VL02
+			,case when D.STA_AVG_NM_CD='ATTB_VL03' then H.ATTB_VL03 END AS ATTB_VL03
+			,case when D.STA_AVG_NM_CD='ATTB_VL04' then H.ATTB_VL04 END AS ATTB_VL04
+			,case when D.STA_AVG_NM_CD='ATTB_VL05' then H.ATTB_VL05 END AS ATTB_VL05
+			,case when D.STA_AVG_NM_CD='ATTB_VL06' then H.ATTB_VL06 END AS ATTB_VL06
+			,case when D.STA_AVG_NM_CD='ATTB_VL07' then H.ATTB_VL07 END AS ATTB_VL07
+			,case when D.STA_AVG_NM_CD='ATTB_VL08' then H.ATTB_VL08 END AS ATTB_VL08
+			,case when D.STA_AVG_NM_CD='ATTB_VL09' then H.ATTB_VL09 END AS ATTB_VL09
+			,case when D.STA_AVG_NM_CD='ATTB_VL10' then H.ATTB_VL10 END AS ATTB_VL10
+			,case when D.STA_AVG_NM_CD='ATTB_VL11' then H.ATTB_VL11 END AS ATTB_VL11
+			,case when D.STA_AVG_NM_CD='ATTB_VL12' then H.ATTB_VL12 END AS ATTB_VL12
+			,case when D.STA_AVG_NM_CD='ATTB_VL13' then H.ATTB_VL13 END AS ATTB_VL13
+			,case when D.STA_AVG_NM_CD='ATTB_VL14' then H.ATTB_VL14 END AS ATTB_VL14
+			,case when D.STA_AVG_NM_CD='ATTB_VL15' then H.ATTB_VL15 END AS ATTB_VL15
+			,case when D.STA_AVG_NM_CD='ATTB_VL16' then H.ATTB_VL16 END AS ATTB_VL16
+			,case when D.STA_AVG_NM_CD='ATTB_VL17' then H.ATTB_VL17 END AS ATTB_VL17
+			,case when D.STA_AVG_NM_CD='ATTB_VL18' then H.ATTB_VL18 END AS ATTB_VL18
+			,case when D.STA_AVG_NM_CD='ATTB_VL19' then H.ATTB_VL19 END AS ATTB_VL19
+			,case when D.STA_AVG_NM_CD='ATTB_VL20' then H.ATTB_VL20 END AS ATTB_VL20
+			,case when D.STA_AVG_NM_CD='ATTB_VL21' then H.ATTB_VL21 END AS ATTB_VL21
+			,case when D.STA_AVG_NM_CD='ATTB_VL22' then H.ATTB_VL22 END AS ATTB_VL22
+			,case when D.STA_AVG_NM_CD='ATTB_VL23' then H.ATTB_VL23 END AS ATTB_VL23
+			,case when D.STA_AVG_NM_CD='ATTB_VL24' then H.ATTB_VL24 END AS ATTB_VL24
+			,case when D.STA_AVG_NM_CD='ATTB_VL25' then H.ATTB_VL25 END AS ATTB_VL25
+			,case when D.STA_AVG_NM_CD='ATTB_VL26' then H.ATTB_VL26 END AS ATTB_VL26
+			,case when D.STA_AVG_NM_CD='ATTB_VL27' then H.ATTB_VL27 END AS ATTB_VL27
+			,case when D.STA_AVG_NM_CD='ATTB_VL28' then H.ATTB_VL28 END AS ATTB_VL28
+			,case when D.STA_AVG_NM_CD='ATTB_VL29' then H.ATTB_VL29 END AS ATTB_VL29
+			,case when D.STA_AVG_NM_CD='ATTB_VL30' then H.ATTB_VL30 END AS ATTB_VL30
+			FROM TB_IOT_E_DEV_INS_LOC L
+			JOIN TB_IOT_ENTR_DEV_M M ON L.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_S_DEV_ATB D ON M.SVC_CD=D.SVC_CD AND M.DEV_CLS_CD=D.DEV_CLS_CD AND M.DEV_MDL_CD=D.DEV_MDL_CD AND D.STA_AVG_NM_CD IS NOT NULL
+			RIGHT OUTER JOIN TB_IOT_STAT_MONTH H ON M.DEV_UUID = H.DEV_UUID
+			WHERE 1=1
+			<if test = "devClsCd != null">
+			   AND H.DEV_CLS_CD = #{devClsCd}
+			 </if> 
+			 <if test = "devMdlCd != null">
+			   AND H.DEV_MDL_CD = #{devMdlCd}
+			 </if>
+			 <if test = "searchStartDttm != null and searchEndDttm != null">
+			   AND H.MON_STAT_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm} 
+			 </if>
+			 <if test = "usingNo != null">
+			   AND M.USING_NO LIKE CONCAT(#{usingNo},'%')
+			 </if>
+			 
+		) A GROUP BY A.MON_STAT_DATE
+		ORDER BY A.MON_STAT_DATE DESC
+	</select>
+</mapper>

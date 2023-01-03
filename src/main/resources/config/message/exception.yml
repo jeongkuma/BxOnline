@@ -1,0 +1,779 @@
+success:
+  200ok:
+    code: 20000000
+    desc: 200ok
+    type: IOT-200
+    status: 200
+  204ok:
+    code: 20000000
+    desc: 204ok
+    type: IOT-200
+    status: 204
+exception:
+  202ok:
+    code: 20000200
+    desc: 202ok
+    type: IOT-200
+    status: 200
+  notdefine:
+    code: 40000600
+    desc: notdefine
+    type: IOT-310
+    status: 600
+  invalid:
+    code: 31000601
+    desc: invalid
+    type: IOT-310
+    status: 310
+  empty_key:
+    code: 31000602
+    desc: empty_key
+    type: IOT-310
+    status: 310
+  empty_value:
+    code: 31000603
+    desc: empty_value
+    type: IOT-310
+    status: 310
+  too_long:
+    code: 31000604
+    desc: too_long
+    type: IOT-310
+    status: 310
+  too_short:
+    code: 31000605
+    desc: too_short
+    type: IOT-310
+    status: 310
+  wrong_length:
+    code: 31000606
+    desc: wrong_length
+    type: IOT-310
+    status: 310
+  not_a_number:
+    code: 31000607
+    desc: not_a_number
+    type: IOT-310
+    status: 310
+  white_space:
+    code: 31000608
+    desc: white_space
+    type: IOT-310
+    status: 310
+  greater_than:
+    code: 31000609
+    desc: greater_than
+    type: IOT-310
+    status: 310
+  greater_than_or_equal_to:
+    code: 31000610
+    desc: greater_than_or_equal_to
+    type: IOT-310
+    status: 310
+  less_than:
+    code: 31000611
+    desc: less_than
+    type: IOT-310
+    status: 310
+  less_than_or_equal_to:
+    code: 31000612
+    desc: less_than_or_equal_to
+    type: IOT-310
+    status: 310
+  abnormal_format:
+    code: 31000613
+    desc: abnormal_format
+    type: IOT-310
+    status: 310
+  accept:
+    code: 31000614
+    desc: accept
+    type: IOT-310
+    status: 310
+  reject:
+    code: 31000615
+    desc: reject
+    type: IOT-310
+    status: 310
+  not_a_parameter:
+    code: 31000616
+    desc: not_a_parameter
+    type: IOT-310
+    status: 310
+  invalid_data:
+    code: 31000617
+    desc: invalid_data
+    type: IOT-310
+    status: 310
+  invalid_xss:
+    code: 31000618
+    desc: invalid_xss
+    type: IOT-310
+    status: 310
+  special_char:
+    code: 31000619
+    desc: special_char
+    type: IOT-310
+    status: 310
+  loginFail:
+    code: 31000620
+    desc: loginFail
+    type: IOT-310
+    status: 310
+  lockUpUser:
+    code: 31000621
+    desc: lockUpUser
+    type: IOT-310
+    status: 310
+  sleepUser:
+    code: 31000622
+    desc: sleepUser
+    type: IOT-310
+    status: 310
+  lockedUser:
+    code: 31000623
+    desc: lockedUser
+    type: IOT-310
+    status: 310
+  userNotFound:
+    code: 31000624
+    desc: userNotFound
+    type: IOT-310
+    status: 310
+  expireAuthNo:
+    code: 31000625
+    desc: expireAuthNo
+    type: IOT-310
+    status: 310
+  wrongAuthNo:
+    code: 31000626
+    desc: wrongAuthNo
+    type: IOT-310
+    status: 310
+  notValidPwd:
+    code: 31000627
+    desc: notValidPwd
+    type: IOT-310
+    status: 310
+  usedPwd:
+    code: 31000628
+    desc: usedPwd
+    type: IOT-310
+    status: 310
+  duplicatedCustId:
+    code: 31000629
+    desc: duplicatedCustId
+    type: IOT-310
+    status: 310
+  duplicatedCdNm:
+    code: 31000630
+    desc: duplicatedCdNm
+    type: IOT-310
+    status: 310
+  duplicatedCustNm:
+    code: 31000631
+    desc: duplicatedCustNm
+    type: IOT-310
+    status: 310
+  duplicatedProgId:
+    code: 31000632
+    desc: duplicatedProgId
+    type: IOT-310
+    status: 310
+  duplicatedUiPath:
+    code: 31000633
+    desc: duplicatedUiPath
+    type: IOT-310
+    status: 310
+  duplicatedProgUri:
+    code: 31000634
+    desc: duplicatedProgUri
+    type: IOT-310
+    status: 310
+  duplicatedApiNm:
+    code: 31000635
+    desc: duplicatedApiNm
+    type: IOT-310
+    status: 310
+  duplicatedURI:
+    code: 31000636
+    desc: duplicatedURI
+    type: IOT-310
+    status: 310
+  duplicatedTmplId:
+    code: 31000637
+    desc: duplicatedTmplId
+    type: IOT-310
+    status: 310
+  noCtnInfo:
+    code: 31000638
+    desc: noCtnInfo
+    type: IOT-310
+    status: 310
+  duplicationLgnId:
+    code: 31000639
+    desc: duplicationLgnId
+    type: IOT-310
+    status: 310
+  noSearchAlgorithm:
+    code: 31000640
+    desc: noSearchAlgorithm
+    type: IOT-310
+    status: 310
+  duplicatedCdId:
+    code: 31000641
+    desc: duplicatedCdId
+    type: IOT-310
+    status: 310
+  duplicationManfSerialNo:
+    code: 31000642
+    desc: duplicationManfSerialNo
+    type: IOT-310
+    status: 310
+  duplicationUuid:
+    code: 31000643
+    desc: duplicationUuid
+    type: IOT-310
+    status: 310
+  notCreateUuid:
+    code: 31000643
+    desc: notCreateUuid
+    type: IOT-310
+    status: 310
+  duplicationUname:
+    code: 31000644
+    desc: duplicationUname
+    type: IOT-310
+    status: 310
+  duplicationCtn:
+    code: 31000645
+    desc: duplicationCtn
+    type: IOT-310
+    status: 310
+  duplicationInstNo:
+    code: 31000646
+    desc: duplicationInstNo
+    type: IOT-310
+    status: 310
+  duplicatedOrgNm:
+    code: 31000647
+    desc: duplicatedOrgNm
+    type: IOT-310
+    status: 310
+  nonExistOrgNm:
+    code: 31000648
+    desc: nonExistOrgNm
+    type: IOT-310
+    status: 310
+  nonExistRoleNm:
+    code: 31000649
+    desc: invalidRoleNm
+    type: IOT-310
+    status: 310
+  duplicatedCharSet:
+    code: 31000650
+    desc: duplicatedCharSet
+    type: IOT-310
+    status: 310
+  duplicatedRoleMap:
+    code: 31000651
+    desc: duplicatedRoleMap
+    type: IOT-310
+    status: 310
+  duplicatedMenuNm:
+    code: 31000652
+    desc: duplicatedMenuNm
+    type: IOT-310
+    status: 310
+  duplicatedMenuId:
+    code: 31000653
+    desc: duplicatedMenuId
+    type: IOT-310
+    status: 310
+  isNotEmailPattern:
+    code: 31000654
+    desc: isNotEmailPattern
+    type: IOT-310
+    status: 310
+  existDownMenu:
+    code: 31000655
+    desc: existDownMenu
+    type: IOT-310
+    status: 310
+  existMenu:
+    code: 31000656
+    desc: existMenu
+    type: IOT-310
+    status: 310
+  noSearchList:
+    code: 31000657
+    desc: noSearchList
+    type: IOT-310
+    status: 310
+  incorrectPassword:
+    code: 31000658
+    desc: incorrectPassword
+    type: IOT-310
+    status: 310
+  excel_empty_value:
+    code: 31000659
+    desc: excel_empty_value
+    type: IOT-310
+    status: 310
+  notValidNewPwd:
+    code: 31000660
+    desc: notValidNewPwd
+    type: IOT-310
+    status: 310
+  existInpormation:
+    code: 31000661
+    desc: existInpormation
+    type: IOT-310
+    status: 310
+  duplicatedCdNmDuringProcess:
+    code: 31000662
+    desc: duplicatedCdNmDuringProcess
+    type: IOT-310
+    status: 398
+  duplicatedCdIdDuringProcess:
+    code: 31000663
+    desc: duplicatedCdIdDuringProcess
+    type: IOT-310
+    status: 398
+  fistLoginUser:
+    code: 31000664
+    desc: fistLoginUser
+    type: IOT-310
+    status: 398
+  noTmplHeader:
+    code: 31000665
+    desc: noTmplHeader
+    type: IOT-310
+    status: 310
+  notMatchUser:
+    code: 31000666
+    desc: notMatchUser
+    type: IOT-310
+    status: 310
+  invailid_tel_num:
+    code: 31000667
+    desc: invailid_tel_num
+    type: IOT-310
+    status: 310
+  usrNotFount:
+    code: 31000668
+    desc: usrNotFount
+    type: IOT-310
+    status: 310
+  noDevMdlNm:
+    code: 31000669
+    desc: noDevMdlNm
+    type: IOT-310
+    status: 310
+  noDevClsCdNm:
+    code: 31000670
+    desc: noDevClsCdNm
+    type: IOT-310
+    status: 310
+  excelUploadLimit:
+    code: 33000613
+    desc: excelUploadLimit
+    type: IOT-330
+    status: 330
+  not_a_httpheader:
+    code: 32000600
+    desc: not_a_httpheader
+    type: IOT-320
+    status: 320
+  not_a_httpheadervalue:
+    code: 32000601
+    desc: not_a_httpheadervalue
+    type: IOT-320
+    status: 310
+  too_long_httpheadervalue:
+    code: 32000602
+    desc: too_long_httpheadervalue
+    type: IOT-320
+    status: 320
+  too_short_httpheadervalue:
+    code: 32000603
+    desc: too_short_httpheadervalue
+    type: IOT-320
+    status: 320
+  wrong_length_httpheadervalue:
+    code: 32000604
+    desc: wrong_length_httpheadervalue
+    type: IOT-320
+    status: 320
+  not_a_number_httpheadervalue:
+    code: 32000605
+    desc: not_a_number_httpheadervalue
+    type: IOT-320
+    status: 320
+  white_space_httpheadervalue:
+    code: 32000606
+    desc: white_space_httpheadervalue
+    type: IOT-320
+    status: 320
+  greater_than_httpheadervalue:
+    code: 32000607
+    desc: greater_than_httpheadervalue
+    type: IOT-320
+    status: 320
+  less_than_httpheadervalue:
+    code: 32000608
+    desc: less_than_httpheadervalue
+    type: IOT-320
+    status: 320
+  abnormal_format_httpheadervalue:
+    code: 32000609
+    desc: abnormal_format_httpheadervalue
+    type: IOT-320
+    status: 320
+  accept_httpheadervalue:
+    code: 32000610
+    desc: accept_httpheadervalue
+    type: IOT-320
+    status: 320
+  reject_httpheadervalue:
+    code: 32000611
+    desc: reject_httpheadervalue
+    type: IOT-320
+    status: 320
+  empty_httpheadervalue:
+    code: 32000612
+    desc: empty_httpheadervalue
+    type: IOT-320
+    status: 320
+  org.springframework.web.HttpMediaTypeNotSupportedException:
+    code: 32000613
+    desc: org.springframework.web.HttpMediaTypeNotSupportedException
+    type: IOT-320
+    status: 320
+  config_file_not_found:
+    code: 33000600
+    desc: config_file_not_found
+    type: IOT-330
+    status: 330
+  config_file_empty_key:
+    code: 33000601
+    desc: config_file_empty_key
+    type: IOT-330
+    status: 330
+  config_file_invalid_value:
+    code: 33000602
+    desc: config_file_invalid_value
+    type: IOT-330
+    status: 330
+  fileUploadError:
+    code: 33000603
+    desc: fileUploadError
+    type: IOT-330
+    status: 330
+  ObjectMapperError:
+    code: 33000604
+    desc: ObjectMapperError
+    type: IOT-330
+    status: 330
+  notUseextension:
+    code: 33000605
+    desc: notUseextension
+    type: IOT-330
+    status: 330
+  excelUploadException:
+    code: 33000606
+    desc: excelUploadException
+    type: IOT-330
+    status: 330
+  excellDownloadError:
+    code: 33000607
+    desc: excellDownloadError
+    type: IOT-330
+    status: 330
+  fileSizeExceed:
+    code: 33000608
+    desc: fileSizeExceed
+    type: IOT-330
+    status: 330
+  noUploadFile:
+    code: 33000609
+    desc: noUploadFile
+    type: IOT-330
+    status: 330
+  fileUploadFail:
+    code: 33000610
+    desc: fileUploadFail
+    type: IOT-330
+    status: 330
+  fileNotFound:
+    code: 33000611
+    desc: fileNotFound
+    type: IOT-330
+    status: 330
+  fileDownloadFail:
+    code: 33000612
+    desc: fileDownloadFail
+    type: IOT-330
+    status: 330
+  AccessDenied:
+    code: 40100001
+    desc: AccessDenied
+    type: IOT-401
+    status: 401
+  java.lang.IllegalArgumentException:
+    code: 40100002
+    desc: not_towen
+    type: IOT-401
+    status: 401
+  org.springframework.data.redis.RedisConnectionFailureException:
+    code: 40100003
+    desc: org.springframework.data.redis.RedisConnectionFailureException
+    type: IOT-401
+    status: 401
+  org.springframework.security.core.AuthenticationException:
+    code: 40100001
+    desc: org.springframework.security.core.AuthenticationException
+    type: IOT-401
+    status: 401
+  JSONTypeERROR:
+    code: 50000101
+    desc: JSONTypeERROR
+    type: IOT-500
+    status: 500
+  IOException:
+    code: 50000102
+    desc: IOException
+    type: IOT-500
+    status: 500
+  database:
+    code: 50000000
+    desc: database
+    type: IOT-510
+    status: 510
+  java.sql.SQLException:
+    code: 50000000
+    desc: java.sql.SQLException
+    type: IOT-510
+    status: 510
+  org.springframework.dao.DataAccessException:
+    code: 50000000
+    desc: org.springframework.dao.DataAccessException
+    type: IOT-510
+    status: 510
+  org.apache.ibatis.javassist.NotFoundException:
+    code: 50000000
+    desc: org.apache.ibatis.javassist.NotFoundException
+    type: IOT-510
+    status: 510
+  org.springframework.jdbc.UncategorizedSQLException:
+    code: 50000000
+    desc: UncategorizedSQLException
+    type: IOT-510
+    status: 510
+  org.mybatis.spring.MyBatisSystemException:
+    code: 50000000
+    desc: MyBatisSystemException
+    type: IOT-510
+    status: 510
+  org.springframework.jdbc:
+    code: 50000000
+    desc: org.springframework.jdbc
+    type: IOT-510
+    status: 510
+  org.apache.ibatis.binding.BindingException:
+    code: 50000000
+    desc: BindingException
+    type: IOT-510
+    status: 510
+  org.springframework.jdbc.BadSqlGrammarException:
+    code: 50000000
+    desc: org.springframework.jdbc.BadSqlGrammarException
+    type: IOT-510
+    status: 510
+  org.springframework.dao.DataIntegrityViolationException:
+    code: 50000000
+    desc: DataIntegrityViolationException
+    type: IOT-510
+    status: 510
+  org.springframework.dao.DuplicateKeyException:
+    code: 50000000
+    desc: DuplicateKeyException
+    type: IOT-510
+    status: 510
+  java.io.FileNotFoundException:
+    code: 50000116
+    desc: java.io.FileNotFoundException
+    type: IOT-500
+    status: 500
+  java.io.IOException:
+    code: 50000110
+    desc: java.io.IOException
+    type: IOT-500
+    status: 500
+  org.apache.http.conn.ConnectTimeoutException:
+    code: 50000111
+    desc: org.apache.http.conn.ConnectTimeoutException
+    type: IOT-500
+    status: 500
+  java.net.SocketTimeoutException:
+    code: 50000112
+    desc: java.net.SocketTimeoutException
+    type: IOT-500
+    status: 500
+  java.net.ConnectException:
+    code: 50000113
+    desc: java.net.ConnectException
+    type: IOT-500
+    status: 500
+  java.lang.NullPointerException:
+    code: 50000104
+    desc: java.lang.NullPointerException
+    type: IOT-500
+    status: 500
+  java.lang.NumberFormatException:
+    code: 50000115
+    desc: java.lang.NumberFormatException
+    type: IOT-500
+    status: 500
+  org.springframework.http.converter.HttpMessageNotReadableException:
+    code: 50000117
+    desc: org.springframework.http.converter.HttpMessageNotReadableException
+    type: IOT-500
+    status: 500
+  com.fasterxml.jackson.core.io.JsonEOFException:
+    code: 50000103
+    desc: com.fasterxml.jackson.core.io.JsonEOFException
+    type: IOT-500
+    status: 500
+  com.fasterxml.jackson.core.JsonParseException:
+    code: 50000104
+    desc: com.fasterxml.jackson.core.JsonParseException
+    type: IOT-500
+    status: 500
+  com.fasterxml.jackson.databind.JsonMappingException:
+    code: 50000105
+    desc: com.fasterxml.jackson.databind.JsonMappingException
+    type: IOT-500
+    status: 500
+  javax.script.ScriptException:
+    code: 50000116
+    desc: javax.script.ScriptException
+    type: IOT-500
+    status: 500
+  java.lang.NoSuchMethodException:
+    code: 50000117
+    desc: java.lang.NoSuchMethodException
+    type: IOT-500
+    status: 500
+  com.fasterxml.jackson.databind.exc.MismatchedInputException:
+    code: 50000106
+    desc: com.fasterxml.jackson.databind.exc.MismatchedInputException
+    type: IOT-500
+    status: 500
+  org.springframework.web.HttpRequestMethodNotSupportedException:
+    code: 50000107
+    desc: org.springframework.web.HttpRequestMethodNotSupportedException
+    type: IOT-500
+    status: 500
+  authLockUpUser:
+    code: 31000671
+    desc: authLockUpUser
+    type: IOT-310
+    status: 310
+  duplicationPhoneNo:
+    code: 31000672
+    desc: duplicationPhoneNo
+    type: IOT-310
+    status: 310
+  noDataToSave:
+    code: 33000614
+    desc: noDataToSave
+    type: IOT-330
+    status: 330
+  svcUseYn:
+    code: 33000615
+    desc: svcUseYn
+    type: IOT-330
+    status: 330
+  ctrlImmFalse:
+    code: 33000616
+    desc: ctrlImmFalse
+    type: IOT-330
+    status: 330
+  not_input_number:
+    code: 31000673
+    desc: not_input_number
+    type: IOT-310
+    status: 310
+  pw_hist_error:
+    code: 31000674
+    desc: pw_hist_error
+    type: IOT-310
+    status: 310
+  auth_pai_chk:
+    code: 31000675
+    desc: auth_pai_chk
+    type: IOT-310
+    status: 310
+  uploadException:
+    code: 33000617
+    desc: uploadException
+    type: IOT-330
+    status: 330
+  numberUnderLimit:
+    code: 31000676
+    desc: numberUnderLimit
+    type: IOT-310
+    status: 310
+  duplicatedSvrNm:
+    code: 31000677
+    desc: duplicatedSvrNm
+    type: IOT-310
+    status: 310
+  deleteNotAvailableSvrM:
+    code: 31000678
+    desc: deleteNotAvailableSvrM
+    type: IOT-310
+    status: 310
+  mefError:
+    code: 31000679
+    desc: mefError
+    type: IOT-310
+    status: 310
+  om2mError:
+    code: 31000680
+    desc: om2mError
+    type: IOT-310
+    status: 310
+  duplicatedCust:
+    code: 31000681
+    desc: duplicatedCust
+    type: IOT-310
+    status: 310
+  kpmParsingError:
+    code: 31000682
+    desc: kpmParsingError
+    type: IOT-310
+    status: 310
+  duplicationCtnExcel:
+    code: 31000683
+    desc: duplicationCtnExcel
+    type: IOT-310
+    status: 310
+  duplicationUuIdExcel:
+    code: 31000684
+    desc: duplicationUuIdExcel
+    type: IOT-310
+    status: 310
+  duplicationUnameExcel:
+    code: 31000685
+    desc: duplicationUnameExcel
+    type: IOT-310
+    status: 310
+
+  ##############################
+  ERROR_UNKNOWN:
+    code: "50000005"
+    desc: "정의되지않은 오류입니다."
+    type: IOT-500
+    status: 500

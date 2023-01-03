@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotEDev.dao.IotEDevRegiDAO">
+    <!--
+        파일명    : /mapper/TbIotEdevRegi.xml
+        작성일자 :
+        작성자    : 박주선
+        설명      : 가입장비 등록
+    -->
+
+    <!-- 가입장비 등록 CTN 중복 체크 -->
+    <select id="retrieveCtnDup" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="java.lang.Integer">
+        SELECT COUNT(ENTR_DEV_SEQ)
+        FROM TB_IOT_ENTR_DEV_M
+        WHERE 1=1
+        AND CTN = #{ctn}
+        AND STATUS_CD IN ('A')
+        <if test="entrDevSeq != null and !entrDevSeq.equals('')">
+            AND ENTR_DEV_SEQ != #{entrDevSeq}
+        </if>
+    </select>
+
+    <!-- 가입장비 등록 전 중복 발생을 막기 위해 -->
+    <delete id="deleteEntrDevByCtn" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+        DELETE
+        FROM    TB_IOT_ENTR_DEV_M
+        WHERE MANF_SERIAL_NO   = #{manfSerialNo}
+          AND CTN              = #{ctn}
+    </delete>
+
+    <!-- 가입장비 등록 사용번호 중복 체크 -->
+    <select id="retrieveManfSerialNoDup" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="java.lang.Integer">
+        SELECT COUNT(ENTR_DEV_SEQ)
+        FROM TB_IOT_ENTR_DEV_M
+        WHERE MANF_SERIAL_NO = #{manfSerialNo}
+        AND STATUS_CD IN ('A')
+        <if test="entrDevSeq != null and !entrDevSeq.equals('')">
+            AND ENTR_DEV_SEQ != #{entrDevSeq}
+        </if>
+    </select>
+
+    <!-- 가입장비 등록 UUid 중복 체크 -->
+    <select id="retrieveUuidDup" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="java.lang.Integer">
+        SELECT COUNT(ENTR_DEV_SEQ)
+        FROM TB_IOT_ENTR_DEV_M
+        WHERE DEV_UUID = #{devUuid}
+        AND STATUS_CD IN ('A')
+        <if test="entrDevSeq != null and !entrDevSeq.equals('')">
+            AND ENTR_DEV_SEQ != #{entrDevSeq}
+        </if>
+    </select>
+
+    <!-- 가입장비 등록 식별명 중복 체크 -->
+    <select id="retrieveUnameDup" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="java.lang.Integer">
+        SELECT COUNT(ENTR_DEV_SEQ)
+        FROM TB_IOT_ENTR_DEV_M
+        WHERE DEV_UNAME = #{devUname}
+        AND STATUS_CD IN ('A')
+        <if test="entrDevSeq != null and !entrDevSeq.equals('')">
+            AND ENTR_DEV_SEQ != #{entrDevSeq}
+        </if>
+    </select>
+    <!-- 가입장비 등록 설치번호 중복 체크 -->
+    <select id="retrieveInstNoDup" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="java.lang.Integer">
+        SELECT COUNT(ENTR_DEV_SEQ)
+        FROM TB_IOT_ENTR_DEV_M
+        WHERE INST_NO = #{instNo}
+        AND STATUS_CD IN ('A')
+        <if test="entrDevSeq != null and !entrDevSeq.equals('')">
+            AND ENTR_DEV_SEQ != #{entrDevSeq}
+        </if>
+    </select>
+
+    <select id="retrieveMaxHldrNo" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="java.lang.String">
+        SELECT CASE WHEN TP.HLDR_CUST_NO IS NULL THEN 'M10000000000001'
+            ELSE CONCAT('M',LPAD(CAST( SUBSTR(TP.HLDR_CUST_NO, 2, LENGTH(TP.HLDR_CUST_NO)) AS INT) +1, 14, 0))
+            END hldrCustNo
+        FROM (SELECT MAX(HLDR_CUST_NO) AS HLDR_CUST_NO
+            FROM TB_IOT_ENTR_DEV_M) TP
+    </select>
+
+    <select id="retrieveMaxEntrNo" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="java.lang.String">
+        SELECT CASE WHEN EM.ENTR_NO IS NULL THEN 'M10000000001'
+            ELSE CONCAT('M',LPAD(CAST(SUBSTR(EM.ENTR_NO, 2, LENGTH(EM.ENTR_NO)) AS INT) +1, 11, 0))
+            END entrNo
+        FROM (SELECT MAX(ENTR_NO) ENTR_NO FROM TB_IOT_ENTR_DEV_M) EM
+    </select>
+
+    <select id="retrieveMaxAceNo" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="java.lang.String">
+        SELECT CASE WHEN EM.ACENO IS NULL THEN 'M10000000001'
+            ELSE CONCAT('M',LPAD(CAST(SUBSTR(EM.ACENO, 2, LENGTH(EM.ACENO)) AS INT) +1, 11, 0))
+            END aceno
+        FROM (SELECT MAX(ACENO) ACENO FROM TB_IOT_ENTR_DEV_M) EM
+    </select>
+
+    <select id="searchDevImg" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+        SELECT DEV_IMG_PATH,
+               DEV_IMG_FILE_NM
+        FROM TB_IOT_ENTR_DEV_M
+        WHERE ENTR_DEV_SEQ = #{entrDevSeq}
+    </select>
+
+    <!-- 가입장비 마스터 등록 -->
+    <insert id="createEntrDev" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+        <selectKey keyProperty="entrDevSeq" resultType="String" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO TB_IOT_ENTR_DEV_M
+        ( EVENT_DTTM,
+        DEV_CLS_CD,
+        DEV_MDL_CD,
+        SVC_CD,
+        DEV_UNAME,
+        DEV_UUID,
+        ORG_SEQ,
+        USING_NO,
+        INST_NO,
+        ITEM_ID,
+        MANF_SERIAL_NO,
+        MACHINE_NO,
+        HLDR_CUST_NO,
+        ENTR_NO,
+        ACENO,
+        CUST_SEQ,
+        CTN,
+        DEV_IMG_PATH,
+        DEV_IMG_FILE_NM,
+        DEV_REGI_DT,
+        INST_DTTM,
+        DEV_BUILDING_NM,
+        COL_PERIOD,
+        COL_UNIT,
+        SND_PERIOD,
+        SND_UNIT,
+        STATUS_CD,
+        IAG_EVENT_CODE,
+        REG_USR_ID,
+        REG_DTTM,
+        MOD_USR_ID,
+        MOD_DTTM
+        )
+        VALUES
+        ( NOW()
+        , #{devClsCd}
+        , #{devMdlCd}
+        , #{svcCd}
+        , #{devUname}
+        , #{devUuid}
+        , #{orgSeq}
+        , #{usingNo}
+        , #{instNo}
+        , #{itemId}
+        , #{manfSerialNo}
+        , #{machineNo}
+        , #{hldrCustNo}
+        , #{entrNo}
+        , #{aceno}
+        , #{custSeq}
+        , #{ctn}
+        , #{devImgPath}
+        , #{devImgFileNm}
+        <choose>
+            <when test="instDttm == null || instDttm == ''">
+                , NOW()
+            </when>
+            <otherwise>
+                , STR_TO_DATE(#{instDttm}, '%Y-%m-%d')
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="instDttm == null || instDttm == ''">
+                , NOW()
+            </when>
+            <otherwise>
+                , STR_TO_DATE(#{instDttm}, '%Y-%m-%d')
+            </otherwise>
+        </choose>
+        , #{devBuildingNm}
+        , #{colPeriod}
+        , #{colUnit}
+        , #{sndPeriod}
+        , #{sndUnit}
+        , #{statusCd}
+        , #{iagEventCode}
+        , #{regUserId}
+        , DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+        , #{regUserId}
+        , DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+        )
+    </insert>
+
+
+    <!-- 가입장비 마스터 수정 -->
+    <update id="updateEntrDev" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+        UPDATE TB_IOT_ENTR_DEV_M
+        SET CTN = #{ctn},
+        MANF_SERIAL_NO = #{manfSerialNo},
+        DEV_UNAME = #{devUname},
+        DEV_UUID = #{devUuid},
+        INST_NO = #{instNo},
+        DEV_BUILDING_NM = #{devBuildingNm},
+        MACHINE_NO = #{machineNo},
+        STATUS_CD = #{statusCd},
+        <if test="orgSeq != null and !orgSeq.equals('')">
+        	ORG_SEQ = #{orgSeq},
+        </if>
+        <choose>
+            <when test="devRegiDt == null || devRegiDt == ''">
+                DEV_REGI_DT = null,
+            </when>
+            <otherwise>
+                DEV_REGI_DT = STR_TO_DATE(#{devRegiDt}, '%Y-%m-%d'),
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="instDttm == null || instDttm == ''">
+                INST_DTTM = null,
+            </when>
+            <otherwise>
+                INST_DTTM = STR_TO_DATE(#{instDttm}, '%Y-%m-%d'),
+            </otherwise>
+        </choose>
+        MOD_USR_ID = #{regUserId},
+        MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%s')
+        WHERE ENTR_DEV_SEQ = #{entrDevSeq}
+    </update>
+
+
+    <!-- 가입장비 위치 등록 -->
+    <insert id="createEntrDevInsLoc" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+        INSERT INTO TB_IOT_E_DEV_INS_LOC
+        ( ENTR_DEV_SEQ, INST_ADDR, INST_ADDR_DETAIL, INST_LAT, INST_LON, REG_USR_ID, REG_DTTM)
+        VALUES( #{entrDevSeq}
+        , #{instAddr}
+        , #{instAddrDetail}
+        , #{instLat}
+        , #{instLon}
+        , #{regUserId}
+        , DATE_FORMAT(NOW(),'%Y%m%d%H%i%s')
+        )
+        <selectKey keyProperty="eDevInsLocSeq" resultType="String" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <!-- 가입장비 위치 수정 -->
+    <update id="updateEntrDevInsLoc" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+        UPDATE  TB_IOT_E_DEV_INS_LOC
+        SET     INST_ADDR           = #{instAddr},
+                INST_ADDR_DETAIL    = #{instAddrDetail},
+                INST_LAT            = #{instLat},
+                INST_LON            = #{instLon},
+                MOD_USR_ID          = #{regUserId},
+                MOD_DTTM            = DATE_FORMAT(NOW(),'%Y%m%d%H%i%s')
+        WHERE   ENTR_DEV_SEQ        = #{entrDevSeq}
+    </update>
+
+    <!-- 가입장비 속성 등록 -->
+    <insert id="createEntrDevCurVal" parameterType="kr.co.scp.ccp.iotEDev.dto.EDevCurValDTO">
+        <selectKey keyProperty="eDevCurValSeq" resultType="String" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO TB_IOT_E_DEV_CUR_VAL
+        ( ENTR_DEV_SEQ
+        , DEV_CLS_CD
+        , DEV_MDL_CD
+        , DEV_ATTB_CD_ID
+        , INPUT_TYPE
+        , INPUT_VALUE
+        , DEV_VAL
+        , REG_USR_ID
+        , REG_DTTM)
+        VALUES( #{entrDevSeq}
+        , #{devClsCd}
+        , #{devMdlCd}
+        , #{devAttbCdId}
+        , #{inputType}
+        , #{inputValue}
+        , #{devVal}
+        , #{regUserId}
+        , DATE_FORMAT(NOW(),'%Y%m%d%H%i%s')
+        )
+    </insert>
+
+    <!-- 가입장비 속성 값 수정-->
+    <update id="updateEntrDevCurVal" parameterType="kr.co.scp.ccp.iotEDev.dto.EDevCurValDTO">
+        UPDATE  TB_IOT_E_DEV_CUR_VAL
+        SET     INPUT_VALUE         = #{inputValue},
+                DEV_VAL             = #{devVal},
+                MOD_USR_ID          = #{regUserId},
+                MOD_DTTM            = DATE_FORMAT(NOW(),'%Y%m%d%H%i%s')
+        WHERE   ENTR_DEV_SEQ        = #{entrDevSeq}
+        AND     DEV_ATTB_CD_ID      = #{devAttbCdId}
+    </update>
+
+    <!-- 가입장비 조회 -->
+    <select id="retrieveEntrDev" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevRegiDTO"
+            resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevRegiDTO">
+        SELECT  M.ENTR_DEV_SEQ
+                , M.EVENT_DTTM
+                , M.DEV_CLS_CD
+                , S.DEV_CLS_CD_NM
+                , M.DEV_MDL_CD
+                , S.DEV_MDL_NM
+                , M.SVC_CD
+                , M.HLDR_CUST_NO
+                , M.STATUS_CD
+                , NVL((SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.PARENT_CD_ID = 'GN00000022'  AND C.PARAM_KEY=M.STATUS_CD AND C.LANG_SET=#{langSet}), '') AS STATUS_CD_NM
+                , M.ENTR_NO
+                , M.ACENO
+                , M.CUST_SEQ
+                , M.CTN
+                , M.DEV_UNAME
+                , M.DEV_UUID
+                , M.MACHINE_NO
+                , M.USING_NO
+                , M.INST_NO
+                , M.DEV_IMG_PATH
+                , M.DEV_IMG_FILE_NM
+                , M.COL_PERIOD
+                , M.COL_UNIT
+                , M.SND_PERIOD
+                , M.SND_UNIT
+--                 , TO_CHAR(M.DEV_REGI_DT, 'YYYY-MM-DD') AS devRegiDt
+                , DATE_FORMAT(M.DEV_REGI_DT,'%Y-%m-%d') AS devRegiDt
+--                 , TO_CHAR(M.INST_DTTM, 'YYYY-MM-DD') AS instDttm
+                , DATE_FORMAT(M.INST_DTTM,'%Y-%m-%d') AS instDttm
+                , M.ORG_SEQ
+                , NVL( (SELECT O.ORG_NM FROM TB_IOT_ORG O WHERE O.ORG_SEQ = M.ORG_SEQ AND O.USE_YN ='Y'), '' ) AS ORG_NM
+                , L.E_DEV_INS_LOC_SEQ
+                , L.INST_ADDR
+                , L.INST_ADDR_DETAIL
+                , L.INST_LAT
+                , L.INST_LON
+                , M.DEV_BUILDING_NM
+        FROM    TB_IOT_ENTR_DEV_M M
+        LEFT OUTER JOIN TB_IOT_E_DEV_INS_LOC L
+        ON      M.ENTR_DEV_SEQ = L.ENTR_DEV_SEQ
+        INNER JOIN TB_IOT_SVC_DEV_M S ON M.SVC_CD = M.SVC_CD AND M.DEV_CLS_CD = S.DEV_CLS_CD AND M.DEV_MDL_CD = S.DEV_MDL_CD
+        WHERE   M.ENTR_DEV_SEQ = #{entrDevSeq}
+    </select>
+
+    <!-- 가입장비 가입속성 현재값 조회 -->
+    <select id="retrieveEntrDevCurVal" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="kr.co.scp.ccp.iotEDev.dto.EDevCurValDTO">
+        SELECT    A.E_DEV_CUR_VAL_SEQ
+                , A.ENTR_DEV_SEQ
+                , A.DEV_ATTB_CD_ID
+                , B.CD_NM AS devAttbCdNm
+                , UPPER(A.INPUT_TYPE) AS INPUT_TYPE
+                , A.INPUT_VALUE
+        FROM    TB_IOT_E_DEV_CUR_VAL A
+        INNER JOIN TB_IOT_CM_CD B ON B.LANG_SET = #{langSet} AND A.DEV_ATTB_CD_ID = B.CD_ID
+        WHERE   ENTR_DEV_SEQ = #{entrDevSeq}
+    </select>
+
+    <select id="getEntrDevDownLoadList" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO"
+            resultType="kr.co.scp.ccp.iotEDev.dto.DownEntrDevDTO">
+        SELECT
+        M.ENTR_DEV_SEQ ,
+        M.DEV_CLS_CD ,
+        S.DEV_CLS_CD_NM ,
+        M.DEV_MDL_CD ,
+        S.DEV_MDL_NM ,
+        M.SVC_CD ,
+        M.HLDR_CUST_NO ,
+        M.STATUS_CD ,
+        IFNULL((SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.PARENT_CD_ID = 'GN00000022' AND C.PARAM_KEY = M.STATUS_CD AND C.LANG_SET = #{charSet}), '') AS STATUS_NM ,
+        M.EVENT_CODE ,
+        M.IAG_EVENT_CODE ,
+        M.ENTR_NO ,
+        M.ACENO ,
+        M.CHNG_BFR_PROD_NO ,
+        M.PROD_NO ,
+        M.ITEM_ID ,
+        M.MANF_SERIAL_NO ,
+        M.PREV_MANF_SERIAL_NO ,
+        M.DEV_ESN ,
+        M.CUST_SEQ ,
+        M.ORG_SEQ ,
+        IFNULL((SELECT O.ORG_NM FROM TB_IOT_ORG O WHERE O.ORG_SEQ = M.ORG_SEQ), '') AS ORG_NM ,
+        M.DEV_UUID ,
+        M.CTN ,
+        M.DEV_UNAME ,
+        M.MACHINE_NO ,
+        M.USING_NO ,
+        M.INST_NO ,
+        M.DEV_IMG_PATH ,
+        M.DEV_IMG_FILE_NM ,
+        M.BOOT_DTM ,
+        M.COL_PERIOD ,
+        M.COL_UNIT ,
+        M.SND_PERIOD ,
+        M.SND_UNIT ,
+        DATE_FORMAT(M.DEV_REGI_DT, '%Y-%m-%d') AS devRegiDt,
+        DATE_FORMAT(M.INST_DTTM, '%Y-%m-%d') AS instDttm,
+        M.REG_USR_ID ,
+        M.REG_DTTM ,
+        M.MOD_USR_ID ,
+        M.MOD_DTTM ,
+        L.INST_ADDR ,
+        L.INST_ADDR_DETAIL ,
+        L.INST_LAT ,
+        L.INST_LON
+        FROM
+        TB_IOT_ENTR_DEV_M M
+        LEFT OUTER JOIN TB_IOT_E_DEV_INS_LOC L
+        ON  M.ENTR_DEV_SEQ = L.ENTR_DEV_SEQ
+        INNER JOIN TB_IOT_SVC_DEV_M S
+        ON M.SVC_CD = S.SVC_CD AND M.DEV_CLS_CD = S.DEV_CLS_CD AND M.DEV_MDL_CD = S.DEV_MDL_CD
+        <where>
+            <if test="svcCd != null and !svcCd.equals('')">
+                AND		M.SVC_CD = #{svcCd}
+            </if>
+            <if test="custSeq!= null and !custSeq.equals('')">
+                AND		M.CUST_SEQ = #{custSeq}
+            </if>
+            <if test="devClsCd != null and devClsCd != 'all' ">
+                AND		M.DEV_CLS_CD = #{devClsCd}
+            </if>
+            <if test="devMdlCd != null and devMdlCd != 'all' ">
+                AND		M.DEV_MDL_CD = #{devMdlCd}
+            </if>
+            <if test="statusCd != null and statusCd != 'all' ">
+                AND		M.STATUS_CD = #{statusCd}
+            </if>
+            <if test="searchKey != null and searchKey != '' ">
+                <choose>
+                    <when test="searchType == 'manfSerialNo'">
+                        AND     M.MANF_SERIAL_NO = #{searchKey}
+                    </when>
+                    <when test="searchType == 'ctn'">
+                        AND     M.CTN = #{searchKey}
+                    </when>
+                    <when test="searchType == 'devUname'">
+                        AND     M.DEV_UNAME = #{searchKey}
+                    </when>
+                </choose>
+            </if>
+            <if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+                AND DATE_FORMAT(M.REG_DTTM,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{startDate},'%Y-%m-%d')
+                AND DATE_FORMAT(#{endDate},'%Y-%m-%d')
+            </if>
+        </where>
+        ORDER BY M.ENTR_DEV_SEQ DESC
+    </select>
+
+    <select id="chkEntrInstLoc" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="java.lang.Integer">
+        SELECT COUNT(L.E_DEV_INS_LOC_SEQ)
+        FROM TB_IOT_E_DEV_INS_LOC L
+        WHERE L.ENTR_DEV_SEQ = #{entrDevSeq}
+    </select>
+
+    <select id="retrieveDevSeq" resultType="String">
+        SELECT MAX(ENTR_DEV_SEQ) + 1 FROM TB_IOT_ENTR_DEV_M
+    </select>
+
+    <insert id="createEntrSDevAttbCurVal" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+		INSERT
+		    INTO TB_IOT_E_DEV_CUR_VAL (
+		        ENTR_DEV_SEQ,
+		        DEV_CLS_CD,
+		        DEV_MDL_CD,
+		        INPUT_TYPE,
+		        DEV_ATTB_CD_ID,
+		        REG_USR_ID,
+		        REG_DTTM
+		    )
+		SELECT
+		        #{entrDevSeq},
+		        DEV_CLS_CD,
+		        DEV_MDL_CD,
+		        INPUT_TYPE,
+		        DEV_ATTB_CD_ID,
+		        #{regUserId},
+				date_format(NOW(),'%Y%m%d%H%i%s')
+		FROM TB_IOT_S_DEV_ATB
+		WHERE SVC_CD = #{svcCd}
+		AND DEV_CLS_CD = #{devClsCd}
+		AND DEV_MDL_CD = #{devMdlCd}
+		AND DEV_ATTB_CD_ID NOT IN (SELECT DEV_ATTB_CD_ID FROM TB_IOT_E_DEV_CUR_VAL WHERE ENTR_DEV_SEQ = #{entrDevSeq})
+		AND DEV_ATTB_CD_ID NOT IN ('DA00000071','DA00000072')
+    </insert>
+
+    <insert id="createEntrDevColVal" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+        INSERT
+            INTO TB_IOT_E_DEV_COL_VAL (
+                ENTR_DEV_SEQ,
+                CUR_STS_DATE,
+                SVC_CD,
+                CUST_SEQ,
+                DEV_CLS_CD,
+                DEV_MDL_CD,
+                CTN,
+                ENTR_NO,
+                FST_REG_DTTM,
+                REG_USR_ID,
+                REG_DTTM
+            )
+        VALUES (
+            #{entrDevSeq},
+            NOW(),
+            #{svcCd},
+            #{custSeq},
+            #{devClsCd},
+            #{devMdlCd},
+            #{ctn},
+            #{entrNo},
+            NOW(),
+            #{regUserId},
+            DATE_FORMAT(NOW(),'%Y%m%d%H%i%s')
+        )
+    </insert>
+
+    <select id="retrieveDevClsCdNm" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevUploadDTO"
+            resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevRegiDTO">
+        SELECT
+                DEV_CLS_CD_NM
+              , DEV_CLS_CD
+          FROM TB_IOT_SVC_DEV_M
+         WHERE SVC_CD = #{svcCd}
+           AND DEV_CLS_CD = #{devClsCd}
+    </select>
+
+    <select id="retrieveDevMdlNm" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevUploadDTO"
+            resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevRegiDTO">
+        SELECT
+               DEV_MDL_NM
+             , DEV_MDL_CD
+          FROM TB_IOT_SVC_DEV_M
+         WHERE SVC_CD = #{svcCd}
+           AND DEV_MDL_CD = #{devMdlCd}
+           AND DEV_CLS_CD = #{devClsCd}
+    </select>
+
+    <select id="searchCtnInfo" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+        SELECT ENTR_DEV_SEQ
+             , CTN
+             , DEV_UUID
+        FROM TB_IOT_ENTR_DEV_M
+        WHERE CTN = #{ctn}
+        AND   STATUS_CD NOT IN ('A','S')
+    </select>
+
+    <select id="chkEntrDevCurVal" parameterType="kr.co.scp.ccp.iotEDev.dto.EDevCurValDTO"
+            resultType="java.lang.Integer">
+        SELECT  COUNT(E_DEV_CUR_VAL_SEQ)
+        FROM    TB_IOT_E_DEV_CUR_VAL
+        WHERE   ENTR_DEV_SEQ = #{entrDevSeq}
+          AND   DEV_CLS_CD = #{devClsCd}
+          AND   DEV_MDL_CD = #{devMdlCd}
+          AND   DEV_ATTB_CD_ID = #{devAttbCdId}
+    </select>
+
+    <select id="chkEntrDevColVal" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO"
+            resultType="java.lang.Integer">
+        SELECT  COUNT(CUR_STS_DATE)
+        FROM    TB_IOT_E_DEV_COL_VAL
+        WHERE   ENTR_DEV_SEQ = #{entrDevSeq}
+    </select>
+
+    <!-- 가입장비 조회 (출입관리기) -->
+    <select id="retrieveEntrDevDoor" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevRegiDTO"
+            resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevRegiDTO">
+        SELECT M.ENTR_DEV_SEQ
+             , M.DEV_CLS_CD
+             , M.DEV_MDL_CD
+             , M.CTN
+             , M.MANF_SERIAL_NO
+             , M.DEV_UNAME
+             , M.DEV_UUID
+             , M.INST_NO
+             , M.DEV_BUILDING_NM
+             , M.MACHINE_NO
+             , M.STATUS_CD
+--              , TO_CHAR(M.DEV_REGI_DT, 'YYYY-MM-DD') AS DEV_REGI_DT
+--              , TO_CHAR(M.INST_DTTM, 'YYYY-MM-DD') AS INST_DTTM
+            , DATE_FORMAT(M.DEV_REGI_DT,'%Y-%m-%d') AS devRegiDt
+            , DATE_FORMAT(M.INST_DTTM,'%Y-%m-%d') AS instDttm
+          FROM TB_IOT_ENTR_DEV_M M
+         WHERE M.ENTR_DEV_SEQ = #{entrDevSeq}
+    </select>
+
+    <!-- 장비등록/변경 엑셀다운로드 (출입관리기) -->
+<!--    <select id="getEntrDevDoorDownLoadList" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEDevDTO"-->
+<!--            resultType="kr.co.scp.ccp.iotEDev.dto.DownEntrDevDTO">-->
+<!--        SELECT ROW_NUMBER() OVER (ORDER BY M.ENTR_DEV_SEQ DESC) as RNUM-->
+<!--        , M.ENTR_DEV_SEQ-->
+<!--        , M.EVENT_DTTM-->
+<!--        , M.DEV_CLS_CD-->
+<!--        , S.DEV_CLS_CD_NM-->
+<!--        , M.DEV_MDL_CD-->
+<!--        , S.DEV_MDL_NM-->
+<!--        , M.SVC_CD-->
+<!--        , M.STATUS_CD-->
+<!--        , NVL((SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.PARENT_CD_ID = 'GN00000022' AND C.PARAM_KEY = M.STATUS_CD AND-->
+<!--        C.LANG_SET = #{charSet}), '') AS STATUS_NM-->
+<!--        , M.CUST_SEQ-->
+<!--        , M.CTN-->
+<!--        , M.DEV_UNAME-->
+<!--        , M.DEV_UUID-->
+<!--        , M.MANF_SERIAL_NO-->
+<!--        , M.MACHINE_NO-->
+<!--        , M.USING_NO-->
+<!--        &#45;&#45; , TO_CHAR(M.DEV_REGI_DT, 'YYYY-MM-DD') AS devRegiDt-->
+<!--        &#45;&#45; , TO_CHAR(M.INST_DTTM, 'YYYY-MM-DD') AS instDttm-->
+<!--        , DATE_FORMAT(M.DEV_REGI_DT,'%Y-%m-%d') AS devRegiDt-->
+<!--        , DATE_FORMAT(M.INST_DTTM,'%Y-%m-%d') AS instDttm-->
+<!--        , M.REG_USR_ID-->
+<!--        , M.REG_DTTM-->
+<!--        , M.MOD_USR_ID-->
+<!--        , M.MOD_DTTM-->
+<!--        FROM TB_IOT_ENTR_DEV_M M-->
+<!--        INNER JOIN TB_IOT_SVC_DEV_M S ON M.SVC_CD = S.SVC_CD AND M.DEV_CLS_CD = S.DEV_CLS_CD AND M.DEV_MDL_CD =-->
+<!--        S.DEV_MDL_CD AND M.STATUS_CD = 'A'-->
+<!--        <where>-->
+<!--            <if test="svcCd != null and !svcCd.equals('') ">-->
+<!--                AND M.SVC_CD = #{svcCd}-->
+<!--            </if>-->
+<!--            <if test="custSeq!= null and !custSeq.equals('') ">-->
+<!--                AND M.CUST_SEQ = #{custSeq}-->
+<!--            </if>-->
+<!--            <if test="devClsCd != null and devClsCd != 'all' ">-->
+<!--                AND M.DEV_CLS_CD = #{devClsCd}-->
+<!--            </if>-->
+<!--            <if test="devMdlCd != null and devMdlCd != 'all' ">-->
+<!--                AND M.DEV_MDL_CD = #{devMdlCd}-->
+<!--            </if>-->
+<!--            <if test="statusCd != null and statusCd != 'all' ">-->
+<!--                AND M.STATUS_CD = #{statusCd}-->
+<!--            </if>-->
+<!--            <if test="searchKey != null and searchKey != '' ">-->
+<!--                <choose>-->
+<!--                    <when test="searchType == 'usingNo'">-->
+<!--                        AND M.USING_NO = #{searchKey}-->
+<!--                    </when>-->
+<!--                    <when test="searchType == 'ctn'">-->
+<!--                        AND M.CTN = #{searchKey}-->
+<!--                    </when>-->
+<!--                    <when test="searchType == 'devUName'">-->
+<!--                        AND M.devUName = #{searchKey}-->
+<!--                    </when>-->
+<!--                </choose>-->
+<!--            </if>-->
+<!--            <if test="startDate != null and !startDate.equals('') and endDate != null and !endDate.equals('')">-->
+<!--                AND M.DEV_REGI_DT BETWEEN STR_TO_DATE(REPLACE(#{startDate},'-', '') || '000000', '%Y%m%d%H%i%s') AND-->
+<!--                STR_TO_DATE(REPLACE(#{endDate}, '-', '') || '235959', '%Y%m%d%H%i%s')-->
+<!--            </if>-->
+<!--        </where>-->
+<!--        ORDER BY M.ENTR_DEV_SEQ DESC-->
+<!--    </select>-->
+
+</mapper>

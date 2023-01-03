@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.iotInsert.dao.IotInsertServiceDAO">
+	
+	<select id="retriveSvcStatus" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT B.USE_YN AS "useYn" FROM TB_IOT_SVC_M A
+		LEFT JOIN TB_IOT_CM_CD B ON A.SVC_CD=B.CD_ID
+		WHERE A.DEV_CLS_CD IS NULL AND A.SVC_CD=#{svcCd}
+		AND B.LANG_SET=#{langSet}
+	</select>
+	
+	<select id="cmCdCount" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceDTO" resultType="java.lang.Integer">
+		SELECT COUNT(*) as cnt
+	 	FROM TB_IOT_CM_CD
+		WHERE CD_ID=#{cdId}
+        AND LANG_SET=#{langSet}
+	</select>
+	
+	<select id="svcMCount" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceDTO" resultType="java.lang.Integer">
+		SELECT COUNT(*) as cnt
+	 	FROM TB_IOT_SVC_M
+		WHERE SVC_CD=#{svcCd}
+		<if test="devClsCd != null and devClsCd != ''">
+			AND DEV_CLS_CD = #{devClsCd}
+		</if>
+		<if test="devClsCd == null or devClsCd == ''">
+			AND DEV_CLS_CD IS NULL
+		</if>
+	</select>
+	
+	<delete id="deleteCmcd" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceDTO">
+		DELETE FROM TB_IOT_CM_CD
+		WHERE CD_ID=#{cdId}
+        AND LANG_SET=#{langSet}
+	</delete>
+	
+	<delete id="deleteSvcM" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceDTO">
+		DELETE FROM TB_IOT_SVC_M
+		WHERE SVC_CD=#{svcCd}
+		<if test="devClsCd != null and devClsCd != ''">
+			AND DEV_CLS_CD = #{devClsCd}
+		</if>
+		<if test="devClsCd == null or devClsCd == ''">
+			AND DEV_CLS_CD IS NULL
+		</if>
+	</delete>
+	
+	<delete id="deleteClsImg" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceDTO">
+		DELETE FROM TB_IOT_DEV_CLS_IMG
+		WHERE DEV_CLS_CD = #{devClsCd}
+	</delete>
+	
+	
+	<insert id="insertClsImg" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceDTO">
+		INSERT INTO TB_IOT_DEV_CLS_IMG (
+		   
+		    DEV_CLS_CD,
+		    ICON_CD,
+		    ORG_FILE,
+		    SERVER_FILE,
+		    WEB_URI,
+		    REG_USR_ID,
+		    REG_DTTM
+		) VALUES (
+		    #{devClsCd},
+		    #{iconCd},
+		    #{orgFile},
+		    #{serverFile},
+		    #{webUri},
+		    #{regUsrId},
+		    DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		)
+	</insert>
+	
+	
+	
+	<insert id="insertCmCd" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceDTO">
+		INSERT INTO TB_IOT_CM_CD (
+		    LANG_SET,
+		    CD_ID,
+		    CD_NM,
+		    USE_YN,
+		    PARENT_CD_ID,
+		    FIRST_CD_ID,
+		    CD_ORDER,
+		    PARAM_KEY,
+		    PARAM_VAL,
+		    CD_DESC,
+		    LVL,
+		    REG_USR_ID,
+		    REG_DTTM
+		) VALUES (
+		    #{langSet},
+		    #{cdId},
+		    #{cdNm},
+		    #{useYn},
+		    #{parentCdId},
+		    #{firstCdId},
+		    #{cdOrder},
+		    #{paramKey},
+		    #{paramVal},
+		    #{cdDesc},
+		    #{lvl},
+		    #{regUsrId},
+		    DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		)
+	</insert>
+	
+	<insert id="insertSvcM" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceDTO">
+		INSERT INTO TB_IOT_SVC_M (
+		    SVC_CD,
+		    SVC_LEVEL,
+		    SVC_ORDER,
+		    DEV_CLS_CD,
+		    UP_SVC_SEQ,
+		    REG_USR_ID,
+		    REG_DTTM
+		) VALUES (
+		    #{svcCd},
+		    #{svcLevel},
+		    #{svcOrder},
+		    #{devClsCd},
+		    #{upSvcSeq},
+		    #{regUsrId},
+		    DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		)
+	</insert>
+	
+</mapper>

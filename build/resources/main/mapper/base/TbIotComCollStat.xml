@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotStatReport.dao.IotStatReportDAO">
+
+	<!-- 통신/수집 성공률 데이터 조회 for MariaDB -->
+	<select id="retrieveIotStatReportList" parameterType="kr.co.scp.ccp.iotStatReport.dto.TbIotComCollStatDTO" resultType="kr.co.scp.ccp.iotStatReport.dto.TbIotComCollStatDTO">
+	<!-- SELECT
+		CASE GID WHEN '1' THEN '소계' WHEN '15' THEN '합계'
+			ELSE (SELECT DISTINCT CUST_NM FROM TB_IOT_CUST_M WHERE CUST_LOGIN_ID = REPORT.CUST_LOGIN_ID LIMIT 1)
+		END CUST_NM,
+        CASE GID WHEN '1' THEN ''
+			ELSE (SELECT DISTINCT DEV_CLS_CD_NM FROM TB_IOT_ENTR_DEV_M WHERE DEV_CLS_CD = REPORT.DEV_CLS_CD LIMIT 1)
+		END DEV_CLS_CD_NM,
+        CASE GID WHEN '1' THEN ''
+			ELSE (SELECT DISTINCT ORG_NM FROM TB_IOT_ORG WHERE ORG_SEQ = REPORT.ORG_SEQ LIMIT 1)
+		END ORG_NM,
+	    (SELECT DISTINCT DEV_MDL_NM FROM TB_IOT_ENTR_DEV_M WHERE DEV_MDL_CD = REPORT.DEV_MDL_CD LIMIT 1) DEV_MDL_NM,
+	    GID,
+	    (SELECT COUNT(*)
+	    FROM
+	    	 TB_IOT_ENTR_DEV_M
+	    WHERE CUST_LOGIN_ID = REPORT.CUST_LOGIN_ID
+	       AND DEV_CLS_CD = REPORT.DEV_CLS_CD
+	       AND ORG_SEQ = REPORT.ORG_SEQ
+	       AND DEV_MDL_CD = REPORT.DEV_MDL_CD
+	    ) devCount,
+	    <foreach item="searchDate" index="index" collection="searchDateList" separator=",">
+      		commRate${index},
+      		collRate${index}
+      	</foreach>
+	FROM (
+	    SELECT
+	    	COLL.CUST_LOGIN_ID,
+			COLL.DEV_CLS_CD,
+			DEV.ORG_SEQ,
+			COLL.DEV_MDL_CD,
+			CUST.CUST_SEQ,
+			<foreach item="searchDate" index="index" collection="searchDateList" separator="," close=",">
+				ROUND(AVG(CASE COLL.PROC_DATE WHEN #{searchDate} THEN COLL.COMM_RATE END), 2) as commRate${index},
+				ROUND(AVG(CASE COLL.PROC_DATE WHEN #{searchDate} THEN COLL.COLL_RATE END), 2) as collRate${index}
+			</foreach>
+		CONV(CONCAT(ISNULL(COLL.CUST_LOGIN_ID), ISNULL(COLL.DEV_CLS_CD), ISNULL(DEV.ORG_SEQ), ISNULL(COLL.DEV_MDL_CD)), 2, 10) GID
+	    FROM  TB_IOT_COM_COLL_STAT COLL
+	    INNER JOIN TB_IOT_ENTR_DEV_M DEV
+	    	ON COLL.ENTR_DEV_SEQ = DEV.ENTR_DEV_SEQ
+	    INNER JOIN TB_IOT_CUST_M CUST
+	    	ON DEV.CUST_SEQ = CUST.CUST_SEQ
+	    WHERE 1=1
+		<if test="searchStartDttm != null and searchEndDttm != null">
+			AND COLL.PROC_DATE BETWEEN #{searchStartDttm} AND #{searchEndDttm}
+		</if>
+		<if test="custNm != null and custNm != null">
+			AND CUST.CUST_NM LIKE CONCAT('%',#{custNm},'%')
+		</if>
+		<if test="devClsCd != null and devClsCd != null">
+			AND COLL.DEV_CLS_CD = #{devClsCd}
+		</if>
+		<if test="devMdlNm != null">
+		    AND COLL.DEV_MDL_NM LIKE CONCAT('%',#{devMdlNm},'%')
+    	</if>
+	    GROUP BY COLL.CUST_LOGIN_ID, COLL.DEV_CLS_CD, DEV.ORG_SEQ, COLL.DEV_MDL_CD WITH ROLLUP
+	) REPORT
+	WHERE GID IN ('0', '1', '15') -->
+SELECT CUST_NM,DEV_CLS_CD_NM,DEV_MDL_NM, GID,
+		  (
+	        SELECT
+	            COUNT(1)
+	        FROM
+	            TB_IOT_ENTR_DEV_M DEV
+	        WHERE 1=1
+			AND DEV.DEV_CLS_CD = M.DEV_CLS_CD
+			AND DEV.DEV_MDL_CD = M.DEV_MDL_CD
+			AND	 DEV.CUST_SEQ = ( SELECT CUST_SEQ FROM TB_IOT_CUST_M WHERE CUST_NM = M.CUST_NM)
+            AND DEV.STATUS_CD = 'A'
+			<if test="svcCd != null and !svcCd.equals('') ">
+				AND	 DEV.SVC_CD = #{svcCd}
+			</if>
+	      ) devcount,
+		   	<foreach item="searchDate" index="index" collection="searchDateList" separator=",">
+		   		commRate#{index},
+		   		collRate#{index}
+		   	</foreach>
+	FROM (
+			SELECT
+				  CASE
+				  	WHEN GID = '1' THEN '소계'
+				  	WHEN GID = '3' THEN '총합계'
+				  	ELSE (SELECT CUST_NM FROM TB_IOT_CUST_M WHERE CUST_LOGIN_ID = REPORT.CUST_LOGIN_ID)
+				  END CUST_NM,
+				  CASE
+				  	WHEN GID = '1' THEN ''
+				  	ELSE (SELECT  CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = REPORT.DEV_CLS_CD)
+				  END DEV_CLS_CD_NM,
+		    <!-- DECODE(GID, '1', '소계', '3', '총합계', (SELECT CUST_NM FROM TB_IOT_CUST_M WHERE CUST_LOGIN_ID = REPORT.CUST_LOGIN_ID)) CUST_NM, -->
+			<!-- DECODE(GID, '1', '', (SELECT  CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = REPORT.DEV_CLS_CD)) DEV_CLS_CD_NM, -->
+			(SELECT DEV_MDL_NM FROM TB_IOT_SVC_DEV_M WHERE DEV_MDL_CD = REPORT.DEV_MDL_CD  AND DEV_CLS_CD = REPORT.DEV_CLS_CD
+				<if test="svcCd != null and !svcCd.equals('') ">
+					AND	SVC_CD = #{svcCd}
+				</if>
+			) DEV_MDL_NM,
+			 GID, REPORT.DEV_MDL_CD, REPORT.DEV_CLS_CD ,
+		   	<foreach item="searchDate" index="index" collection="searchDateList" separator=",">
+		   		commRate#{index},
+		   		collRate#{index}
+		   	</foreach>
+		    FROM (
+					SELECT
+						  INFO.CUST_LOGIN_ID,
+						  INFO.DEV_CLS_CD,
+						  INFO.DEV_MDL_CD,
+			           <foreach item="searchDate" index="index" collection="searchDateList" separator="," close=",">
+							ROUND(MAX(CASE DATE_FORMA(INFO.PROC_DATE ,'%Y%m%d') WHEN #{searchDate} THEN INFO.COMM_SUCC_CNT / ( CASE WHEN (INFO.COMM_SUCC_CNT+INFO.COMM_FAIL_CNT) = 0 THEN 1 ELSE (INFO.COMM_SUCC_CNT+INFO.COMM_FAIL_CNT) END ) *100 END), 2) as commRate#{index},
+							ROUND(MAX(CASE DATE_FORMA(INFO.PROC_DATE ,'%Y%m%d') WHEN #{searchDate} THEN INFO.COLL_SUCC_CNT / ( CASE WHEN (INFO.COLL_SUCC_CNT+INFO.COLL_FAIL_CNT) = 0 THEN 1 ELSE (INFO.COLL_SUCC_CNT+INFO.COLL_FAIL_CNT) END ) *100 END), 2) as collRate#{index}
+					   </foreach>
+			           GROUPING_ID(INFO.CUST_LOGIN_ID, INFO.DEV_CLS_CD,INFO.DEV_MDL_CD) GID
+			        FROM (
+						 SELECT COLL.CUST_LOGIN_ID, COLL.DEV_CLS_CD, COLL.DEV_MDL_CD,
+								IFNULL(SUM(comm_succ_cnt), 0) comm_succ_cnt,
+	                            IFNULL(SUM(comm_fail_cnt), 0) comm_fail_cnt,
+	                            IFNULL(SUM(coll_succ_cnt), 0) coll_succ_cnt,
+	                            IFNULL(SUM(coll_fail_cnt), 0) coll_fail_cnt,
+								COLL.PROC_DATE
+						 FROM TB_IOT_COM_COLL_STAT COLL
+						 INNER JOIN TB_IOT_ENTR_DEV_M DEV ON COLL.ENTR_DEV_SEQ = dev.ENTR_DEV_SEQ
+						 INNER JOIN TB_IOT_CUST_M CUST ON DEV.CUST_SEQ = CUST.CUST_SEQ
+						 WHERE 1 = 1
+			           <if test="searchStartDttm != null and searchEndDttm != null">
+
+							AND COLL.PROC_DATE BETWEEN DATE_FORMAT(#{searchStartDttm}||'000000','%Y-%m-%d %H:%i:%S') AND DATE_FORMAT(#{searchEndDttm}||'235959','%Y-%m-%d %H:%i:%S')
+<!-- 							AND COLL.PROC_DATE BETWEEN TO_DATE(#{searchStartDttm}||'000000','YYYYMMDD HH24MISS') AND TO_DATE(#{searchEndDttm}||'235959','YYYYMMDD HH24MISS')  -->
+						</if>
+						<if test="custNm != null and custNm != ''">
+							AND CUST.CUST_NM LIKE #{custNm}||'%'
+						</if>
+						<if test="devClsCd != null and devClsCd != ''">
+							AND COLL.DEV_CLS_CD = #{devClsCd}
+						</if>
+						<if test="devMdlCd != null and devMdlCd != ''">
+						    AND COLL.DEV_MDL_CD LIKE #{devMdlCd}||'%'
+				    	</if>
+						GROUP BY COLL.CUST_LOGIN_ID, COLL.DEV_CLS_CD, COLL.DEV_MDL_CD, COLL.PROC_DATE
+						ORDER BY COLL.DEV_CLS_CD  ASC
+					 	) INFO
+				 GROUP BY ROLLUP(INFO.CUST_LOGIN_ID, INFO.DEV_CLS_CD, INFO.DEV_MDL_CD )
+				 HAVING GROUPING_ID(INFO.CUST_LOGIN_ID, INFO.DEV_CLS_CD, INFO.DEV_MDL_CD) in ('0','1','3')
+			) REPORT
+		) M
+	</select>
+
+	<select id="retrieveIotStatReportListNew_bak" parameterType="kr.co.scp.ccp.iotStatReport.dto.TbIotComCollStatDTO" resultType="kr.co.scp.ccp.iotStatReport.dto.TbIotComCollStatDTO">
+		SELECT CUST_NM,DEV_CLS_CD_NM,DEV_MDL_NM, GID,
+		(
+		SELECT
+		COUNT(1)
+		FROM
+		TB_IOT_ENTR_DEV_M DEV
+		WHERE 1=1
+		AND DEV.DEV_CLS_CD = M.DEV_CLS_CD
+		AND DEV.DEV_MDL_CD = M.DEV_MDL_CD
+		AND	 DEV.CUST_SEQ = ( SELECT CUST_SEQ FROM TB_IOT_CUST_M WHERE CUST_NM = M.CUST_NM)
+		AND DEV.STATUS_CD = 'A'
+		<if test="svcCd != null and !svcCd.equals('') ">
+			AND	 DEV.SVC_CD = #{svcCd}
+		</if>
+		) devcount,
+		<foreach item="searchDate" index="index" collection="searchDateList" separator=",">
+			commRate#{index},
+			collRate#{index}
+		</foreach>
+		FROM (
+		SELECT
+		CASE
+		WHEN GID = '1' THEN '소계'
+		WHEN GID = '3' THEN '총합계'
+		ELSE (SELECT CUST_NM FROM TB_IOT_CUST_M WHERE CUST_LOGIN_ID = REPORT.CUST_LOGIN_ID)
+		END CUST_NM,
+		CASE
+		WHEN GID = '1' THEN ''
+		ELSE (SELECT  CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = REPORT.DEV_CLS_CD)
+		END DEV_CLS_CD_NM,
+-- 		DECODE(GID, '1', '소계', '3', '총합계', (SELECT CUST_NM FROM TB_IOT_CUST_M WHERE CUST_LOGIN_ID = REPORT.CUST_LOGIN_ID)) CUST_NM,
+-- 		DECODE(GID, '1', '', (SELECT  CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = REPORT.DEV_CLS_CD)) DEV_CLS_CD_NM,
+		(SELECT DEV_MDL_NM FROM TB_IOT_SVC_DEV_M WHERE DEV_MDL_CD = REPORT.DEV_MDL_CD  AND DEV_CLS_CD = REPORT.DEV_CLS_CD
+		<if test="svcCd != null and !svcCd.equals('') ">
+			AND	SVC_CD = #{svcCd}
+		</if>
+		) DEV_MDL_NM,
+		GID, REPORT.DEV_MDL_CD, REPORT.DEV_CLS_CD ,
+		<foreach item="searchDate" index="index" collection="searchDateList" separator=",">
+			commRate#{index},
+			collRate#{index}
+		</foreach>
+		FROM (
+		SELECT
+		INFO.CUST_LOGIN_ID,
+		INFO.DEV_CLS_CD,
+		INFO.DEV_MDL_CD,
+		<foreach item="searchDate" index="index" collection="searchDateList" separator="," close=",">
+			ROUND(MAX(CASE DATE_FORMAT(INFO.PROC_DATE ,'%Y%m%d') WHEN #{searchDate} THEN INFO.COMM_SUCC_CNT / ( CASE WHEN (INFO.COMM_SUCC_CNT+INFO.COMM_FAIL_CNT) = 0 THEN 1 ELSE (INFO.COMM_SUCC_CNT+INFO.COMM_FAIL_CNT) END ) *100 END), 2) as commRate#{index},
+			ROUND(MAX(CASE DATE_FORMAT(INFO.PROC_DATE ,'%Y%m%d') WHEN #{searchDate} THEN INFO.COLL_SUCC_CNT / ( CASE WHEN (INFO.COLL_SUCC_CNT+INFO.COLL_FAIL_CNT) = 0 THEN 1 ELSE (INFO.COLL_SUCC_CNT+INFO.COLL_FAIL_CNT) END ) *100 END), 2) as collRate#{index}
+		</foreach>
+		'0' AS GID
+		FROM (
+		SELECT COLL.CUST_LOGIN_ID, COLL.DEV_CLS_CD, COLL.DEV_MDL_CD,
+		IFNULL(SUM(comm_succ_cnt), 0) comm_succ_cnt,
+		IFNULL(SUM(comm_fail_cnt), 0) comm_fail_cnt,
+		IFNULL(SUM(coll_succ_cnt), 0) coll_succ_cnt,
+		IFNULL(SUM(coll_fail_cnt), 0) coll_fail_cnt,
+		COLL.PROC_DATE
+		FROM TB_IOT_COM_COLL_STAT COLL
+		INNER JOIN TB_IOT_ENTR_DEV_M DEV ON COLL.ENTR_DEV_SEQ = DEV.ENTR_DEV_SEQ
+		INNER JOIN TB_IOT_CUST_M CUST ON DEV.CUST_SEQ = CUST.CUST_SEQ
+		WHERE 1 = 1
+		<if test="searchStartDttm != null and searchEndDttm != null">
+
+			AND COLL.PROC_DATE BETWEEN DATE_FORMAT(CONCAT(#{searchStartDttm},'000000'),'%Y-%m-%d %H:%i:%S') AND DATE_FORMAT(CONCAT(#{searchEndDttm},'235959'),'%Y-%m-%d %H:%i:%S')
+			<!-- 							AND COLL.PROC_DATE BETWEEN TO_DATE(#{searchStartDttm}||'000000','YYYYMMDD HH24MISS') AND TO_DATE(#{searchEndDttm}||'235959','YYYYMMDD HH24MISS')  -->
+		</if>
+		<if test="custNm != null and custNm != ''">
+			AND CUST.CUST_NM LIKE CONCAT(#{custNm}, '%')
+		</if>
+		<if test="devClsCd != null and devClsCd != ''">
+			AND COLL.DEV_CLS_CD = #{devClsCd}
+		</if>
+		<if test="devMdlCd != null and devMdlCd != ''">
+			AND COLL.DEV_MDL_CD LIKE CONCAT(#{devMdlCd}, '%')
+		</if>
+		GROUP BY COLL.CUST_LOGIN_ID, COLL.DEV_CLS_CD, COLL.DEV_MDL_CD, COLL.PROC_DATE
+<!-- 		ORDER BY COLL.DEV_CLS_CD  ASC -->
+		) INFO
+		GROUP BY INFO.CUST_LOGIN_ID, INFO.DEV_CLS_CD, INFO.DEV_MDL_CD
+<!-- 		HAVING INFO.CUST_LOGIN_ID='0' 				AND INFO.DEV_CLS_CD='1' 				AND INFO.DEV_MDL_CD='3' -->
+		) REPORT
+		) M
+	</select>
+
+	<!-- 통신/수집 성공률 데이터 조회 -->
+	<select id="retrieveIotStatReportListNew" parameterType="kr.co.scp.ccp.iotStatReport.dto.TbIotComCollStatDTO" resultType="kr.co.scp.ccp.iotStatReport.dto.TbIotComCollStatDTO">
+		SELECT
+		  TTA.CUST_LOGIN_ID
+		  , TTA.DEV_CLS_CD
+		  , TTA.DEV_MDL_CD
+		  , TTA.DEV_CLS_CD_NM
+		  , TTA.DEV_MDL_NM
+		  , TTA.devcount
+		<foreach item="searchDate" index="index" collection="searchDateList">
+		  , COLL_TOT_CNT#{index} as collCnt#{index}
+		  , COLL_SUCC_CNT#{index} as collSuccCnt#{index}
+		  , COLL_FAIL_CNT#{index} as collFailCnt#{index}
+		  , IF(ROUND(COLL_SUCC_CNT#{index} / COLL_TOT_CNT#{index} * 100 , 2) > 100, 100
+		  	, ROUND(COLL_SUCC_CNT#{index} / COLL_TOT_CNT#{index} * 100 , 2) ) AS collRate#{index}
+		</foreach>
+		FROM (
+		    SELECT
+		      TA.CUST_LOGIN_ID
+		      , TA.DEV_CLS_CD
+		      , TA.DEV_MDL_CD
+		      , TA.DEV_CLS_CD_NM
+		      , TA.DEV_MDL_NM
+		      , (SELECT
+		            COUNT(1)
+		             FROM
+		              TB_IOT_ENTR_DEV_M M
+		             WHERE 1=1
+		              AND M.DEV_CLS_CD = TA.DEV_CLS_CD
+		              AND M.DEV_MDL_CD = TA.DEV_MDL_CD
+		              AND   M.CUST_SEQ = (SELECT CUST_SEQ FROM TB_IOT_CUST_M WHERE CUST_NM = TB.CUST_NM)
+		              AND M.STATUS_CD = 'A'
+		               AND   M.SVC_CD = 'SCL'
+		       ) devcount
+		    <foreach item="searchDate" index="index" collection="searchDateList">
+		      , SUM(COLL_TOT_CNT#{index}) AS COLL_TOT_CNT#{index}
+		      , SUM(COLL_SUCC_CNT#{index}) AS COLL_SUCC_CNT#{index}
+		      , SUM(COLL_FAIL_CNT#{index}) AS COLL_FAIL_CNT#{index}
+		    </foreach>
+		    FROM (
+		        SELECT
+		          DATE_FORMAT(PROC_DATE, '%Y%m%d') AS PROC_DATE
+		          , COLL.DEV_CLS_CD
+		          , COLL.DEV_MDL_CD
+		          , COLL.DEV_CLS_CD_NM
+		          , COLL.DEV_MDL_NM
+		          , COLL.CUST_LOGIN_ID
+		        <foreach item="searchDate" index="index" collection="searchDateList">
+		          , CASE WHEN DATE_FORMAT(PROC_DATE, '%Y%m%d') = #{searchDate} THEN IFNULL(SUM(COLL_TOT_CNT), 0) ELSE 0 END AS COLL_TOT_CNT#{index}
+		          , CASE WHEN DATE_FORMAT(PROC_DATE, '%Y%m%d') = #{searchDate} THEN IFNULL(SUM(COLL_SUCC_CNT), 0) ELSE 0 END AS COLL_SUCC_CNT#{index}
+		          , CASE WHEN DATE_FORMAT(PROC_DATE, '%Y%m%d') = #{searchDate} THEN IFNULL(SUM(COLL_FAIL_CNT), 0) ELSE 0 END AS COLL_FAIL_CNT#{index}
+		        </foreach>
+		        FROM
+		          TB_IOT_COM_COLL_STAT COLL
+		            INNER JOIN TB_IOT_ENTR_DEV_M DEV
+		              ON COLL.ENTR_DEV_SEQ = DEV.ENTR_DEV_SEQ
+		            INNER JOIN TB_IOT_CUST_M CUST
+		              ON DEV.CUST_SEQ = CUST.CUST_SEQ
+		        WHERE 1=1
+		             AND DEV.STATUS_CD = 'A'
+		          <if test="searchStartDttm != null and searchEndDttm != null">
+		                  AND COLL.PROC_DATE BETWEEN DATE_FORMAT(CONCAT(#{searchStartDttm},'000000'),'%Y-%m-%d %H:%i:%S') AND DATE_FORMAT(CONCAT(#{searchEndDttm},'235959'),'%Y-%m-%d %H:%i:%S')
+		               </if>
+		               <if test="custNm != null and custNm != ''">
+		                  AND CUST.CUST_NM LIKE CONCAT(#{custNm}, '%')
+		               </if>
+		               <if test="devClsCd != null and devClsCd != ''">
+		                  AND COLL.DEV_CLS_CD = #{devClsCd}
+		               </if>
+		               <if test="devMdlCd != null and devMdlCd != ''">
+		                  AND COLL.DEV_MDL_CD LIKE CONCAT(#{devMdlCd}, '%')
+		               </if>
+		        GROUP BY
+		          COLL.PROC_DATE, COLL.CUST_LOGIN_ID, COLL.DEV_CLS_CD, COLL.DEV_MDL_CD, COLL.DEV_CLS_CD_NM, COLL.DEV_MDL_NM
+		    ) TA
+		      LEFT JOIN
+		         TB_IOT_CUST_M TB
+		           ON TA.CUST_LOGIN_ID = TB.CUST_LOGIN_ID
+		      LEFT JOIN
+		        TB_IOT_SVC_DEV_M TC
+		          ON TA.DEV_CLS_CD = TC.DEV_CLS_CD AND TA.DEV_MDL_CD = TC.DEV_MDL_CD
+		    GROUP BY
+		      TA.CUST_LOGIN_ID, TA.DEV_CLS_CD, TA.DEV_MDL_CD, TA.DEV_CLS_CD_NM, TA.DEV_MDL_NM
+		) TTA
+
+	</select>
+
+</mapper>

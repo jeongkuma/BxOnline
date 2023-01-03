@@ -1,0 +1,125 @@
+############## Tomcat Container 설정 ##############
+tomcat: 
+  host: 
+    name: localhost
+  executor:
+    name: tomcatThreadPool
+    namePrefix: catalina-exec-
+    maxThreads: 500
+    minSpareThreads: 100
+  httpProtocol:
+    port: 8090
+    server: Server
+    maxSavePostSize: -1
+    maxKeepAliveRequests: 2000
+    connectionTimeout: 30000
+    acceptCount: 2000
+  ajp:
+    port: 8009
+    secure: false
+    allowTrace: false
+    scheme: http
+    maxPostSize: -1
+    maxParameterCount: 100
+    enableLookups: false
+    redirectPort: 8443
+    connectionTimeout: 30000
+    backlog: 2000
+  accesslog:
+    enabled: true
+    directory: /logs/mgmtSvc/was/tomcat/accesslog
+    prefix: mgmtSvr11_access.
+    suffix: .log
+    pattern: "%h %l %u %t %r %s %b %{Referer}i %{User-Agent}i\" %D %p %a %{remote}p %{X-Forwarded-For}i"
+    fileDateFormat: yyyy-MM-dd-HH
+    
+############## server ##############
+server:
+  # port: 19091
+  servlet:
+    context-path: /pipeuisvc
+    session:
+      timeout: 1m 
+
+############## spring ##############
+spring:
+  profiles: dev_pipeuisvc
+  servlet:
+    multipart:
+      max-file-size: 10MB  
+############## logging ##############
+logging:
+  config: classpath:log4j/log4j2_dev.xml
+  
+############## log ##############
+log:
+  instanceName: pipeuisvc
+  instanceCode: '001'
+  oms:
+    rolling: 5
+    filePath: /logs/pipeuisvc/was/omslog
+    isAsync: false
+    # isAsync가 false일 경우만 가능 
+    isContainResponse: true
+  call:
+    rolling: 60
+    filePath: /logs/pipeuisvc/was/calllog
+    isAsync: true
+  hangCheck:
+    rolling: 5
+    writerTime: 1
+    filePath: /logs/pipeuisvc/was/hang
+  pool:
+    rolling: 5
+    filePath: /logs/ui/was/pool
+    writerTime: 1    
+############## script ##############    
+script:
+  filePath: script  
+
+############## file ##############    
+file:
+#  upload-dir: D:/ # All files uploaded through the REST API will be stored in this directory
+  upload-dir: /logs/pipeuisvc/was/upload/ # All files uploaded through the REST API will be stored in this directory
+  upload-dir-dashboard: /svc/pipeuisvc/was/webdoc/resources/dashboard/ # All files uploaded through the REST API will be stored in this directory
+  upload-dir-cust: /svc/pipeuisvc/was/webdoc/resources/custImgs/ # All files uploaded through the REST API will be stored in this directory
+  upload-dir-devImg: /svc/pipeuisvc/was/webdoc/resources/devImg/ 
+  get-devImg: /resources/devImg/
+  get-map-Img: /resources/map/
+  get-dashboard-img: /resources/dashboard/
+  max-size: 5242880 # 1024 * 1024 * 5
+  upload-dir-faq: /logs/pipeuisvc/was/upload/faq/
+  upload-dir-noti: /logs/pipeuisvc/was/upload/noti/
+  upload-dir-post: /logs/pipeuisvc/was/upload/post/
+  upload-dir-lib: /logs/pipeuisvc/was/upload/lib/
+  get-logo-img: /resources/custImgs/
+  upload-dir-map: /svc/pipeuisvc/was/webdoc/resources/map/
+  upload-dir-usr: /svc/pipeuisvc/was/webdoc/resources/usr/
+  
+############## map api call ##############    
+map:
+  host: http://106.103.230.130:19000
+#  proxyHost: 
+#  proxyPort: 
+  svcId: af50235e882442288295f81f09d1dea5
+  searchSQE:
+    path: /mapinfra/api/poi/searchSQE
+    authKey: 16742f23c7da409bbb23fe334f030901
+  searchPoiNumber: 
+    path: /mapinfra/api/poi/searchPoiNumber
+    authKey: 16742f23c7da409bbb23fe334f030901
+  searchOldAddr:
+    path: /mapinfra/api/poi/searchOldAddr
+    authKey: 16742f23c7da409bbb23fe334f030901
+  searchNewAddr:
+    path: /mapinfra/api/poi/searchNewAddr
+    authKey: 16742f23c7da409bbb23fe334f030901
+  searchSubAddr:
+    path: /mapinfra/api/poi/searchSubAddr
+    authKey: 16742f23c7da409bbb23fe334f030901
+  revgeocoding:
+    path: /mapinfra/api/poi/revgeocoding
+    authKey: 16742f23c7da409bbb23fe334f030901
+  coords:
+    path: /mapinfra/api/coords/coords
+    authKey: 463946bcca1146f3a912262f6bd8078c

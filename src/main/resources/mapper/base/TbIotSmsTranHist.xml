@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.ccp.iotSmsHist.dao.IotSmsTranHistDAO">
+<!--
+	파일명    : /mapper/TbIotSmsTranHist.xml
+	작성일자 : 2019-04-15
+	작성자    : 김희운
+	설명      : SMS 발송 이력 관리
+-->
+
+	<!-- SMS 발송이력 갯수 -->
+	<select id="retrieveIotAlarmCount" parameterType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsTranHistDTO" resultType="java.lang.Integer">
+		SELECT COUNT(TR_NUM) AS CNT
+		FROM TB_IOT_SMS_TRAN_HIST
+		WHERE 1=1
+		<if test="roleCdId == 'GN00000035' or roleCdId == 'GN00000036' or roleCdId == 'GN00000037' or roleCdId == 'GN00000039'">
+				AND   TR_ETC3 IN (#{custSeq})
+		</if>
+		<if test="trMsgType != null">
+			AND TR_MSGTYPE = #{trMsgType}
+		</if>
+		<if test="trPhone != null">
+			AND TR_PHONE LIKE CONCAT(#{trPhone}, '%')
+		</if>
+		<if test="trEtc1 != null">
+			AND TR_ETC1 = #{trEtc1}
+		</if>
+		<if test="trEtc2 != null">
+			AND TR_ETC2 = #{trEtc2}
+		</if>
+		<if test="searchStartDttm != null">
+			AND TR_SENDDATE BETWEEN STR_TO_DATE(#{searchStartDttm},'%Y%m%d') AND STR_TO_DATE(CONCAT(#{searchEndDttm} ,'235959'), '%Y%m%d%H%i%s')
+		</if>
+	</select>
+
+	<!-- sms 발송이력 조회 -->
+	<select id="retrieveIotAlarmHistList" parameterType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsTranHistDTO" resultType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsTranHistDTO">
+		SELECT A.TR_NUM
+	 		 , DATE_FORMAT(A.TR_SENDDATE, '%Y-%m-%d %H:%i:%s')
+		     , A.TR_SENDSTAT
+		     , A.TR_MSGTYPE
+		     , CASE A.TR_MSGTYPE WHEN '0' THEN 'SMS'
+					ELSE '' END AS TR_MSG_TYPE_NM
+		     , A.TR_CALLBACK
+		     , A.TR_MSG
+		     , A.TR_ID
+		     , A.TR_RSLTSTAT
+		     , A.TR_RSLTDATE
+		     , A.TR_MODIFIED
+		     , A.TR_NET "trNet"
+		     , (SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.CD_ID = A.TR_ETC1) AS TR_ETC1_NM
+			 , A.TR_ETC2
+			 , (SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.CD_ID = A.TR_ETC2) AS TR_ETC2_NM
+			 , A.TR_ETC3
+			 , A.TR_ETC4
+			 , A.TR_ETC5
+			 , A.TR_ETC6
+		     , DATE_FORMAT(A.TR_REALSENDDATE, '%Y-%m-%d %H:%i:%s')
+		     , A.TR_PHONE
+		     , A.TR_ROUTEID
+		FROM TB_IOT_SMS_TRAN_HIST A
+		WHERE 1=1
+		<if test="roleCdId == 'GN00000035' or roleCdId == 'GN00000036' or roleCdId == 'GN00000037' or roleCdId == 'GN00000039'">
+				AND A.TR_ETC3 IN (#{custSeq})
+		</if>
+		<if test="trPhone != null">
+			AND A.TR_PHONE LIKE CONCAT(#{trPhone},'%')
+		</if>
+		<if test="trEtc1 != null">
+			AND A.TR_ETC1 = #{trEtc1}
+		</if>
+		<if test="trEtc2 != null">
+			AND A.TR_ETC2 = #{trEtc2}
+		</if>
+		<if test="searchStartDttm != null">
+		AND A.TR_SENDDATE BETWEEN STR_TO_DATE(#{searchStartDttm},'%Y%m%d') AND STR_TO_DATE(CONCAT(#{searchEndDttm}, '235959'), '%Y%m%d%H%i%s')
+		</if>
+		ORDER BY TR_NUM DESC
+		LIMIT #{startPage} - 1, #{displayRowCount}
+	</select>
+
+	<!-- 메세지 유형 조회 -->
+	<select id="retrieveTrEtc1List" parameterType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsConditiontReqDTO" resultType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsConditionDTO">
+		SELECT CD_ID "trEtc1"
+			  , CD_NM "trEtc1Nm"
+		FROM TB_IOT_CM_CD
+		WHERE PARENT_CD_ID = #{messegeType}
+	</select>
+
+	<!-- 등급 조회 -->
+	<select id="retrieveTrEtc2List" parameterType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsConditiontReqDTO" resultType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsConditionDTO">
+		SELECT CD_ID "trEtc2"
+			  , CD_NM "trEtc2Nm"
+		FROM TB_IOT_CM_CD
+		WHERE PARENT_CD_ID = #{grade}
+	</select>
+
+	<!-- 엑셀 다운로드용 sms 발송이력 조회 -->
+	<select id="retrieveIotSmsTranHistNotPage" parameterType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsTranHistDTO" resultType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsTranHistDTO">
+		SELECT A.TR_NUM "trNum"
+	 		 , DATE_FORMAT(A.TR_SENDDATE, '%Y-%m-%d %H:%i:%s') "trSendDate"
+		     , A.TR_SENDSTAT "trSendStat"
+		     , A.TR_MSGTYPE "trMsgType"
+		     , CASE A.TR_MSGTYPE WHEN '0' THEN 'SMS'
+					ELSE '' END AS "trMsgTypeNm"
+		     , A.TR_PHONE "trPhone"
+		     , A.TR_CALLBACK "trCallback"
+		     , A.TR_MSG "trMsg"
+		     , A.TR_ID "trId"
+		     , A.TR_RSLTSTAT "trRsltstat"
+		     , A.TR_RSLTDATE "trRsltdate"
+		     , A.TR_MODIFIED "trModified"
+		     , A.TR_NET "trNet"
+		     , A.TR_ETC1 "trEtc1"
+		     , (SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.CD_ID = A.TR_ETC1) AS "trEtc1Nm"
+		     , A.TR_ETC2 AS "trEtc2"
+		     , (SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.CD_ID = A.TR_ETC2) AS "trEtc2Nm"
+		     , A.TR_ETC3 "trEtc3"
+		     , A.TR_ETC4 "trEtc4"
+		     , A.TR_ETC5 "trEtc5"
+		     , A.TR_ETC6 "trEtc6"
+		     , DATE_FORMAT(A.TR_REALSENDDATE, '%Y-%m-%d %H:%i:%s') "trRealsenddate"
+		     , A.TR_ROUTEID "trRouteId"
+		FROM TB_IOT_SMS_TRAN_HIST A
+		WHERE 1=1
+		<if test="roleCdId == 'GN00000035' or roleCdId == 'GN00000036' or roleCdId == 'GN00000037' or roleCdId == 'GN00000039'">
+			AND A.TR_ETC3 IN (#{custSeq})
+		</if>
+		<if test="trPhone != null">
+			AND A.TR_PHONE LIKE CONCAT(#{trPhone},'%')
+		</if>
+		<if test="trEtc1 != null">
+			AND A.TR_ETC1 = #{trEtc1}
+		</if>
+		<if test="trEtc2 != null">
+			AND A.TR_ETC2 = #{trEtc2}
+		</if>
+		<if test="searchStartDttm != null">
+			AND A.TR_SENDDATE BETWEEN STR_TO_DATE(#{searchStartDttm},'%Y%m%d') AND STR_TO_DATE(CONCAT(#{searchEndDttm}, '235959'), '%Y%m%d%H%i%s')
+		</if>
+		ORDER BY TR_NUM DESC
+	</select>
+
+
+	<!-- sms 발송현황 for marinaDB -->
+	<select id="retrieveIotSmsReportList" parameterType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsTranHistDTO" resultType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsTranHistDTO">
+		SELECT
+		    HIST.TR_SENDDATE        TR_SEND_DATE,
+		    CUST.CUST_LOGIN_ID      CUST_LOGIN_ID,
+		    CUST.CUST_NM            CUST_NM,
+		    CD.CD_NM                TR_ETC1_NM,
+		    SEND_CNT,
+		    SUCCESS_CNT,
+		    FAIL_CNT
+		FROM (
+		    SELECT
+			<if test="searchKind == 'daily'">
+			 DATE_FORMAT(TR_SENDDATE, '%Y-%m-%d') AS TR_SENDDATE,
+			 </if>
+			 <if test="searchKind == 'monthly'">
+			 DATE_FORMAT(TR_SENDDATE, '%Y-%m') AS TR_SENDDATE,
+			 </if>
+			TR_ETC3                                     CUST_SEQ,
+			TR_ETC1                                     MESSAGE_TYPE,
+			COUNT(*)                                    SEND_CNT,
+			, COUNT(CASE TR_RSLTSTAT WHEN '06' THEN 1 ELSE NULL END) SUCCESS_CNT
+			, COUNT(CASE TR_RSLTSTAT WHEN '06' THEN NULL ELSE 1 END) FAIL_CNT
+		    FROM
+			TB_IOT_SMS_TRAN_HIST
+		    WHERE 1=1
+				<if test="searchStartDttm != null and searchKind == 'daily'">
+					AND TR_SENDDATE BETWEEN STR_TO_DATE(#{searchStartDttm}, '%Y%m%d') AND STR_TO_DATE(CONCAT(#{searchEndDttm}, '235959'), '%Y%m%d%H%i%s')
+				</if>
+				<if test="roleCdId == 'GN00000035' or roleCdId == 'GN00000036' or roleCdId == 'GN00000037' or roleCdId == 'GN00000039'">
+					AND TR_ETC3 IN (#{custSeq})
+				</if>
+				<if test="searchStartDttm != null and searchKind == 'monthly'">
+					AND A.TR_SENDDATE BETWEEN DATE_FORMAT(CONCAT(#{searchStartDttm}, '01'),'%Y-%m-%d') AND DATE_FORMAT(LAST_DAY(CONCAT(#{searchEndDttm}, '01')),'%Y-%m-%d')
+				</if>
+		    GROUP BY
+			<if test="searchKind == 'daily'">
+			DATE_FORMAT(TR_SENDDATE, '%Y-%m-%d'),
+			</if>
+			<if test="searchKind == 'monthly'">
+			DATE_FORMAT(TR_SENDDATE, '%Y-%m'),
+			</if>
+			TR_ETC3,
+			TR_ETC1
+		) HIST
+		INNER JOIN TB_IOT_CM_CD CD
+		    ON HIST.MESSAGE_TYPE = CD.CD_ID
+		INNER JOIN TB_IOT_CUST_M CUST
+		    ON HIST.CUST_SEQ = CUST.CUST_SEQ
+		WHERE 1=1
+			<if test="custNm != null">
+				AND CUST.CUST_NM LIKE CONCAT(#{custNm},'%')
+			</if>
+			<if test="custLoginId != null">
+				AND CUST.CUST_LOGIN_ID LIKE CONCAT(#{custLoginId},'%')
+			</if>
+		ORDER BY
+		    HIST.TR_SENDDATE DESC,
+		    CUST.CUST_LOGIN_ID ASC,
+		    CD.CD_NM ASC
+		<if test="startPage > 0 and displayRowCount > 0">
+		    LIMIT #{startPage} - 1, #{displayRowCount}
+		</if>
+	</select>
+
+	<!-- SMS 발송현황 갯수 mariaDB -->
+	<select id="retrieveIotSmsReportCount" parameterType="kr.co.scp.ccp.iotSmsHist.dto.TbIotSmsTranHistDTO" resultType="java.lang.Integer">
+	SELECT COUNT(T.trSendDate) FROM (
+		SELECT
+			 <if test="searchKind == 'daily'">
+	 		 DATE_FORMAT(A.TR_SENDDATE, '%Y-%m-%d') "trSendDate"
+	 		 </if>
+	 		 <if test="searchKind == 'monthly'">
+	 		 DATE_FORMAT(A.TR_SENDDATE, '%Y-%m') "trSendDate"
+	 		 </if>
+		FROM TB_IOT_SMS_TRAN_HIST A, TB_IOT_CM_CD B, TB_IOT_CUST_M M
+		WHERE A.TR_ETC1 = B.CD_ID
+			AND A.TR_ETC3 = M.CUST_SEQ
+			<if test="custNm != null">
+				AND M.CUST_NM LIKE CONCAT(#{custNm},'%')
+			</if>
+			<if test="custLoginId != null">
+				AND M.CUST_LOGIN_ID LIKE CONCAT(#{custLoginId},'%')
+			</if>
+			<if test="searchStartDttm != null and searchKind == 'daily'">
+					AND TR_SENDDATE BETWEEN STR_TO_DATE(#{searchStartDttm}, '%Y%m%d') AND STR_TO_DATE(CONCAT(#{searchEndDttm}, '235959'), '%Y%m%d%H%i%s')
+				</if>
+				<if test="roleCdId == 'GN00000035' or roleCdId == 'GN00000036' or roleCdId == 'GN00000037' or roleCdId == 'GN00000039'">
+					AND TR_ETC3 IN (#{custSeq})
+				</if>
+				<if test="searchStartDttm != null and searchKind == 'monthly'">
+					AND A.TR_SENDDATE BETWEEN DATE_FORMAT(CONCAT(#{searchStartDttm}, '01'),'%Y-%m-%d') AND DATE_FORMAT(LAST_DAY(CONCAT(#{searchEndDttm}, '01')),'%Y-%m-%d')
+				</if>
+		<if test="roleCdId == 'GN00000035' or roleCdId == 'GN00000036' or roleCdId == 'GN00000037' or roleCdId == 'GN00000039'">
+				AND A.TR_ETC3 IN (#{custSeq})
+		</if>
+		GROUP BY <if test="searchKind == 'daily'">
+			 		DATE_FORMAT(TR_SENDDATE, '%Y-%m-%d'),
+			 		</if>
+			 		<if test="searchKind == 'monthly'">
+			 		DATE_FORMAT(TR_SENDDATE, '%Y-%m'),
+			 		</if>
+					M.CUST_LOGIN_ID, A.TR_ETC1
+	) T
+	</select>
+</mapper>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.common.rule.dao.TbIotDevCtlRuleDAO">
+<!--
+	파일명    : /mapper/TbIoTDevCtlRule.xml
+-->
+
+	<select id="retrieveTbIotCtlValRuleInfo" parameterType="kr.co.scp.common.rule.dto.TbIotDevCtlRuleDTO" resultType="kr.co.scp.common.rule.dto.TbIotDevCtlRuleDTO">
+		SELECT
+			A.API_SEQ AS apiSeq,
+            B.API_URI           AS    ruleUri,
+			DEV_SEQ            AS    devSeq,
+			RULE_MSG_TYPE      AS    ruleMsgType,
+			RULE_COL_TYPE      AS    ruleColType,
+			DEVRULE_SEQ        AS    devruleSeq,
+			RULE_SEQ           AS    exeFile,
+			RULE_REQUEST       AS    ruleRequest,
+			RULE_SOURCEKEY     AS    ruleSourcekey,
+			RULE_KIND          AS    ruleKind,
+			RULE_BYTE_POSI     AS    ruleBytePosi,
+			RULE_BIT_POSI      AS    ruleBitPosi,
+			RULE_NUMBER        AS    ruleNumber,
+			RULE_POINT         AS    rulePoint,
+			RULE_TARGETKEY     AS    ruleTargetkey,
+			RULE_DEFAULT_VAL   AS    ruleDefaultVal
+		FROM TB_IOT_DEV_COL_RULE A ,TB_IOT_API B
+        WHERE A.DEV_SEQ = #{devSeq}
+			AND A.API_SEQ = #{apiSeq}
+			AND A.API_SEQ = B.API_SEQ
+			AND A.RULE_COL_TYPE = #{ruleColType}
+			AND A.RULE_MSG_TYPE = #{ruleMsgType}
+		ORDER BY DEVRULE_SEQ ASC
+	</select>
+
+	<insert id="insertTbIoTDevCtlRule" 	parameterType="kr.co.scp.common.rule.dto.TbIotDevCtlRuleDTO">
+		insert into  TB_IOT_DEV_COL_RULE
+			(
+				API_SEQ,
+				DEV_SEQ,
+				RULE_MSG_TYPE,
+				RULE_COL_TYPE,
+				RULE_SEQ,
+				RULE_REQUEST,
+				RULE_SOURCEKEY,
+				RULE_KIND,
+				RULE_BYTE_POSI,
+				RULE_BIT_POSI,
+				RULE_NUMBER,
+				RULE_POINT,
+				RULE_TARGETKEY,
+				RULE_DEV_TYPE,
+				RULE_DEFAULT_VAL,
+				REG_USR_ID,
+				REG_DTTM
+			)
+		values
+			(
+				#{apiSeq},
+				#{devSeq},
+				#{ruleMsgType},
+				#{ruleColType},
+				#{exeFile},
+				#{ruleRequest},
+				#{ruleSourcekey},
+				CASE
+					WHEN #{ruleRequest} = 'O_REQ_B' THEN 'HTTP_BODY'
+					WHEN #{ruleRequest} = 'O_REQ_Q' THEN 'QUERY_STRING'
+					WHEN #{ruleRequest} = 'O_REQ_H' THEN 'HTTP_HEADER'
+					WHEN #{ruleRequest} = 'P_REQ_B' THEN 'HTTP_BODY'
+					WHEN #{ruleRequest} = 'P_REQ_Q' THEN 'QUERY_STRING'
+					WHEN #{ruleRequest} = 'P_REQ_H' THEN 'HTTP_HEADER'
+					WHEN #{ruleRequest} IS NULL AND #{exeFile} = 6 THEN 'HTTP_BODY'
+				ELSE '' END,
+				#{ruleBytePosi},
+				#{ruleBitPosi},
+				#{ruleNumber},
+				#{rulePoint},
+				#{ruleTargetkey},
+				#{ruleDevType},
+				#{ruleDefaultVal},
+				#{regUsrId},
+				DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+	</insert>
+
+
+</mapper>

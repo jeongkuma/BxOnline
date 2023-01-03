@@ -1,0 +1,68 @@
+HTTP_HEADER: 
+  Content-Type:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-APIVERSION:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LOGKEY:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-CHANNEL:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    noWhitespace: Y
+  X-AUTH:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    noWhitespace: Y
+  X-VNAME:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LANG:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-MID:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    noWhitespace: Y 
+  X-CALLTYPE:    
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    noWhitespace: Y 
+HTTP_BODY:
+  currentPage:
+    dataType: INTEGER
+    requiredKey: Y
+    notNull: Y    
+  displayRowCount:
+    dataType: INTEGER 
+    requiredKey: Y
+    notNull: Y    
+    noWhitespace: Y
+  ctn:
+    dataType: STRING
+    requiredKey: N           
+  usingNo:
+    dataType: STRING
+    requiredKey: N  
+  devClsCd:
+    dataType: STRING
+    requiredKey: N
+  devMdlCd:
+    dataType: STRING
+    requiredKey: N

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+	<Properties>
+		<Property name="LOG_PATTERN" value="[%5p] [%d{yyyy-MM-dd HH:mm:ss}] [%C{6}] - %m%n"></Property>
+		<Property name="LOG_FILE_PATH">${sys:loggerPathFile:-/app.log}</Property>
+	</Properties>
+	<Appenders>
+		<Console name="ConsoleAppender" target="SYSTEM_OUT" follow="true">
+			<PatternLayout>
+				<MarkerPatternSelector defaultPattern="${LOG_PATTERN}">
+					<PatternMatch key="OMSCALLLOG" pattern="%m%n" />
+				</MarkerPatternSelector>
+			</PatternLayout>
+		</Console>
+<!-- 		<RollingFile name="file" fileName="${env.servername}${LOG_FILE_PATH}" filePattern="${LOG_FILE_PATH}.%d{yyyyMMdd}"> -->
+<!-- 		<RollingFile name="file" fileName="C:/logs/${sys:env.servername}/was/tomcat/ccp-service.log" filePattern="${LOG_FILE_PATH}.%d{yyyyMMdd}"> -->
+		<RollingFile name="file" fileName="${LOG_FILE_PATH}" filePattern="${LOG_FILE_PATH}.%d{yyyyMMdd}">
+			<PatternLayout>
+				<MarkerPatternSelector defaultPattern="${LOG_PATTERN}">
+					<PatternMatch key="OMSCALLLOG" pattern="%m%n" />
+				</MarkerPatternSelector>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+			</Policies>
+		</RollingFile>
+	</Appenders>
+	<Loggers>
+
+		<logger name="org.springframework.jndi" level="INFO" />
+
+		<logger name="jdbc" level="OFF" />
+
+		<logger name="jdbc.sqlonly" level="INFO" additivity="false">
+			<AppenderRef ref="ConsoleAppender" />
+		</logger>
+
+<!--		<logger name="jdbc.sqltiming" level="DEBUG" additivity="false">-->
+<!--			<AppenderRef ref="ConsoleAppender" />-->
+<!--		</logger>-->
+
+		<logger name="jdbc.resultsettable" level="INFO" additivity="false">
+			<AppenderRef ref="ConsoleAppender" />
+		</logger>
+
+		<Root level="INFO">
+			<AppenderRef ref="ConsoleAppender" />
+			<AppenderRef ref="file" />
+		</Root>
+	</Loggers>
+</Configuration>

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.ccp.iotSelDevice.dao.IotSelDeviceDAO">
+
+<!--
+	파일명    : /mapper/TbIotSelDevice.xml
+	작성일자  : 2019.04.26
+	작성자    : will
+	설명      :
+-->
+	<!-- 가입별장비 목록 조회-->
+	<select id="retrieveIotEntrDevM" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO" resultType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+       SELECT a.ENTR_DEV_SEQ
+			, a.DEV_CLS_CD
+			, e.DEV_CLS_CD_NM
+			, a.DEV_MDL_CD
+			, e.DEV_MDL_NM
+			, a.HLDR_CUST_NO
+			, a.STATUS_CD
+			, a.ENTR_NO
+			, a.ACENO
+			, a.PROD_NO
+			, a.ITEM_ID
+			, a.MANF_SERIAL_NO
+			, a.DEV_ESN
+			, a.DEV_UUID
+			, a.ORG_SEQ
+			, a.CTN
+			, a.DEV_UNAME
+			, a.MACHINE_NO
+			, a.USING_NO
+			, a.INST_NO
+			, a.DEV_REGI_DT
+			, CONCAT(b.INST_ADDR , ' ' , b.INST_ADDR_DETAIL) as INST_ADDR
+			, CASE a.SVC_CD WHEN 'SD00000015' THEN IF(f.ATTB_VL08 IS NULL, b.INST_LAT, REPLACE(f.ATTB_VL08, '.', '') )
+			  ELSE INST_LAT END AS INST_LAT
+			, CASE a.SVC_CD WHEN 'SD00000015' THEN IF(f.ATTB_VL09 IS NULL, b.INST_LON, REPLACE(f.ATTB_VL09, '.', '') )
+			  ELSE INST_LON END AS INST_LON
+			, CASE a.STATUS_CD WHEN 'S' THEN 'S'
+			  ELSE (
+				CASE IFNULL(c.CNT_ATTB, 0)
+				  WHEN IFNULL(d.CNT_TRUE, 0) THEN 'A'
+				  ELSE 'W'
+			    END
+				)
+			  END as ATTB_STATUS_CD
+            , CASE a.STATUS_CD
+                WHEN 'S' THEN (
+                  SELECT s1.WEB_URI FROM TB_IOT_DEV_CLS_IMG s1
+                   WHERE s1.DEV_CLS_CD = a.DEV_CLS_CD
+                     AND s1.ICON_CD = 'GN00000123')
+                ELSE (
+                  CASE IFNULL(c.CNT_ATTB, 0)
+    				WHEN IFNULL(d.CNT_TRUE, 0)
+    				THEN
+    					(SELECT s1.WEB_URI
+    					   FROM TB_IOT_DEV_CLS_IMG s1
+    					  WHERE s1.DEV_CLS_CD = a.DEV_CLS_CD
+    					    AND s1.ICON_CD = 'GN00000121')
+    				ELSE
+    					(SELECT s1.WEB_URI
+    					   FROM TB_IOT_DEV_CLS_IMG s1
+    					  WHERE s1.DEV_CLS_CD = a.DEV_CLS_CD
+    					    AND s1.ICON_CD = 'GN00000122')
+    			  END
+                )
+     		  END as IMG_FILE
+		FROM TB_IOT_ENTR_DEV_M a
+			LEFT JOIN TB_IOT_E_DEV_INS_LOC b
+				ON     a.ENTR_DEV_SEQ = b.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_E_DEV_COL_VAL f
+				ON     a.ENTR_DEV_SEQ = f.ENTR_DEV_SEQ
+			LEFT JOIN
+				(SELECT t1.ENTR_DEV_SEQ
+						, COUNT(t1.DET_STATUS_CD_ID) AS CNT_ATTB
+					FROM TB_IOT_E_DEV_CUR_VAL t1
+					WHERE t1.DET_STATUS_CD_ID IS NOT NULL
+					GROUP BY t1.ENTR_DEV_SEQ) c
+				ON a.ENTR_DEV_SEQ = c.ENTR_DEV_SEQ
+			LEFT JOIN
+				(SELECT t1.ENTR_DEV_SEQ
+						, COUNT(t1.DET_STATUS_CD_ID) AS CNT_TRUE
+					FROM TB_IOT_E_DEV_CUR_VAL t1
+					WHERE t1.DET_STATUS_CD_ID = 'DS00000007'
+					GROUP BY t1.ENTR_DEV_SEQ) d
+				ON a.ENTR_DEV_SEQ = d.ENTR_DEV_SEQ
+			LEFT JOIN TB_IOT_SVC_DEV_M e
+				ON a.SVC_CD = e.SVC_CD
+					AND a.DEV_CLS_CD = e.DEV_CLS_CD
+					AND a.DEV_MDL_CD = e.DEV_MDL_CD
+		WHERE a.STATUS_CD IN ('A','S')
+		AND a.CUST_SEQ = #{custSeq}
+		<include refid="SQL_WHERE_IOTENTRDEVM" />
+	</select>
+
+	<!-- 장비별 장비 속성 목록 조회-->
+	<select id="retrieveIotDevMAtbVal" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO" resultType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEDevCurValDTO">
+		SELECT a.E_DEV_CUR_VAL_SEQ
+			, c.ENTR_DEV_SEQ
+			, d.CD_NM as devAttbCdNm
+			, a.DET_STATUS_CD_ID
+			, e.CD_NM AS detStatusCdNm
+			, a.DEV_VAL
+			, a.E_DEV_DET_SET_SEQ
+			, b.MAP_YN
+			, b.UNIT
+			, b.ORDER_NO
+		FROM TB_IOT_E_DEV_CUR_VAL a
+			LEFT JOIN TB_IOT_S_DEV_ATB b
+				ON a.DEV_CLS_CD = b.DEV_CLS_CD
+					AND b.SVC_CD = #{svcCd}
+					AND a.DEV_MDL_CD = b.DEV_MDL_CD
+					AND a.DEV_ATTB_CD_ID = b.DEV_ATTB_CD_ID
+					AND b.STATUS_CD = 'A'
+			LEFT JOIN TB_IOT_ENTR_DEV_M c
+				ON a.ENTR_DEV_SEQ = c.ENTR_DEV_SEQ
+            INNER JOIN TB_IOT_CM_CD d
+                ON d.LANG_SET = #{langSet} and a.DEV_ATTB_CD_ID = d.CD_ID
+            LEFT OUTER JOIN TB_IOT_CM_CD e
+                ON e.LANG_SET = #{langSet} and a.DET_STATUS_CD_ID = e.CD_ID
+		WHERE c.STATUS_CD IN ('A','S')
+		AND a.ENTR_DEV_SEQ = #{entrDevSeq}
+		AND c.CUST_SEQ = #{custSeq}
+	</select>
+
+	<!-- 장비별 장비 목록 조회 (표시) -->
+	<select id="retrieveiotCDevM" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO" resultType="kr.co.scp.ccp.iotSelDevice.dto.TbIotCDevMDTO">
+		SELECT a.DEV_CLS_CD
+		     , a.DEV_CLS_CD_NM
+		     , (SELECT t1.WEB_URI
+		          FROM TB_IOT_DEV_CLS_IMG t1
+		         WHERE t1.DEV_CLS_CD = a.DEV_CLS_CD AND t1.ICON_CD = 'GN00000124')
+		          as NOR_GROUP
+		     , (SELECT t1.WEB_URI
+		          FROM TB_IOT_DEV_CLS_IMG t1
+		         WHERE t1.DEV_CLS_CD = a.DEV_CLS_CD AND t1.ICON_CD = 'GN00000125')
+		          as WAR_GROUP
+		     , (SELECT t1.WEB_URI
+		          FROM TB_IOT_DEV_CLS_IMG t1
+		         WHERE t1.DEV_CLS_CD = a.DEV_CLS_CD AND t1.ICON_CD = 'GN00000126')
+		          as STOP_GROUP
+	         , (SELECT t1.WEB_URI
+                  FROM TB_IOT_DEV_CLS_IMG t1
+                 WHERE t1.DEV_CLS_CD = a.DEV_CLS_CD AND t1.ICON_CD = 'GN00000127')
+                  as MUT_GROUP
+             , (SELECT t1.WEB_URI
+                  FROM TB_IOT_DEV_CLS_IMG t1
+                 WHERE t1.DEV_CLS_CD = a.DEV_CLS_CD AND t1.ICON_CD = 'GN00000128')
+                  as MUT_WAR_GROUP
+		  FROM TB_IOT_SVC_DEV_M a
+		       LEFT JOIN TB_IOT_ENTR_DEV_M b
+		              ON a.SVC_CD = b.SVC_CD
+		 WHERE b.STATUS_CD IN ('A', 'S')
+		   AND b.cust_seq = #{custSeq}
+		   AND a.DEV_MDL_CD NOT LIKE 'LGE_%'
+		GROUP BY a.DEV_CLS_CD, a.DEV_CLS_CD_NM
+	</select>
+
+	<sql id="SQL_WHERE_IOTENTRDEVM">
+		<if test="devClsCdNm != null and !devClsCdNm.equals('')">
+		AND e.DEV_CLS_CD_NM LIKE CONCAT(#{devClsCdNm},'%')
+		</if>
+		<if test="devMdlNm != null and !devMdlNm.equals('')">
+		AND e.DEV_MDL_NM LIKE CONCAT(#{devMdlNm},'%')
+		</if>
+		<if test="devUname != null and !devUname.equals('')">
+		AND a.DEV_UNAME LIKE CONCAT(#{devUname},'%')
+		</if>
+		<if test="ctn != null and !ctn.equals('')">
+		AND a.CTN LIKE CONCAT(#{ctn},'%')
+		</if>
+	</sql>
+
+
+	<!-- 장비별 장비 목록 조회 (표시) -->
+<!-- 	<select id="retrieveiotCDevM" parameterType="tbIotEntrDevMDTO" resultType="tbIotCDevMDTO"> -->
+<!-- 		SELECT a.C_DEV_SEQ -->
+<!-- 			 , a.DEV_CLS_CD -->
+<!-- 			 , a.DEV_MDL_CD -->
+<!-- 			 , a.NORMAL_ICON_FILE -->
+<!-- 			 , a.ABNORMAL_ICON_FILE -->
+<!-- 			 , a.ABNORMAL_ICON_FILE2 -->
+<!-- 		  FROM TB_IOT_C_DEV_M a -->
+<!-- 		 WHERE a.USE_YN = 'Y' -->
+<!-- 		   AND a.cust_seq = #{custSeq} -->
+<!-- 	</select> -->
+
+	<!-- 장비별 장비 속성 목록 조회 (표시) -->
+<!-- 	<select id="retrieveIotCDevAtb" parameterType="tbIotEntrDevMDTO" resultType="tbIotCDevAtbDTO"> -->
+<!-- 		SELECT b.C_DEV_ATTB_SEQ -->
+<!-- 		     , b.C_DEV_SEQ -->
+<!-- 		     , b.DEV_ATTB_CD_ID -->
+<!-- 		     , b.DEV_ATTB_CD_NM -->
+<!-- 		     , b.MAP_YN -->
+<!-- 		     , b.UNIT -->
+<!-- 		     , b.ORDER_NO -->
+<!-- 		  FROM TB_IOT_C_DEV_M a -->
+<!-- 			   RIGHT JOIN TB_IOT_C_DEV_ATB b -->
+<!-- 			   ON a.C_DEV_SEQ = b.C_DEV_SEQ -->
+<!-- 		 WHERE a.USE_YN = 'Y' -->
+<!-- 		   AND b.MAP_YN = 'Y' -->
+<!-- 		   AND a.cust_seq = #{custSeq} -->
+<!-- 	</select> -->
+
+</mapper>

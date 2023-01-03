@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotEntrDevCol.dao.IotEntrDevColDAO">
+
+<!--
+	파일명    : /mapper/TbIotEntrDevCol.xml
+	작성일자 : 2019-04-22
+	작성자    : 정병수
+	설명      : 수집 일괄 관리
+-->
+
+	<!-- 수집 일괄 조회 갯수 조회 -->
+	<select id="retrieveEntrDevColCount" parameterType="kr.co.scp.ccp.iotEntrDevCol.dto.TbIotEntrDevColReqDTO" resultType="java.lang.Integer">
+		SELECT COUNT(C.CUR_STS_DATE) AS CNT
+		FROM 	TB_IOT_E_DEV_COL_VAL C
+		LEFT OUTER JOIN TB_IOT_ENTR_DEV_M M
+		ON 		C.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+		LEFT OUTER JOIN TB_IOT_E_DEV_INS_LOC L
+		ON 		C.ENTR_DEV_SEQ = L.ENTR_DEV_SEQ
+		LEFT OUTER JOIN TB_IOT_SVC_DEV_M CD_MDL
+		ON      M.DEV_MDL_CD = CD_MDL.DEV_MDL_CD
+		LEFT OUTER JOIN TB_IOT_CM_CD CD_CLS
+		ON 		M.DEV_CLS_CD = CD_CLS.CD_ID
+		AND		CD_CLS.LANG_SET = #{charSet}
+		<where>
+		  	<if test = "custSeq != null">
+				AND M.CUST_SEQ = #{custSeq}
+			</if>
+			<if test="devClsCd != null and !devClsCd.equals('all')">
+				AND M.DEV_CLS_CD = #{devClsCd}
+			</if>
+			<if test="devMdlCd != null and !devMdlCd.equals('all')">
+	    		AND M.DEV_MDL_CD = #{devMdlCd}
+			</if>
+			<if test="searchKey != null and !searchKey.equals('')">
+				<choose>
+					<when test=" searchType == 'ctn'">
+							AND M.CTN LIKE  CONCAT(#{searchKey}, '%')
+					</when>
+					<when test=" searchType == 'entityId'">
+							AND M.DEV_UUID LIKE  CONCAT(#{searchKey}, '%')
+					</when>
+					<when test=" searchType == 'kpmNum'">
+						AND M.DEV_UNAME LIKE  CONCAT(#{searchKey}, '%')
+					</when>
+					<when test=" searchType == 'instNo'">
+						AND M.INST_NO LIKE  CONCAT(#{searchKey}, '%')
+					</when>
+				</choose>
+			</if>
+		</where>
+	</select>
+
+	<!-- 수집 현황 목록 조회-->
+	<select id="retrieveEntrDevColList" parameterType="kr.co.scp.ccp.iotEntrDevCol.dto.TbIotEDevColValDTO" resultType="kr.co.scp.ccp.iotEntrDevCol.dto.TbIotEDevColValDTO">
+					 SELECT   C.ENTR_DEV_SEQ
+							, DATE_FORMAT(C.CUR_STS_DATE, '%Y-%m-%d %H:%i:%s') CUR_STS_DATE
+							, M.SVC_CD
+							, M.CUST_SEQ
+							, M.DEV_CLS_CD
+							, CD_CLS.CD_NM DEV_CLS_CD_NM
+							, M.DEV_MDL_CD
+			    			, CD_MDL.DEV_MDL_NM DEV_MDL_NM
+							, M.CTN
+							, M.ENTR_NO
+							, M.USING_NO
+							, M.DEV_UUID
+							, M.DEV_UNAME
+							, M.DEV_BUILDING_NM
+							, M.INST_NO
+							, C.FST_REG_DTTM
+							, C.TMPL_SEQ
+							, L.INST_ADDR
+							, L.INST_ADDR_DETAIL
+							, L.INST_LAT
+							, L.INST_LON
+							, C.ATTB_VL01
+							, C.ATTB_VL02
+							, C.ATTB_VL03
+							, C.ATTB_VL04
+							, C.ATTB_VL05
+							, C.ATTB_VL06
+							, C.ATTB_VL07
+							, C.ATTB_VL08
+							, C.ATTB_VL09
+							, C.ATTB_VL10
+							, C.ATTB_VL11
+							, C.ATTB_VL12
+							, C.ATTB_VL13
+							, C.ATTB_VL14
+							, C.ATTB_VL15
+							, C.ATTB_VL16
+							, C.ATTB_VL17
+							, C.ATTB_VL18
+							, C.ATTB_VL19
+							, C.ATTB_VL20
+							, C.ATTB_VL21
+							, C.ATTB_VL22
+							, C.ATTB_VL23
+							, C.ATTB_VL24
+							, C.ATTB_VL25
+							, C.ATTB_VL26
+							, C.ATTB_VL27
+							, C.ATTB_VL28
+							, C.ATTB_VL29
+							, C.ATTB_VL30
+					FROM 	TB_IOT_E_DEV_COL_VAL C
+					LEFT OUTER JOIN TB_IOT_ENTR_DEV_M M
+					ON 		C.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+					LEFT OUTER JOIN TB_IOT_E_DEV_INS_LOC L
+					ON 		C.ENTR_DEV_SEQ = L.ENTR_DEV_SEQ
+					LEFT OUTER JOIN TB_IOT_SVC_DEV_M CD_MDL
+					ON      M.DEV_MDL_CD = CD_MDL.DEV_MDL_CD
+					LEFT OUTER JOIN TB_IOT_CM_CD CD_CLS
+					ON 		M.DEV_CLS_CD = CD_CLS.CD_ID
+					AND		CD_CLS.LANG_SET = #{charSet}
+					<where>
+						<if test = "custSeq != null and !custSeq.equals('')">
+						  AND 	M.CUST_SEQ = #{custSeq}
+						</if>
+						<if test = "svcCd != null and !svcCd.equals('')">
+						  AND 	M.SVC_CD = #{svcCd}
+						</if>
+						<if test="devClsCd != null and !devClsCd.equals('all')">
+							AND M.DEV_CLS_CD = #{devClsCd}
+						</if>
+						<if test="devMdlCd != null and !devMdlCd.equals('all')">
+				    		AND M.DEV_MDL_CD = #{devMdlCd}
+						</if>
+			           	<if test="searchStartDttm != null and searchEndDttm != null">
+							AND C.FST_REG_DTTM BETWEEN #{searchStartDttm} AND #{searchEndDttm}
+						</if>
+						<if test="searchKey!= null and !searchKey.equals('')">
+							<choose>
+								<when test=" searchType == 'ctn'">
+									AND M.CTN LIKE  CONCAT(#{searchKey}, '%')
+								</when>
+								<when test=" searchType == 'entityId'">
+									AND M.DEV_UUID LIKE  CONCAT(#{searchKey}, '%')
+								</when>
+								<when test=" searchType == 'kpmNum'">
+									AND M.DEV_UNAME LIKE  CONCAT(#{searchKey}, '%')
+								</when>
+								<when test=" searchType == 'instNo'">
+									AND M.INST_NO LIKE  CONCAT(#{searchKey}, '%')
+								</when>
+							</choose>
+						</if>
+					</where>
+					ORDER BY C.CUR_STS_DATE DESC
+					LIMIT ${startPage-1}, ${displayRowCount}
+	</select>
+
+
+
+
+	<!-- 엑셀 다운로드용 수집 일괄 조회 목록 조회 -->
+	<select id="retrieveDownEntrDevColVals" parameterType="kr.co.scp.ccp.iotEntrDevCol.dto.TbIotEDevColValDTO" resultType="kr.co.scp.ccp.iotEntrDevCol.dto.TbIotEDevColValDTO">
+		SELECT   C.ENTR_DEV_SEQ
+		, DATE_FORMAT(C.CUR_STS_DATE, '%Y-%m-%d %H:%i:%s') CUR_STS_DATE
+		, M.SVC_CD
+		, M.CUST_SEQ
+		, M.DEV_CLS_CD
+		, CD_CLS.CD_NM DEV_CLS_CD_NM
+		, M.DEV_MDL_CD
+		, CD_MDL.DEV_MDL_NM DEV_MDL_NM
+		, M.CTN
+		, M.ENTR_NO
+		, M.USING_NO
+		, M.DEV_UUID
+		, M.DEV_UNAME
+		, M.DEV_BUILDING_NM
+		, M.INST_NO
+		, C.FST_REG_DTTM
+		, C.TMPL_SEQ
+		, L.INST_ADDR
+		, L.INST_ADDR_DETAIL
+		, L.INST_LAT
+		, L.INST_LON
+		, C.ATTB_VL01
+		, C.ATTB_VL02
+		, C.ATTB_VL03
+		, C.ATTB_VL04
+		, C.ATTB_VL05
+		, C.ATTB_VL06
+		, C.ATTB_VL07
+		, C.ATTB_VL08
+		, C.ATTB_VL09
+		, C.ATTB_VL10
+		, C.ATTB_VL11
+		, C.ATTB_VL12
+		, C.ATTB_VL13
+		, C.ATTB_VL14
+		, C.ATTB_VL15
+		, C.ATTB_VL16
+		, C.ATTB_VL17
+		, C.ATTB_VL18
+		, C.ATTB_VL19
+		, C.ATTB_VL20
+		, C.ATTB_VL21
+		, C.ATTB_VL22
+		, C.ATTB_VL23
+		, C.ATTB_VL24
+		, C.ATTB_VL25
+		, C.ATTB_VL26
+		, C.ATTB_VL27
+		, C.ATTB_VL28
+		, C.ATTB_VL29
+		, C.ATTB_VL30
+		FROM 	TB_IOT_E_DEV_COL_VAL C
+		LEFT OUTER JOIN TB_IOT_ENTR_DEV_M M
+		ON 		C.ENTR_DEV_SEQ = M.ENTR_DEV_SEQ
+		LEFT OUTER JOIN TB_IOT_E_DEV_INS_LOC L
+		ON 		C.ENTR_DEV_SEQ = L.ENTR_DEV_SEQ
+		LEFT OUTER JOIN TB_IOT_SVC_DEV_M CD_MDL
+		ON      M.DEV_MDL_CD = CD_MDL.DEV_MDL_CD
+		LEFT OUTER JOIN TB_IOT_CM_CD CD_CLS
+		ON 		M.DEV_CLS_CD = CD_CLS.CD_ID
+		AND		CD_CLS.LANG_SET = #{charSet}
+		<where>
+			<if test = "custSeq != null and !custSeq.equals('')">
+				AND 	M.CUST_SEQ = #{custSeq}
+			</if>
+			<if test = "svcCd != null and !svcCd.equals('')">
+				AND 	M.SVC_CD = #{svcCd}
+			</if>
+			<if test="devClsCd != null and !devClsCd.equals('all')">
+				AND M.DEV_CLS_CD = #{devClsCd}
+			</if>
+			<if test="devMdlCd != null and !devMdlCd.equals('all')">
+				AND M.DEV_MDL_CD = #{devMdlCd}
+			</if>
+			<if test="searchStartDttm != null and searchEndDttm != null">
+				AND C.FST_REG_DTTM BETWEEN #{searchStartDttm} AND #{searchEndDttm}
+			</if>
+			<if test="searchKey!= null and !searchKey.equals('')">
+				<choose>
+					<when test=" searchType == 'ctn'">
+						AND M.CTN LIKE  CONCAT(#{searchKey}, '%')
+					</when>
+					<when test=" searchType == 'entityId'">
+						AND M.DEV_UUID LIKE  CONCAT(#{searchKey}, '%')
+					</when>
+					<when test=" searchType == 'kpmNum'">
+						AND M.DEV_UNAME LIKE  CONCAT(#{searchKey}, '%')
+					</when>
+					<when test=" searchType == 'instNo'">
+						AND M.INST_NO LIKE  CONCAT(#{searchKey}, '%')
+					</when>
+				</choose>
+			</if>
+		</where>
+		ORDER BY C.CUR_STS_DATE DESC
+	</select>
+
+	<select id="retrieveEntrDevTmplHeader" parameterType="kr.co.scp.ccp.iotEntrDevCol.dto.TbIotEDevColValDTO" resultType="kr.co.scp.common.tmpl.dto.TbIotJqDataResponseDTO">
+		SELECT 	  G.COL_NAME_DATA
+				, G.COL_MODEL_DATA
+				, G.DEV_CLS_CD
+				, A.PROG_ID
+				, A.TMPL_CD_ID
+		FROM 	TB_IOT_TMPL_HDR_GRID G
+		LEFT OUTER JOIN (	SELECT T.TMPL_SEQ, T.TMPL_CD_ID, P.PROG_ID
+							FROM TB_IOT_TMPL T
+							LEFT OUTER JOIN TB_IOT_PROG P
+							ON   T.PROG_SEQ = P.PROG_SEQ) A
+		   ON 	G.TMPL_SEQ 		= A.TMPL_SEQ
+		WHERE 	G.LANG_SET 		= #{charSet}
+		AND     A.PROG_ID  		= #{progId}
+		AND     A.TMPL_CD_ID 	= #{tmplCdId}
+		AND 	G.DEV_CLS_CD 	= #{devClsCd}
+		ORDER BY G.COL_ORDER,G.TMPL_HDR_ATTB_SEQ
+	</select>
+
+</mapper>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iagEvent.dao.IagEntrDevMapDAO">
+
+	<!-- CCTV 등록 정보 등록 -->
+	<insert id="insertTbIotEntrDevMap" parameterType="kr.co.scp.ccp.iagEvent.dto.TbIotEntrDevMapDTO">
+		INSERT INTO TB_IOT_ENTR_DEV_MAP (
+		       DEVICE_ID
+		     , DEV_MDL_CD
+		     , MANF_SERIAL_NO
+		     , MAC_ADDR
+		     , DEV_UUID
+		     , LOG_ID
+		     , STATUS
+		     , BROKER_IP
+		     , BROKER_PORT
+		     , EKI
+		     , TOKEN
+		     , REG_USR_ID
+		     , REG_DTTM
+		     , MOD_USR_ID
+		     , MOD_DTTM
+		) VALUES (
+		       #{deviceId}
+		     , #{devMdlCd}
+		     , #{manfSerialNo}
+		     , #{macAddr}
+		     , null
+		     , -1
+		     , null
+		     , null
+		     , null
+		     , null
+		     , null
+		     , #{regUsrId}
+		     , DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'))
+		     , null
+		     , null
+		)
+	</insert>
+		
+	<update id="updateTbIotEntrDevMap1" parameterType="kr.co.scp.ccp.iagEvent.dto.TbIotEntrDevMapDTO">
+		UPDATE TB_IOT_ENTR_DEV_MAP
+		   SET DEV_MDL_CD     = #{devMdlCd}    
+		     , MANF_SERIAL_NO = #{manfSerialNo}
+		     , MAC_ADDR       = #{macAddr}  
+		     , DEV_UUID       = null
+		     , STATUS         = null
+		     , EKI            = null
+		     , TOKEN          = null
+		     , VERSION        = null       
+		     , MOD_USR_ID     = #{modUsrId}    
+		     , MOD_DTTM       = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'))
+		 WHERE DEVICE_ID      = #{deviceId}
+	</update>
+	
+	<update id="updateTbIotEntrDevMap2" parameterType="kr.co.scp.ccp.iagEvent.dto.TbIotEntrDevMapDTO">
+		UPDATE TB_IOT_ENTR_DEV_MAP
+		   SET DEV_MDL_CD     = #{devMdlCd}    
+		     , MANF_SERIAL_NO = #{manfSerialNo}
+		     , MAC_ADDR       = #{macAddr}  
+		     , STATUS         = 'C' 
+		     , MOD_USR_ID     = #{modUsrId}    
+		     , MOD_DTTM       = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'))
+		 WHERE DEVICE_ID      = #{deviceId}
+	</update>
+	
+	<select id="retrieveIotEntrDevMap" parameterType="kr.co.scp.ccp.iagEvent.dto.TbIotEntrDevMapDTO" resultType="kr.co.scp.ccp.iagEvent.dto.TbIotEntrDevMapDTO">
+		SELECT DEVICE_ID
+	         , BROKER_IP
+		     , BROKER_PORT
+		  FROM TB_IOT_ENTR_DEV_MAP
+		 WHERE DEVICE_ID      = #{deviceId}
+	</select>
+	
+</mapper>

@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.common.rule.dao.TbIotDevColRuleDAO">
+<!--
+	파일명    : /mapper/TbIoTDevColRule.xml
+-->
+	<!--  실행 피일 조회	-->
+	<select id="retrieveIotRule" parameterType="kr.co.scp.common.rule.dto.TbIotRuleDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT RULE_SEQ AS cdId
+		     , RULE_NAME AS cdNm
+		 FROM TB_IOT_RULE
+		WHERE LANG_SET = #{charSet}
+		  AND RULE_GUBUN = #{runGubun}
+		ORDER BY RULE_NAME
+	</select>
+
+	<!--  룰 적용 여부	-->
+	<select id="retrieveIotDevColRuleSetting" parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO" resultType="java.util.HashMap">
+		SELECT
+			RS.API_SEQ AS "apiSeq",
+			RS.API_NM AS "apiNm",
+			RS.RULE_URI AS "ruleUri",
+			RS.PARSING_TCP_RULE AS "parsingTcpRule" ,
+			RS.PARSING_RULE "parsingRule" ,
+			RS.VALID_RULE AS "validRule" ,
+			RS.MAPPING_RULE AS "mappingRule" ,
+			RS.SERVICE_CALL AS "serviceCall" ,
+			RS.SERVER_GUBUN AS "serverGubun"
+		FROM (
+				SELECT
+					A.RULE_URI
+					,A.API_SEQ
+					,A.API_NM
+					,A.SERVER_GUBUN
+			        ,CASE WHEN B.RULE_URI IS NOT NULL THEN 'use' ELSE 'use-no' END AS PARSING_TCP_RULE -- 전문룰
+					,CASE WHEN C.RULE_URI IS NOT NULL THEN 'use' ELSE 'use-no' END AS PARSING_RULE -- 파싱룰
+					,CASE WHEN D.RULE_URI IS NOT NULL THEN 'use' ELSE 'use-no' END AS VALID_RULE -- 검증룰
+					,CASE WHEN D.RULE_URI IS NOT NULL THEN 'use' ELSE 'use-no' END AS MAPPING_RULE -- 매핑룰
+					,CASE WHEN E.RULE_URI IS NOT NULL THEN 'use' ELSE 'use-no' END AS SERVICE_CALL -- 서비스호출
+				FROM
+					(
+						SELECT DISTINCT B.API_URI AS RULE_URI, B.API_SEQ, B.API_NM, B.SERVER_GUBUN
+						FROM TB_IOT_DEV_COL_RULE A , TB_IOT_API B
+						WHERE	A.DEV_SEQ = #{devSeq}
+							AND A.API_SEQ = B.API_SEQ
+		   			) A
+		 		LEFT JOIN
+		 			(
+		            	SELECT DISTINCT B.API_URI AS RULE_URI,
+		            		RULE_COL_TYPE
+		            	FROM TB_IOT_DEV_COL_RULE A, TB_IOT_API B
+		            	WHERE (A.RULE_COL_TYPE = 'GN00000183' or A.RULE_COL_TYPE = 'GN00000209')
+			            	AND A.DEV_SEQ = #{devSeq}
+			            	AND A.API_SEQ = B.API_SEQ
+		            ) B
+		     	ON A.RULE_URI = B.RULE_URI
+				LEFT JOIN
+		            (
+		            	SELECT DISTINCT B.API_URI AS RULE_URI
+		            	FROM TB_IOT_VAL_RULE A, TB_IOT_API B
+		            	WHERE 1=1
+		            		AND A.DEV_SEQ = #{devSeq}
+			            	AND A.API_SEQ = B.API_SEQ
+		            ) C
+				ON A.RULE_URI = C.RULE_URI
+				LEFT JOIN
+					(
+		            	SELECT DISTINCT B.API_URI AS RULE_URI, RULE_COL_TYPE
+		            	FROM TB_IOT_DEV_COL_RULE A, TB_IOT_API B
+		            	WHERE RULE_COL_TYPE = 'GN00000186'
+		            		AND A.DEV_SEQ = #{devSeq}
+			            	AND A.API_SEQ = B.API_SEQ
+		            ) D
+		     	ON A.RULE_URI = D.RULE_URI
+		     	LEFT JOIN
+		     		(
+		     			SELECT DISTINCT B.API_URI AS RULE_URI
+			            FROM TB_IOT_DEV_API_RULE A , TB_IOT_API B
+			            WHERE 1=1
+			            	AND A.DEV_SEQ = #{devSeq}
+			            	AND A.API_SEQ = B.API_SEQ
+		            ) E
+		     	ON A.RULE_URI = E.RULE_URI
+     		) RS
+     	LIMIT ${startPage - 1}, #{displayRowCount}
+	</select>
+
+	<select id="retrieveIotApiNm" parameterType="java.lang.Integer" resultType="java.lang.String">
+		SELECT API_NM
+  		  FROM TB_IOT_API
+  		  WHERE API_SEQ = #{apiSeq}
+	</select>
+
+	<select id="retrieveIotDevColRuleSettingCnt" parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO" resultType="java.lang.Integer">
+		SELECT COUNT(A.CNT) AS CNT
+  		  FROM (
+  		  	SELECT 1 AS CNT
+			FROM
+				(
+					SELECT DISTINCT B.API_URI AS RULE_URI
+					FROM TB_IOT_DEV_COL_RULE A , TB_IOT_API B
+					WHERE	A.DEV_SEQ = #{devSeq}
+						AND A.API_SEQ = B.API_SEQ
+	   			) A
+	 			LEFT JOIN
+ 				(
+	            	SELECT DISTINCT B.API_URI AS RULE_URI,
+	            		RULE_COL_TYPE
+	            	FROM TB_IOT_DEV_COL_RULE A, TB_IOT_API B
+	            	WHERE A.RULE_COL_TYPE = 'GN00000183' or A.RULE_COL_TYPE = 'GN00000209'
+		            	AND A.DEV_SEQ = #{devSeq}
+		            	AND A.API_SEQ = B.API_SEQ
+	            ) B
+		     	ON A.RULE_URI = B.RULE_URI
+				LEFT JOIN
+	            (
+	            	SELECT DISTINCT B.API_URI AS RULE_URI
+	            	FROM TB_IOT_VAL_RULE A, TB_IOT_API B
+	            	WHERE 1=1
+	            		AND A.DEV_SEQ = #{devSeq}
+		            	AND A.API_SEQ = B.API_SEQ
+	            ) C
+				ON A.RULE_URI = C.RULE_URI
+				LEFT JOIN
+				(
+	            	SELECT DISTINCT B.API_URI AS RULE_URI, RULE_COL_TYPE
+	            	FROM TB_IOT_DEV_COL_RULE A, TB_IOT_API B
+	            	WHERE RULE_COL_TYPE = 'GN00000186'
+	            		AND A.DEV_SEQ = #{devSeq}
+		            	AND A.API_SEQ = B.API_SEQ
+	            ) D
+		     	ON A.RULE_URI = D.RULE_URI
+		     	LEFT JOIN
+     			(
+	     			SELECT DISTINCT B.API_URI AS RULE_URI
+		            FROM TB_IOT_DEV_API_RULE A , TB_IOT_API B
+		            WHERE 1=1
+		            	AND A.DEV_SEQ = #{devSeq}
+		            	AND A.API_SEQ = B.API_SEQ
+	            ) E
+	     	ON A.RULE_URI = E.RULE_URI) A
+	</select>
+
+	<select id="retrieveTbIotColValRuleInfo" parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO" resultType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO">
+		SELECT
+			A.API_SEQ AS apiSeq,
+            B.API_URI           AS    ruleUri,
+			DEV_SEQ            AS    devSeq,
+			RULE_MSG_TYPE      AS    ruleMsgType,
+			RULE_COL_TYPE      AS    ruleColType,
+			DEVRULE_SEQ        AS    devruleSeq,
+			RULE_SEQ           AS    exeFile,
+			RULE_REQUEST       AS    ruleRequest,
+			RULE_SOURCEKEY     AS    ruleSourcekey,
+			RULE_KIND          AS    ruleKind,
+			RULE_BYTE_POSI     AS    ruleBytePosi,
+			RULE_BIT_POSI      AS    ruleBitPosi,
+			RULE_NUMBER        AS    ruleNumber,
+			RULE_POINT         AS    rulePoint,
+			RULE_TARGETKEY     AS    ruleTargetkey
+		FROM TB_IOT_DEV_COL_RULE A ,TB_IOT_API B
+        WHERE A.DEV_SEQ = #{devSeq}
+			AND A.API_SEQ = #{apiSeq}
+			AND A.API_SEQ = B.API_SEQ
+			AND A.RULE_COL_TYPE = #{ruleColType}
+			AND A.RULE_MSG_TYPE = #{ruleMsgType}
+	   ORDER BY DEVRULE_SEQ ASC
+	</select>
+
+	<select id="retrieveTbIotColTcpValRuleInfo" parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO" resultType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO">
+		SELECT
+			A.API_SEQ AS apiSeq,
+            B.API_URI           AS    ruleUri,
+			DEV_SEQ            AS    devSeq,
+			RULE_MSG_TYPE      AS    ruleMsgType,
+			RULE_COL_TYPE      AS    ruleColType,
+			DEVRULE_SEQ        AS    devruleSeq,
+			RULE_SEQ           AS    exeFile,
+			RULE_REQUEST       AS    ruleRequest,
+			RULE_SOURCEKEY     AS    ruleSourcekey,
+			RULE_KIND          AS    ruleKind,
+			RULE_BYTE_POSI     AS    ruleBytePosi,
+			RULE_BIT_POSI      AS    ruleBitPosi,
+			RULE_NUMBER        AS    ruleNumber,
+			RULE_POINT         AS    rulePoint,
+			RULE_TARGETKEY     AS    ruleTargetkey
+		FROM TB_IOT_DEV_COL_RULE A ,TB_IOT_API B
+        WHERE A.DEV_SEQ = #{devSeq}
+			AND A.API_SEQ = #{apiSeq}
+			AND A.API_SEQ = B.API_SEQ
+			AND A.RULE_COL_TYPE = #{ruleColType}
+			AND A.RULE_MSG_TYPE = #{ruleMsgType}
+		ORDER BY DEVRULE_SEQ ASC
+	</select>
+
+	<select id="retrieveTbIotValRuleInfoCnt" parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO" resultType="java.lang.Integer">
+		SELECT
+			count(*) as cnt
+		FROM TB_IOT_DEV_COL_RULE
+	</select>
+
+	<insert id="insertTbIoTDevColRule" 	parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO">
+		insert into  TB_IOT_DEV_COL_RULE
+			(
+				API_SEQ,
+				DEV_SEQ,
+				RULE_MSG_TYPE,
+				RULE_COL_TYPE,
+				DEVRULE_SEQ,
+				RULE_SEQ,
+				RULE_REQUEST,
+				RULE_SOURCEKEY,
+				RULE_KIND,
+				RULE_BYTE_POSI,
+				RULE_BIT_POSI,
+				RULE_NUMBER,
+				RULE_POINT,
+				RULE_TARGETKEY,
+				RULE_DEV_TYPE,
+				REG_USR_ID,
+				REG_DTTM
+			)
+		values
+			(
+				#{apiSeq},
+				#{devSeq},
+				#{ruleMsgType},
+				#{ruleColType},
+				(SELECT IFNULL(MAX(B.DEVRULE_SEQ),0) + 1 FROM TB_IOT_DEV_COL_RULE B),
+				#{exeFile},
+				#{ruleRequest},
+				#{ruleSourcekey},
+				CASE
+					WHEN #{ruleRequest} = 'O_REQ_B' THEN 'HTTP_BODY'
+					WHEN #{ruleRequest} = 'O_REQ_Q' THEN 'QUERY_STRING'
+					WHEN #{ruleRequest} = 'O_REQ_H' THEN 'HTTP_HEADER'
+					WHEN #{ruleRequest} = 'P_REQ_B' THEN 'HTTP_BODY'
+					WHEN #{ruleRequest} = 'P_REQ_Q' THEN 'QUERY_STRING'
+					WHEN #{ruleRequest} = 'P_REQ_H' THEN 'HTTP_HEADER'
+					WHEN #{ruleRequest} IS NULL AND #{exeFile} = 6 THEN 'HTTP_BODY'
+				ELSE '' END,
+				#{ruleBytePosi},
+				#{ruleBitPosi},
+				#{ruleNumber},
+				#{rulePoint},
+				#{ruleTargetkey},
+				#{ruleDevType},
+				#{regUsrId},
+				DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+	</insert>
+
+	<update id="upadteTbIotDevColRule">
+		UPDATE TB_IOT_DEV_COL_RULE	SET
+			RULE_URI		= #{ruleUri},
+			DEV_SEQ			= #{devSeq},
+			RULE_MSG_TYPE	= #{ruleMsgType},
+			RULE_COL_TYPE	= #{ruleColType},
+			DEVRULE_SEQ		= #{devruleSeq},
+			RULE_SEQ		= #{ruleSeq},
+			RULE_REQUEST	= #{ruleRequest},
+			RULE_SOURCEKEY	= #{ruleSourcekey},
+			RULE_KIND		= #{ruleKind},
+			RULE_BYTE_POSI	= #{ruleBytePosi},
+			RULE_BIT_POSI	= #{ruleBitPosi},
+			RULE_NUMBER		= #{ruleNumber},
+			RULE_POINT		= #{rulePoint},
+			RULE_TARGETKEY	= #{ruleTargetkey}
+		WHERE
+			RULE_URI		= #{ruleUri}
+			AND DEV_SEQ			= #{devSeq}
+			AND RULE_COL_TYPE	= #{ruleColType}
+			AND DEVRULE_SEQ		= #{devruleSeq}
+	</update>
+
+
+	<delete id="deleteAllTbIotDevColRule">
+		DELETE FROM TB_IOT_DEV_COL_RULE
+		WHERE
+				DEV_SEQ	= #{devSeq}
+			AND API_SEQ	= #{apiSeq}
+			AND RULE_COL_TYPE	= #{ruleColType}
+			AND RULE_MSG_TYPE = #{ruleMsgType}
+	</delete>
+
+
+	<!-- 전문키 헤더 검증 선택쿼리 -->
+	<select id="retrieveIotRequestKeyParseList" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT PARAM_KEY AS CD_ID
+			 , CD_NM AS CD_NM
+			 , CD_ORDER
+		 FROM TB_IOT_CM_CD
+		WHERE USE_YN = 'Y'
+		  AND PARENT_CD_ID = #{parentCdId}
+		  AND LANG_SET     = #{charSet}
+		  AND PARAM_KEY LIKE 'P%'
+	    ORDER BY CD_ORDER
+	</select>
+
+	<!-- 전문키 헤더 파싱 선택쿼리 -->
+	<select id="retrieveIotRequestKeyValList" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT PARAM_KEY AS CD_ID
+			 , CD_NM
+			 , CD_ORDER
+		 FROM TB_IOT_CM_CD
+		WHERE USE_YN = 'Y'
+		  AND PARENT_CD_ID = #{parentCdId}
+		  AND LANG_SET     = #{charSet}
+	    ORDER BY CD_ORDER
+	</select>
+
+	<!-- 파싱룰일때 목적키 가져오는 쿼리 -->
+	<select id="retrieveIotTargetKeyParseList" parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT
+		       ATB.COL_NM_CD AS CD_ID
+				, CONCAT((SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.CD_ID = ATB.DEV_ATTB_CD_ID AND LANG_SET =#{charSet}), '(',ATB.COL_NM_CD,')') AS CD_NM
+		FROM   TB_IOT_SVC_DEV_M DEV,
+		       TB_IOT_S_DEV_ATB ATB
+		WHERE  DEV.DEV_SEQ    = ATB.S_DEV_SEQ
+		AND    DEV.DEV_CLS_CD = ATB.DEV_CLS_CD
+		AND	   ATB.STATUS_CD = 'A'
+		AND	   ATB.COL_NM_CD IS NOT NULL
+		<if test="devSeq != null">
+		AND    DEV.DEV_SEQ    = #{devSeq}
+		</if>
+		ORDER BY ATB.ORDER_NO
+	</select>
+
+	<!-- 파싱룰 아닐때 목적키 가져오는 쿼리 -->
+	<select id="retrieveIotTargetKeyList" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT
+			CD_NM as CD_ID
+			,CD_NM
+		FROM TB_IOT_CM_CD a
+		WHERE USE_YN = 'Y'
+			AND a.PARENT_CD_ID IN ('DY00000001')
+			AND LANG_SET     = #{charSet}
+		ORDER BY a.PARENT_CD_ID,a.CD_ID
+	</select>
+
+	<!-- 파싱룰 일때 헤더 목적키 가져오는 쿼리 -->
+	<select id="retrieveIotTargetKeyParseHeaderList" parameterType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT PARAM_KEY AS CD_ID
+			 , CD_NM AS CD_NM
+			 , CD_ORDER
+		 FROM TB_IOT_CM_CD
+		WHERE USE_YN = 'Y'
+		  AND PARENT_CD_ID IN (
+		  		SELECT CD_ID
+		  		FROM TB_IOT_CM_CD
+		  		WHERE LANG_SET = #{charSet}
+		  		AND PARENT_CD_ID = 'TM00000001'
+		  		)
+		  AND LANG_SET     = #{charSet}
+	    ORDER BY CD_ORDER
+	</select>
+
+
+	<!-- 전문 바디 TYPE 조회 쿼리 -->
+	<select id="retrieveIotBodyType" parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO" resultType="java.util.HashMap">
+		SELECT PARAM_KEY AS "cdId"
+			, CONCAT(CD_NM,'(',PARAM_KEY,')') AS "cdNm"
+			, CD_ORDER  AS "cdOrder"
+		FROM TB_IOT_CM_CD
+		WHERE USE_YN = 'Y'
+			AND PARENT_CD_ID = (
+				SELECT CD_ID
+				FROM TB_IOT_CM_CD
+				WHERE LANG_SET = #{charSet}
+				AND PARENT_CD_ID = #{serverGubun}
+				AND  PARAM_VAL = #{devClsCd})
+			AND LANG_SET     = #{charSet}
+		ORDER BY CD_ORDER
+		<!-- UNION ALL
+		SELECT
+			RES_COMM_TYPE_ID AS "cdId",
+		    A.COMM_TYPE_NM AS "cdNm",
+		    ROW_NUMBER() OVER (ORDER BY RES_COMM_TYPE_ID) AS "cdOrder"
+		FROM     TB_IOT_S_COMD_TYPE a
+		WHERE A.DEV_CLS_CD = #{devClsCd}
+			AND A.DEV_MDL_CD = #{devMdlCd} -->
+	</select>
+
+	<!-- 전문 바디 TYPE 조회 쿼리 -->
+	<select id="retriveTbIotColParseData" parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO" resultType="java.util.HashMap">
+		SELECT A.RULE_TARGETKEY AS cdId,
+			CONCAT((SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.CD_ID = B.DEV_ATTB_CD_ID AND LANG_SET =#{charSet}), '(',B.COL_NM_CD,')') AS cdNm
+		FROM   TB_IOT_DEV_COL_RULE A , TB_IOT_S_DEV_ATB B
+		WHERE  A.API_SEQ = #{apiSeq}
+			AND    A.DEV_SEQ = #{devSeq}
+			AND A.RULE_TARGETKEY = B.COL_NM_CD
+			AND A.DEV_SEQ = B.S_DEV_SEQ
+			AND    A.RULE_COL_TYPE  NOT IN ('GN00000183','GN00000184','GN00000185','GN00000186')
+	</select>
+
+	<select id="retrieveTbIotDevMdlVal" parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO" resultType="java.lang.String">
+		SELECT IFNULL(DEV_MDL_VAL,'ZZ') AS DEV_MDL_VAL FROM TB_IOT_SVC_DEV_M a
+		WHERE a.DEV_SEQ = #{devSeq}
+	</select>
+
+	<select id="retrieveIotServiceList" parameterType="java.lang.String" resultType="java.util.HashMap">
+		SELECT CD_ID AS "cdId"
+		     , CD_NM AS "cdNm"
+		     , CD_ORDER  AS "cdOrder"
+		 FROM TB_IOT_CM_CD
+		WHERE USE_YN = 'Y'
+		  AND PARENT_CD_ID = 'GN00000008'
+		  AND CD_ID IN ('GN00000047','GN00000048')
+		  AND LANG_SET     = #{value}
+		  ORDER BY CD_ORDER
+	</select>
+
+	<delete id="deleteCopyRuleInfo" parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO">
+		DELETE FROM TB_IOT_DEV_COL_RULE
+		WHERE (RULE_MSG_TYPE = CONCAT('H',#{ruleMsgTypeCopy}) OR RULE_MSG_TYPE = #{ruleMsgTypeCopy})
+		AND RULE_DEV_TYPE = #{ruleDevType}
+		AND API_SEQ = #{apiSeq}
+	</delete>
+
+	<insert id="insertCopyRuleInfo" 	parameterType="kr.co.scp.common.rule.dto.TbIotDevColRuleDTO">
+		INSERT INTO TB_IOT_DEV_COL_RULE(
+		    API_SEQ,
+		    DEV_SEQ,
+		    RULE_MSG_TYPE,
+		    RULE_COL_TYPE,
+		    RULE_DEV_TYPE,
+		    RULE_SEQ,
+		    RULE_REQUEST,
+		    RULE_SOURCEKEY,
+		    RULE_KIND,
+		    RULE_BYTE_POSI,
+		    RULE_BIT_POSI,
+		    RULE_NUMBER,
+		    RULE_POINT,
+		    RULE_TARGETKEY,
+		    RULE_DEFAULT_VAL,
+		    REG_USR_ID,
+		    REG_DTTM
+		)
+		SELECT
+		    API_SEQ,
+		    DEV_SEQ,
+		    (CASE WHEN RULE_MSG_TYPE LIKE 'H%' THEN CONCAT('H',#{ruleMsgTypeCopy}) ELSE #{ruleMsgTypeCopy} END),
+		    RULE_COL_TYPE,
+		    RULE_DEV_TYPE,
+		    RULE_SEQ,
+		    RULE_REQUEST,
+		    RULE_SOURCEKEY,
+		    RULE_KIND,
+		    RULE_BYTE_POSI,
+		    RULE_BIT_POSI,
+		    RULE_NUMBER,
+		    RULE_POINT,
+		    RULE_TARGETKEY,
+		    RULE_DEFAULT_VAL,
+		    #{regUserId},
+			DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		FROM
+		    TB_IOT_DEV_COL_RULE
+		WHERE (RULE_MSG_TYPE = CONCAT('H',#{ruleMsgType}) OR RULE_MSG_TYPE = #{ruleMsgType})
+		AND RULE_DEV_TYPE = #{ruleDevType}
+		AND API_SEQ = #{apiSeq}
+	</insert>
+
+</mapper>

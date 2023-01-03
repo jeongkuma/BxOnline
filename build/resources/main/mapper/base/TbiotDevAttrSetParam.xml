@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotDev.dao.IotDevAttrSetParamDAO">
+<!-- 장비 속성SET 등록 -->
+<insert id="insertTbIotDevSetParam" >
+    INSERT INTO TB_IOT_S_DEV_ATB_SET
+          (
+           S_DEV_ATTB_SEQ
+           ,SVC_CD
+           ,DEV_ATTB_SET_CD_ID
+           ,STATUS_CD
+           ,DEV_ATTB_SET_VAL
+           ,SET_PARENT_CD_ID
+           ,REG_USR_ID
+           ,REG_DTTM
+           ,MOD_USR_ID
+           ,MOD_DTTM
+          )
+    VALUES
+          (
+			#{devAttbSeq}
+			,#{svcCd}
+            ,#{devAttbSetCdId}
+            ,(SELECT PARAM_KEY
+	             FROM TB_IOT_CM_CD
+	            WHERE CD_ID = 'GN00000148')
+            ,#{devAttbSetVal}
+            ,#{setParentCdId}
+            ,#{regUsrId}
+            ,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+            ,null
+            ,null
+          )
+</insert>
+
+<!-- 장비 속성SET 수정 -->
+	<update id="updateTbIotDevSetParam">
+		UPDATE TB_IOT_S_DEV_ATB_SET
+		   SET MOD_DTTM     =  DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+        <if test="devAttbSetCdId != null">
+            ,DEV_ATTB_SET_CD_ID  = #{devAttbSetCdId}
+        </if>
+		<if test="devAttbSetVal != null">
+		     , DEV_ATTB_SET_VAL = #{devAttbSetVal}
+		</if>
+		<if test="devAttbSetSeq != null">
+		     ,MOD_USR_ID   =  #{modUsrId}
+		</if>
+        <if test="setParentCdId != null">
+             ,SET_PARENT_CD_ID    =  #{setParentCdId}
+        </if>
+		 WHERE S_DEV_ATTB_SET_SEQ = #{devAttbSetSeq}
+	</update>
+
+<!-- 장비 속성SET 삭제 -->
+	<update id="deleteTbIotDevSetParam" >
+		UPDATE TB_IOT_S_DEV_ATB_SET
+		   SET STATUS_CD = 'C'
+  		    ,MOD_USR_ID   =  #{modUsrId}
+            ,MOD_DTTM     =  DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE S_DEV_ATTB_SET_SEQ = #{devAttbSetSeq}
+	</update>
+
+
+</mapper>

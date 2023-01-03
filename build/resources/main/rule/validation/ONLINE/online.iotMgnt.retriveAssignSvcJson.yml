@@ -1,0 +1,42 @@
+HTTP_HEADER: 
+  Content-Type:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N
+  X-APIVERSION:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N
+  X-LOGKEY:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N
+  X-CHANNEL:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N
+  X-VNAME:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N
+  X-LANG:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N
+  X-MID:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: 
+HTTP_BODY:
+  gubun:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y

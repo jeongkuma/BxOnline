@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.api.dao.TbIotParamDAO">
+
+
+	<select id="retrieveTbIotParamList" parameterType="kr.co.scp.common.api.dto.TbIotParamDTO" resultType="kr.co.scp.common.api.dto.TbIotParamDTO">
+		SELECT API_PARAM_SEQ
+			 , API_SEQ
+			 , PARAM_GUBUN
+			 , PARAM_KEY
+			 , PARAM_DESC
+			 , REQUIRED_YN
+		FROM TB_IOT_PARAM
+		WHERE API_SEQ = #{apiSeq}
+		ORDER BY API_PARAM_SEQ ASC, PARAM_GUBUN DESC
+	</select>
+
+	<insert id="insertTbIotParam" 	parameterType="kr.co.scp.common.api.dto.TbIotParamDTO">
+		INSERT INTO TB_IOT_PARAM(API_SEQ,
+								 PARAM_GUBUN,
+								 PARAM_KEY,
+								 PARAM_DESC,
+								 REQUIRED_YN,
+								 REG_USR_ID,
+								 REG_DTTM)
+			   VALUES (#{apiSeq},
+					   #{paramGubun},
+					   #{paramKey},
+					   #{paramDesc},
+					   #{requiredYn},
+					   #{regUserId},
+					   DATE_FORMAT(NOW(),'%Y%m%d%H%i%S'))
+
+	</insert>
+
+
+	<update id="updateTbIotParam" parameterType="kr.co.scp.common.api.dto.TbIotParamDTO">
+		UPDATE TB_IOT_PARAM
+		  SET API_SEQ = #{apiSeq}
+		    , PARAM_GUBUN = #{paramGubun}
+		    , PARAM_KEY = #{paramKey}
+		    , PARAM_DESC = #{paramDesc}
+		    , REQUIRED_YN = #{requiredYn}
+		    , MOD_USR_ID = #{modUserId}
+		    , MOD_DTTM = #{modDttm}
+		WHERE API_PARAM_SEQ = #{apiParamSeq}
+	</update>
+
+	<delete id="deleteTbIotParam" parameterType="kr.co.scp.common.api.dto.TbIotParamDTO">
+		DELETE FROM TB_IOT_PARAM
+		WHERE API_PARAM_SEQ = #{apiParamSeq}
+	</delete>
+
+	<delete id="deleteTbIotParamAll" parameterType="kr.co.scp.common.api.dto.TbIotParamDTO">
+		DELETE FROM TB_IOT_PARAM
+		WHERE API_SEQ = #{apiSeq}
+	</delete>
+
+	<select id="retrieveTbIotParamCd" parameterType="kr.co.scp.common.api.dto.TbIotParamDTO" resultType="HashMap">
+		SELECT PARAM_KEY AS cdId
+			 , PARAM_KEY AS cdNm
+		FROM TB_IOT_PARAM
+		WHERE API_SEQ = #{apiSeq}
+		ORDER BY API_PARAM_SEQ ASC, PARAM_GUBUN DESC
+	</select>
+
+</mapper>

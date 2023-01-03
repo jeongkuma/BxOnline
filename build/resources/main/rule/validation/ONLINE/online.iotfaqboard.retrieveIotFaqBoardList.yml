@@ -1,0 +1,69 @@
+HTTP_HEADER: 
+  Content-Type:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-APIVERSION:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LOGKEY:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-CHANNEL:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    noWhitespace: Y
+  X-AUTH:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    noWhitespace: Y
+  X-VNAME:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LANG:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-MID:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    noWhitespace: Y
+HTTP_BODY:
+  parentCdId:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  currentPage:
+    dataType: NUMBER
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  displayRowCount:
+    dataType: NUMBER
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  subject:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+  question:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+  allSearch:
+    dataType: STRING
+    requiredKey: N
+    notNull: N

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.ccp.iotColSource.dao.IotColSourceDAO">
+
+	<!-- 수집 원문 갯수 조회 -->
+	<select id="retrieveIotColSourceCount" parameterType="kr.co.scp.ccp.iotColSource.dto.TbIotColSourceDTO" resultType="java.lang.Integer">
+		SELECT  count(*)
+		FROM TB_IOT_COL_SOURCE a
+		LEFT JOIN TB_IOT_ENTR_DEV_M b ON a.ENTR_DEV_SEQ = b.ENTR_DEV_SEQ
+		LEFT JOIN TB_IOT_SVC_DEV_M c
+		ON b.SVC_CD = c.SVC_CD AND b.DEV_CLS_CD = c.DEV_CLS_CD AND b.DEV_MDL_CD = c.DEV_MDL_CD
+			WHERE    1 = 1
+			<if test="statusSearchType != null and statusSearchType != 'all' ">
+                AND     a.COL_STATE_CD = #{statusSearchType}
+			</if>
+			<if test="searchKey != null and searchKey != '' ">
+				<choose>
+                    <when test="searchType == 'ctn'">
+                        AND     b.CTN = #{searchKey}
+                    </when>
+                    <when test="searchType == 'devUuid'">
+                        AND     b.DEV_UUID = #{searchKey}
+                    </when>
+				</choose>
+			</if>
+			<if test="devClsCd != null and devClsCd neq 'all' ">
+				AND      b.DEV_CLS_CD   = #{devClsCd}
+			</if>
+			<if test="devMdlCd != null and devMdlCd neq 'all' ">
+				AND      b.DEV_MDL_CD   = #{devMdlCd}
+			</if>
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				AND a.COL_DATE BETWEEN STR_TO_DATE(#{startDate},'%Y%m%d') AND DATE_ADD(STR_TO_DATE(#{endDate},'%Y%m%d'), INTERVAL +1 DAY)
+			</if>
+	</select>
+
+	<!-- 수집 원문 목록 조회 -->
+	<select id="retrieveIotColSourceList" parameterType="kr.co.scp.ccp.iotColSource.dto.TbIotColSourceDTO" resultType="kr.co.scp.ccp.iotColSource.dto.TbIotColSourceDTO">
+		SELECT a.COL_DATE
+			   , a.COL_SEQ
+			   , a.LOG_KEY
+			   , a.ERR_CODE
+			   , a.BODY_INFO
+			   , a.HEADER_INFO
+			   , a.REG_USR_ID
+			   , a.REG_DTTM
+			   , a.MOD_USR_ID
+			   , a.MOD_DTTM
+			   , a.ENTR_DEV_SEQ
+			   , a.RETRY_CNT
+			   , a.COL_STATE_CD
+			   , a.COL_PROC_DESC
+			   , b.CTN
+			   , b.DEV_UUID
+			   , b.DEV_MDL_CD
+			   , b.DEV_CLS_CD
+			   , c.DEV_CLS_CD_NM
+		FROM TB_IOT_COL_SOURCE a
+		LEFT JOIN TB_IOT_ENTR_DEV_M b ON a.ENTR_DEV_SEQ = b.ENTR_DEV_SEQ
+		LEFT JOIN TB_IOT_SVC_DEV_M c
+		ON b.SVC_CD = c.SVC_CD AND b.DEV_CLS_CD = c.DEV_CLS_CD AND b.DEV_MDL_CD = c.DEV_MDL_CD
+			WHERE    1  = 1
+			<if test="statusSearchType != null and statusSearchType != 'all' ">
+                AND     a.COL_STATE_CD = #{statusSearchType}
+			</if>
+			<if test="searchKey != null and searchKey != '' ">
+				<choose>
+                    <when test="searchType == 'ctn'">
+                        AND     b.CTN = #{searchKey}
+                    </when>
+                    <when test="searchType == 'devUuid'">
+                        AND     b.DEV_UUID = #{searchKey}
+                    </when>
+					<when test="searchType == 'colProcDesc'">
+						AND 	a.COL_PROC_DESC LIKE CONCAT('%', #{searchKey},'%')
+					</when>
+				</choose>
+			</if>
+			<if test="devClsCd != null and devClsCd neq 'all' ">
+				AND      b.DEV_CLS_CD   = #{devClsCd}
+			</if>
+			<if test="devMdlCd != null and devMdlCd neq 'all' ">
+				AND      b.DEV_MDL_CD   = #{devMdlCd}
+			</if>
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				AND a.COL_DATE BETWEEN STR_TO_DATE(#{startDate},'%Y%m%d') AND DATE_ADD(STR_TO_DATE(#{endDate},'%Y%m%d'), INTERVAL +1 DAY)
+			</if>
+			ORDER BY a.COL_DATE DESC
+		LIMIT ${(startPage -1)},${displayRowCount}
+	</select>
+
+	<!-- 수집원문 상세 조회  -->
+	<select id="retrieveIotColSourceDetail" parameterType="kr.co.scp.ccp.iotColSource.dto.TbIotColSourceDTO" resultType="kr.co.scp.ccp.iotColSource.dto.TbIotColSourceDTO">
+		SELECT a.COL_DATE
+			   , a.COL_SEQ
+			   , a.LOG_KEY
+			   , a.ERR_CODE
+			   , a.BODY_INFO
+			   , a.HEADER_INFO
+			   , a.REG_USR_ID
+			   , a.REG_DTTM
+			   , a.MOD_USR_ID
+			   , a.MOD_DTTM
+			   , a.ENTR_DEV_SEQ
+			   , a.RETRY_CNT
+			   , a.COL_STATE_CD
+			   , a.COL_PROC_DESC
+			   , a.ACK_PROC_DESC
+			   , b.CTN
+			   , b.DEV_UUID
+			   , b.DEV_MDL_CD
+			   , b.DEV_CLS_CD
+		FROM TB_IOT_COL_SOURCE a
+		LEFT JOIN TB_IOT_ENTR_DEV_M b ON a.ENTR_DEV_SEQ = b.ENTR_DEV_SEQ
+			WHERE    a.COL_SEQ  =  #{colSeq}
+	</select>
+
+</mapper>

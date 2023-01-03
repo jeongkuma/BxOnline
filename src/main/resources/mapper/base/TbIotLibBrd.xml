@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.libraryBoard.dao.LibraryBoardDAO">
+<!--
+	파일명    : /mapper/TbIotLibBrd.xml
+	작성일자 : 2019-04.02
+	작성자    : 김희운
+	설명      : 자료실 관리
+-->
+
+	<!-- 자료실 목록 조회 -->
+	<select id="retrieveLibraryBoardList" parameterType="kr.co.scp.ccp.libraryBoard.dto.TbIoTLibBrdDTO" resultType="kr.co.scp.ccp.libraryBoard.dto.TbIoTLibBrdResListDTO">
+		SELECT A.LIB_SEQ
+			 , A.SUBJECT
+			 , A.CONTENT
+			 , A.REG_USR_ID "regUserId"
+			 , A.REG_DTTM AS "regDttm"
+			 , (SELECT COUNT(FILE_SIZE)
+			     FROM TB_IOT_BRD_FILE_LIST B
+			    WHERE B.CONTENT_TYPE = '3'
+			    	AND B.CONTENT_SEQ = A.LIB_SEQ) AS FILECNT
+		FROM TB_IOT_BRD_LIB A
+		WHERE A.USE_YN = 'Y'
+		<if test="roleCdId == 'GN00000035' or roleCdId == 'GN00000036' or roleCdId == 'GN00000037' or roleCdId == 'GN00000039'">
+				AND A.REG_USR_ID IN (SELECT USR_LOGIN_ID FROM TB_IOT_USR_M WHERE CUST_SEQ = #{custSeq} AND USR_LOGIN_ID = A.REG_USR_ID)
+		</if>
+		<choose>
+	    	<when test="selectedValue != 'all'">
+	    		<if test="selectedValue == 'subject' and null != inputValue">
+	    			AND A.SUBJECT LIKE CONCAT(#{inputValue},'%')
+	   			 </if>
+	   			 <if test="selectedValue == 'content' and null != inputValue">
+	    			AND A.CONTENT LIKE CONCAT(#{inputValue},'%')
+	   			 </if>
+	    	</when>
+	    	<when test="selectedValue == 'all' and null != inputValue">
+	    		AND	(A.SUBJECT LIKE CONCAT(#{inputValue},'%') OR A.CONTENT LIKE CONCAT(#{inputValue},'%'))
+	    	</when>
+	    </choose>
+		<!-- <if test="searchStartDttm != null and searchEndDttm != null">
+			AND DATE_FORMAT(A.REG_DTTM,'%Y-%m-%d') BETWEEN DATE_FORMAT(#{searchStartDttm},'%Y-%m-%d')
+    													AND DATE_FORMAT(#{searchEndDttm},'%Y-%m-%d')
+		</if> -->
+		<if test="searchStartDttm != null">
+			AND A.REG_DTTM BETWEEN REPLACE(#{searchStartDttm},'-', '') AND CONCAT(REPLACE(#{searchEndDttm}, '-', ''),'235959')
+		</if>
+		ORDER BY A.LIB_SEQ DESC
+		LIMIT ${startPage-1}, ${displayRowCount}
+	</select>
+
+	<!-- 자료실 갯수 조회 -->
+	<select id="retrieveLibraryBoardCount" parameterType="kr.co.scp.ccp.libraryBoard.dto.TbIoTLibBrdDTO" resultType="java.lang.Integer">
+		SELECT COUNT(LIB_SEQ) AS CNT
+		  FROM TB_IOT_BRD_LIB A
+		  WHERE USE_YN = 'Y'
+			<if test="roleCdId == 'GN00000035' or roleCdId == 'GN00000036' or roleCdId == 'GN00000037' or roleCdId == 'GN00000039'">
+					AND A.REG_USR_ID IN (SELECT USR_LOGIN_ID FROM TB_IOT_USR_M WHERE CUST_SEQ = #{custSeq} AND USR_LOGIN_ID = A.REG_USR_ID)
+			</if>
+			<choose>
+	    	<when test="selectedValue != 'all'">
+	    		<if test="selectedValue == 'subject' and null != inputValue">
+	    			AND A.SUBJECT LIKE CONCAT(#{inputValue},'%')
+	   			 </if>
+	   			 <if test="selectedValue == 'content' and null != inputValue">
+	    			AND A.CONTENT LIKE CONCAT(#{inputValue},'%')
+	   			 </if>
+	    	</when>
+	    	<when test="selectedValue == 'all' and null != inputValue">
+	    		AND	(A.SUBJECT LIKE CONCAT(#{inputValue},'%') OR A.CONTENT LIKE CONCAT(#{inputValue},'%'))
+	    	</when>
+	    </choose>
+		<if test="searchStartDttm != null">
+			AND A.REG_DTTM BETWEEN REPLACE(#{searchStartDttm},'-', '') AND CONCAT(REPLACE(#{searchEndDttm}, '-', ''),'235959')
+		</if>
+	</select>
+
+	<!-- 자료실 삭제 -->
+	<delete id="deleteLibraryBoard" parameterType="java.lang.String">
+		UPDATE TB_IOT_BRD_LIB
+			SET USE_YN='N'
+		WHERE LIB_SEQ= #{libSeq}
+	</delete>
+
+	<!-- 자료실 상세조회 -->
+	<select id="retrieveLibraryBoardDetail" parameterType="kr.co.scp.ccp.libraryBoard.dto.TbIoTLibBrdDTO" resultType="kr.co.scp.ccp.libraryBoard.dto.TbIoTLibBrdResDetailDTO">
+
+		SELECT  LIB_SEQ
+			  , SUBJECT
+			  , CONTENT
+			  , REG_DTTM
+			  , REG_USR_ID "regUserId"
+		FROM TB_IOT_BRD_LIB
+		WHERE USE_YN = 'Y'
+			AND LIB_SEQ = #{libSeq}
+	</select>
+
+	<insert id="insertTbIoTLibBrdDTO" parameterType="kr.co.scp.ccp.libraryBoard.dto.TbIoTLibBrdDTO">
+
+		INSERT INTO TB_IOT_BRD_LIB(SUBJECT,
+								   CONTENT,
+								   USE_YN,
+								   REG_USR_ID,
+								   REG_DTTM)
+			  VALUES (#{subject},
+					  #{content},
+					  'Y',
+	                  #{regUserId},
+	                  DATE_FORMAT(NOW() , '%Y%m%d%H%i%s'))
+	    <!-- 오라클용 -->
+       	<!-- INSERT INTO TB_IOT_BRD_LIB(LIB_SEQ,
+	       							    SUBJECT,
+									    CONTENT,
+									    USE_YN,
+									    REG_USR_ID,
+									    REG_DTTM)
+			  VALUES (SEQ_IOT_LIB_BRD.NEXTVAL,
+			  		  #{subject},
+					  #{content},
+					  'Y',
+	                  #{regUserId},
+	                  DATE_FORMAT(SYSDATE(), '%Y%m%d%H%i%s')) -->
+		<selectKey keyProperty="libSeq" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+
+	</insert>
+
+	<update id="updateTbIoTLibBrdDTO" parameterType="kr.co.scp.ccp.libraryBoard.dto.TbIoTLibBrdDTO">
+
+		UPDATE TB_IOT_BRD_LIB
+		   SET SUBJECT = #{subject}
+		      ,CONTENT = #{content}
+		      ,MOD_USR_ID = #{modUserId}
+		      ,MOD_DTTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')
+		 WHERE LIB_SEQ = #{libSeq}
+
+	</update>
+
+
+</mapper>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotNotiBoard.dao.NotiBoardDAO">
+
+	<select id="retrieveNotiBoardList" parameterType="kr.co.scp.ccp.iotNotiBoard.dto.TbIoTNotiBrdDTO" resultType="kr.co.scp.ccp.iotNotiBoard.dto.TbIoTNotiBrdListDTO">
+
+		SELECT NOTI_SEQ
+			 , SUBJECT
+			 , CONTENT
+			 , START_DT
+			 , END_DT
+			 , URGENCY_YN
+			 , IFNULL(MOD_DTTM, REG_DTTM) AS REG_DTTM
+			 , REG_USR_ID
+		 FROM  TB_IOT_BRD_NOTI
+	     WHERE USE_YN = 'Y'
+		 AND   NOTI_SEQ <![CDATA[ < ]]> 9999999999999999999999999999	
+	    <choose>
+	    	<when test="subject != null">
+	    		AND SUBJECT LIKE CONCAT(#{subject},'%')
+	    	</when>
+	    	<when test="content != null">
+	    		AND CONTENT LIKE CONCAT(#{content},'%')
+	    	</when>
+	    	<when test="allSearch != null">
+	    		AND (SUBJECT LIKE CONCAT(#{allSearch},'%') OR CONTENT LIKE CONCAT(#{allSearch},'%'))
+	    	</when>
+	    </choose>
+		<if test="searchStartDttm != null">
+			AND REG_DTTM BETWEEN REPLACE(#{searchStartDttm},'-', '') AND CONCAT(REPLACE(#{searchEndDttm}, '-', ''),'235959')
+		</if>
+		<if test="isAdmin == 'user'">
+			AND	NOW() BETWEEN START_DT AND END_DT
+		</if>
+		ORDER BY IFNULL(MOD_DTTM, REG_DTTM) DESC
+		LIMIT ${startPage-1}, ${displayRowCount}
+	</select>
+
+
+	<select id="retrieveNotiBoardCount" parameterType="kr.co.scp.ccp.iotNotiBoard.dto.TbIoTNotiBrdDTO" resultType="java.lang.Integer">
+
+		SELECT COUNT(NOTI_SEQ) AS CNT
+		  FROM TB_IOT_BRD_NOTI
+		  WHERE USE_YN = 'Y'
+	    <choose>
+	    	<when test="subject != null">
+	    		AND SUBJECT LIKE CONCAT(#{subject},'%')
+	    	</when>
+	    	<when test="content != null">
+	    		AND CONTENT LIKE CONCAT(#{content},'%')
+	    	</when>
+	    	<when test="allSearch != null">
+	    		AND (SUBJECT LIKE CONCAT(#{allSearch},'%') OR CONTENT LIKE CONCAT(#{allSearch},'%'))
+	    	</when>
+	    </choose>
+		<if test="searchStartDttm != null">
+			AND REG_DTTM BETWEEN REPLACE(#{searchStartDttm},'-', '') AND CONCAT(REPLACE(#{searchEndDttm}, '-', ''),'235959')
+		</if>
+		<if test="isAdmin == 'user'">
+			AND	NOW() BETWEEN START_DT AND END_DT
+		</if>
+	</select>
+
+
+	<update id="deleteNotiBoard" parameterType="kr.co.scp.ccp.iotNotiBoard.dto.TbIoTNotiBrdDTO">
+		UPDATE TB_IOT_BRD_NOTI
+			SET USE_YN = 'N',
+				MOD_USR_ID = #{modUserId},
+				MOD_DTTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		WHERE NOTI_SEQ= #{notiSeq}
+	</update>
+
+
+	<select id="retrieveNotiBoardDetail" parameterType="kr.co.scp.ccp.iotNotiBoard.dto.TbIoTNotiBrdDTO" resultType="kr.co.scp.ccp.iotNotiBoard.dto.TbIoTNotiBrdDetailDTO">
+
+		SELECT  NOTI_SEQ
+			  , SUBJECT
+			  , CONTENT
+			  , START_DT
+			  , END_DT
+			  , URGENCY_YN
+			  , REG_DTTM
+			  , REG_USR_ID
+		FROM	TB_IOT_BRD_NOTI
+		WHERE	USE_YN = 'Y'
+		AND		NOTI_SEQ = #{notiSeq}
+	</select>
+
+
+	<insert id="insertTbIoTNotiBrd" parameterType="kr.co.scp.ccp.iotNotiBoard.dto.TbIoTNotiBrdDTO">
+		INSERT INTO TB_IOT_BRD_NOTI(SUBJECT,
+								   CONTENT,
+								   START_DT,
+								   END_DT,
+								   URGENCY_YN,
+								   REG_USR_ID,
+								   REG_DTTM,
+								   USE_YN)
+			  VALUES (#{subject},
+					  #{content},
+	                  DATE_FORMAT(#{startDt}, '%Y%m%d'),
+	                  DATE_FORMAT(#{endDt}, '%Y%m%d'),
+	                  #{urgencyYn},
+	                  #{regUserId},
+	                  DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+	                  'Y')
+		<selectKey keyProperty="notiSeq" resultType="String" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+
+	<update id="updateTbIoTNotiBrd" parameterType="kr.co.scp.ccp.iotNotiBoard.dto.TbIoTNotiBrdDTO">
+		UPDATE TB_IOT_BRD_NOTI
+		   SET SUBJECT = #{subject}
+		      ,CONTENT = #{content}
+		      ,START_DT = STR_TO_DATE(#{startDt},'%Y%m%d')
+		      ,END_DT = STR_TO_DATE(#{endDt},'%Y%m%d')
+		      ,URGENCY_YN = #{urgencyYn}
+		      ,MOD_USR_ID = #{modUserId}
+		      ,MOD_DTTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		 WHERE NOTI_SEQ = #{notiSeq}
+	</update>
+
+	<select id="checkRegUser" parameterType="kr.co.scp.ccp.iotNotiBoard.dto.TbIoTNotiBrdDTO" resultType="java.lang.String">
+   		SELECT	REG_USR_ID
+		FROM	TB_IOT_BRD_NOTI
+		WHERE	NOTI_SEQ = #{notiSeq}
+	</select>
+</mapper>

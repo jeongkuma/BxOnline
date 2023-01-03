@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotMgnt.dao.IotMgntDAO">
+
+	<select id="retriveService" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSvcDTO">
+		SELECT
+		    A.SVC_CD as "svcCd",
+		    B.CD_NM as "svcCdNm"
+		FROM
+		    TB_IOT_SVC_M   A
+		    LEFT JOIN TB_IOT_CM_CD   B ON A.SVC_CD = B.CD_ID
+		WHERE A.SVC_LEVEL = '1'
+	</select>
+
+	<select id="retriveServiceList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSvcDTO">
+		SELECT
+			SVC_SEQ as "svcSeq"
+			,SVC_CD as "svcCd"
+			,DEV_CLS_CD as "devClsCd"
+			,SVC_LEVEL as "svcLevel"
+			,SVC_ORDER as "svcOrder"
+			,UP_SVC_SEQ as "upSvcSeq"
+		FROM TB_IOT_SVC_M
+		WHERE 1=1
+		<if test='!svcCd.equals("SD00000003") and svcCd != null '>
+			AND SVC_CD = #{svcCd}
+		</if>
+	</select>
+
+	<select id="retriveServiceAuthList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSvcAuthDTO">
+		SELECT
+		    ROLE_SEQ                AS "roleSeq"
+			,ROLE_CD_ID              AS "roleCdId"
+			,SVC_CD                  AS "svcCd"
+			,MENU_PROG_SEQ           AS "menuProgSeq"
+			,MENU_PROG_GUBUN         AS "menuProgGubun"
+		FROM TB_IOT_ROLE_REL
+		WHERE 1=1
+		<if test='!svcCd.equals("SD00000003") and svcCd != null '>
+			AND SVC_CD = #{svcCd}
+		</if>
+	</select>
+
+	<select id="retriveDevList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevMDTO">
+		SELECT
+			DEV_SEQ AS "svcDevSeq"
+			,#{svcCd} AS "svcCd"
+			,DEV_CLS_CD
+			,DEV_CLS_CD_NM
+			,DEV_MDL_CD
+			,DEV_MDL_NM
+			,STATUS_CD
+			,PARENT_DEV_SEQ
+			,VENDOR_NM
+			,NORMAL_ICON_FILE
+			,ABNORMAL_ICON_FILE
+			,ABNORMAL_ICON_FILE2
+			,DEV_MDL_VAL
+			,DEV_SEQ
+		FROM   TB_IOT_SVC_DEV_M
+		WHERE DEV_CLS_CD = #{devClsCd}
+		AND USE_YN = 'Y'
+		AND STATUS_CD = 'A'
+		<if test="devMdlCd != null and devMdlCd != ''">
+			AND (DEV_MDL_CD = #{devMdlCd} OR DEV_MDL_CD LIKE 'LGE%')
+		</if>
+	</select>
+
+	<select id="retriveDevAtbList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevAtbDTO">
+		SELECT
+		       DEV_ATTB_SEQ AS "svcDevAttbSeq"
+		       ,DEV_SEQ AS "svcDevSeq"
+			   ,#{svcCd} AS "svcCd"
+		       ,DEV_ATTB_SEQ
+		       ,DEV_CLS_CD
+<!-- 		       ,DEV_CLS_CD_NM -->
+		       ,DEV_MDL_CD
+		       ,DEV_MDL_NM
+		       ,DEV_ATTB_CD_ID
+		       ,DEV_ATTB_CD_NM
+		       ,INPUT_TYPE
+		       ,STATUS_CD
+		       ,DEV_ATTB_TYPE
+		       ,PARAM_KEY
+		       ,COL_NM_CD
+		       ,CON_NM_CD
+		       ,STA_AVG_NM_CD
+		       ,STA_SUM_NM_CD
+		       ,DET_NM_CD
+		       ,MAP_YN
+		       ,UNIT
+		       ,ORDER_NO
+		       ,DEV_SEQ
+		FROM   TB_IOT_S_DEV_ATB
+		WHERE DEV_CLS_CD = #{devClsCd}
+		AND STATUS_CD = 'A'
+		<if test="devMdlCd != null and devMdlCd != ''">
+			AND (DEV_MDL_CD = #{devMdlCd} OR DEV_MDL_CD LIKE 'LGE%')
+		</if>
+		ORDER BY   DEV_SEQ, DEV_ATTB_SEQ
+	</select>
+
+	<select id="retriveDevAtbSetList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevAtbSetDTO">
+		SELECT
+	    	A.DEV_ATTB_SET_SEQ AS "svcDevAttbSetSeq",
+	    	A.DEV_ATTB_SEQ  AS "svcDevAttbSeq",
+	    	#{svcCd} AS "svcCd",
+	    	B.DEV_ATTB_CD_ID,
+	    	A.DEV_ATTB_SET_CD_ID,
+	    	A.DEV_ATTB_SET_CD_NM,
+	    	A.STATUS_CD,
+	    	A.DEV_ATTB_SET_VAL,
+	    	A.SET_PARENT_CD_ID
+    	FROM   TB_IOT_DEV_ATB_SET A, TB_IOT_S_DEV_ATB B
+		WHERE  A.DEV_ATTB_SEQ = B.DEV_ATTB_SEQ
+			AND    B.DEV_CLS_CD   = #{devClsCd}
+			AND	   A.STATUS_CD = 'A'
+			AND	   B.STATUS_CD = 'A'
+		<if test="devMdlCd != null and devMdlCd != ''">
+			AND (B.DEV_MDL_CD = #{devMdlCd} OR B.DEV_MDL_CD LIKE 'LGE%')
+		</if>
+
+	</select>
+
+	<select id="retriveDevDetSetList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevDetSetDTO">
+		SELECT
+			A.DEV_DET_SET_SEQ AS  "svcDevDetSetSeq",
+			A.DEV_ATTB_SEQ AS "svcDevAttbSeq",
+			#{svcCd} as "svcCd",
+			A.DEV_DET_SET_CD_ID,
+<!-- 			A.DEV_DET_SET_CD_NM, -->
+			A.DET_SET_COND,
+			A.STATUS_CD,
+			A.ICON_URL,
+			A.DET_SET_DESC
+		FROM   TB_IOT_DEV_DET_SET A, TB_IOT_S_DEV_ATB B
+		WHERE  A.DEV_ATTB_SEQ = B.DEV_ATTB_SEQ
+		AND    B.DEV_CLS_CD   = #{devClsCd}
+		AND	   A.STATUS_CD = 'A'
+		AND	   B.STATUS_CD = 'A'
+		<if test="devMdlCd != null and devMdlCd != ''">
+			AND (B.DEV_MDL_CD = #{devMdlCd} OR B.DEV_MDL_CD LIKE 'LGE%')
+		</if>
+	</select>
+	<select id="retriveDevRuleParseList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.ccp.iotMgnt.dto.IotMgntColRuleDTO">
+		SELECT A.DEVRULE_SEQ,
+		    A.API_SEQ,
+			A.DEV_SEQ,
+			A.RULE_MSG_TYPE,
+			A.RULE_COL_TYPE,
+			A.RULE_DEV_TYPE,
+			A.RULE_SEQ,
+			A.RULE_REQUEST,
+			A.RULE_SOURCEKEY,
+			A.RULE_KIND,
+			A.RULE_BYTE_POSI,
+			A.RULE_BIT_POSI,
+			A.RULE_NUMBER,
+			A.RULE_POINT,
+			A.RULE_TARGETKEY
+		FROM TB_IOT_DEV_COL_RULE A, TB_IOT_SVC_DEV_M B
+		WHERE  A.DEV_SEQ = B.DEV_SEQ
+			AND B.DEV_CLS_CD = #{devClsCd}
+			<if test="devMdlCd != null and devMdlCd != ''">
+				AND (B.DEV_MDL_CD = #{devMdlCd} OR B.DEV_MDL_CD LIKE 'LGE%')
+			</if>
+			AND B.USE_YN = 'Y'
+			AND B.STATUS_CD = 'A'
+			AND    A.RULE_COL_TYPE NOT IN ('GN00000185','GN00000186')
+	</select>
+	<select id="retriveDevRuleValList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.common.rule.dto.TbIotValRuleDTO">
+		SELECT A.API_SEQ,
+			A.DEV_SEQ,
+			A.VAL_RULE_SEQ,
+			A.VAL_RULE_NAME,
+			A.RULE_MSG_TYPE,
+			A.RULE_KIND,
+			A.DEFAULT_YN,
+			A.NULL_YN,
+			A.EMPTY_YN,
+			A.DATA_SIZE,
+			A.DATA_MIN,
+			A.DATA_MAX,
+			A.ALLOW_REGEX,
+			A.NOTALLOW_REGEX,
+			A.DATA_TYPE
+		FROM TB_IOT_VAL_RULE A, TB_IOT_SVC_DEV_M B
+		WHERE A.DEV_SEQ = B.DEV_SEQ
+			AND B.USE_YN = 'Y'
+			AND B.STATUS_CD = 'A'
+			AND B.DEV_CLS_CD = #{devClsCd}
+			<if test="devMdlCd != null and devMdlCd != ''">
+				AND (B.DEV_MDL_CD = #{devMdlCd} OR B.DEV_MDL_CD LIKE 'LGE%')
+			</if>
+			AND A.DEV_SEQ  <![CDATA[<>]]> '0'
+	</select>
+
+	<select id="retriveDevRuleApiList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.common.rule.dto.TbIotValRuleDTO">
+		SELECT A.API_SEQ,
+			A.DEV_SEQ,
+			A.VAL_RULE_SEQ,
+			A.VAL_RULE_NAME,
+			A.RULE_KIND,
+			A.DEFAULT_YN,
+			A.NULL_YN,
+			A.EMPTY_YN,
+			A.DATA_SIZE,
+			A.DATA_MIN,
+			A.DATA_MAX,
+			A.ALLOW_REGEX,
+			A.NOTALLOW_REGEX,
+			A.DATA_TYPE
+		FROM TB_IOT_VAL_RULE A
+		WHERE A.DEV_SEQ  = '0'
+
+	</select>
+
+
+	<select id="retriveDevRuleMapList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.ccp.iotMgnt.dto.IotMgntColRuleDTO">
+		SELECT A.DEVRULE_SEQ,
+		    A.API_SEQ,
+			A.DEV_SEQ,
+			A.RULE_MSG_TYPE,
+			A.RULE_COL_TYPE,
+			A.RULE_COL_TYPE,
+			A.RULE_DEV_TYPE,
+			A.RULE_SEQ,
+			A.RULE_REQUEST,
+			A.RULE_SOURCEKEY,
+			A.RULE_KIND,
+			A.RULE_BYTE_POSI,
+			A.RULE_BIT_POSI,
+			A.RULE_NUMBER,
+			A.RULE_POINT,
+			A.RULE_TARGETKEY
+		FROM TB_IOT_DEV_COL_RULE A, TB_IOT_SVC_DEV_M B
+		WHERE  A.DEV_SEQ = B.DEV_SEQ
+			AND B.DEV_CLS_CD = #{devClsCd}
+			<if test="devMdlCd != null and devMdlCd != ''">
+				AND (B.DEV_MDL_CD = #{devMdlCd} OR B.DEV_MDL_CD LIKE 'LGE%')
+			</if>
+			AND B.USE_YN = 'Y'
+			AND B.STATUS_CD = 'A'
+			AND    A.RULE_COL_TYPE = 'GN00000186'
+	</select>
+
+	<select id="retriveDevRuleServiceList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.common.rule.dto.TbIotDevApiRuleParamDTO">
+		SELECT A.API_SEQ,
+			A.DEV_SEQ,
+			A.CALL_API_SEQ
+		FROM   TB_IOT_DEV_API_RULE A, TB_IOT_SVC_DEV_M B
+		WHERE  A.DEV_SEQ    = B.DEV_SEQ
+			AND B.USE_YN = 'Y'
+			AND B.STATUS_CD = 'A'
+			AND    B.DEV_CLS_CD = #{devClsCd}
+	</select>
+
+	<insert id="insertServiceM" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto">
+		INSERT INTO TB_IOT_SVC_M_CP (
+		    SVC_SEQ,
+		    SVC_CD,
+		    DEV_CLS_CD,
+		    SVC_LEVEL,
+		    SVC_ORDER,
+		    UP_SVC_SEQ,
+		    REG_USR_ID,
+		    REG_DTTM
+		) VALUES (
+			#{svcSeq},
+			#{svcCd},
+			#{devClsCd},
+			#{svcLvl},
+			#{svcOrder},
+			#{upSvcSeq},
+			#{regUsrId},
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+
+	<insert id="insertRoleMap" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntRoleMapDTO">
+		INSERT INTO TB_IOT_ROLE_REL_CP (
+			    ROLE_SEQ,
+				ROLE_CD_ID,
+				SVC_CD,
+				MENU_PROG_SEQ,
+				MENU_PROG_GUBUN,
+				REG_USR_ID,
+				REG_DTTM
+			) VALUES (
+			    #{roleSeq},
+			    #{roleCdId},
+			    #{svcCd},
+			    #{menuProgSeq},
+			    #{menuProgGubun},
+			    #{regUsrId},
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')
+			)
+	</insert>
+
+	<insert id="insertDevM" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevMDTO" >
+		INSERT INTO TB_IOT_SVC_DEV_M_CP (
+		    S_DEV_SEQ,
+		    SVC_CD,
+		    DEV_CLS_CD,
+		    DEV_CLS_CD_NM,
+		    DEV_MDL_CD,
+		    DEV_MDL_NM,
+		    STATUS_CD,
+		    PARENT_DEV_SEQ,
+		    VENDOR_NM,
+		    NORMAL_ICON_FILE,
+		    ABNORMAL_ICON_FILE,
+		    ABNORMAL_ICON_FILE2,
+		    DEV_MDL_VAL,
+		    DEV_SEQ,
+		    REG_USR_ID,
+		    REG_DTTM
+	) VALUES (
+			#{svcDevSeq},
+		    #{svcCd},
+			#{devClsCd},
+			#{devClsCdNm},
+			#{devMdlCd},
+			#{devMdlNm},
+			#{statusCd},
+			#{parentDevSeq},
+			#{vendorNm},
+			#{normalIconFile},
+			#{abnormalIconFile},
+			#{abnormalIconFile2},
+			#{devMdlVal},
+			#{devSeq},
+		    #{regUsrId},
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+
+	<insert id="insertDevAttr" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevAtbDTO">
+		INSERT INTO TB_IOT_S_DEV_ATB_CP (
+			S_DEV_SEQ,
+			S_DEV_ATTB_SEQ,
+			SVC_CD,
+			DEV_CLS_CD,
+<!-- 			DEV_CLS_CD_NM, -->
+			DEV_MDL_CD,
+<!-- 			DEV_MDL_NM, -->
+			DEV_ATTB_CD_ID,
+<!-- 			DEV_ATTB_CD_NM, -->
+			INPUT_TYPE,
+			STATUS_CD,
+			DEV_ATTB_TYPE,
+			PARAM_KEY,
+			COL_NM_CD,
+			CON_NM_CD,
+			STA_AVG_NM_CD,
+			STA_SUM_NM_CD,
+			DET_NM_CD,
+			MAP_YN,
+			UNIT,
+			ORDER_NO,
+			<!--DEV_SEQ, -->
+			REG_USR_ID,
+			REG_DTTM
+		) VALUES (
+		     #{svcDevSeq},
+			 #{svcDevAttbSeq},
+			 #{svcCd},
+			 #{devClsCd},
+<!-- 			 #{devClsCdNm}, -->
+			 #{devMdlCd},
+<!-- 			 #{devMdlNm}, -->
+			 #{devAttbCdId},
+<!-- 			 #{devAttbCdNm}, -->
+			 #{inputType},
+			 #{statusCd},
+			 #{devAttbType},
+			 #{paramKey},
+			 #{colNmCd},
+			 #{conNmCd},
+			 #{staAvgNmCd},
+			 #{staSumNmCd},
+			 #{detNmCd},
+			 #{mapYn},
+			 #{unit},
+			 #{orderNo},
+			 <!-- #{devSeq}, -->
+			 #{regUsrId},
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+
+	<insert id="insertDevAttrSet" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevAtbSetDTO">
+		INSERT INTO TB_IOT_S_DEV_ATB_SET_CP (
+		    S_DEV_ATTB_SET_SEQ
+			,S_DEV_ATTB_SEQ
+			,SVC_CD
+<!-- 			,DEV_ATTB_CD_ID -->
+			,DEV_ATTB_SET_CD_ID
+			<!-- ,DEV_ATTB_SET_CD_NM -->
+			,STATUS_CD
+			,DEV_ATTB_SET_VAL
+			,SET_PARENT_CD_ID
+			,REG_USR_ID
+			,REG_DTTM
+		) VALUES (
+		     #{svcDevAttbSetSeq}
+			,#{svcDevAttbSeq}
+			,#{svcCd}
+<!-- 			,#{devAttbCdId} -->
+			,#{devAttbSetCdId}
+			<!-- ,#{devAttbSetCdNm} -->
+			,#{statusCd}
+			,#{devAttbSetVal}
+			,#{setParentCdId}
+			,#{regUsrId}
+			,DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+
+	<insert id="insertDevDetSet" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevDetSetDTO">
+		INSERT INTO TB_IOT_S_DEV_DET_SET_CP (
+		     S_DEV_DET_SET_SEQ
+		    ,S_DEV_ATTB_SEQ
+		    ,SVC_CD
+		    ,DEV_DET_SET_CD_ID
+		    <!-- ,DEV_DET_SET_CD_NM -->
+		    ,DET_SET_COND
+		    ,STATUS_CD
+		    ,ICON_URL
+		    ,DET_SET_DESC
+			,REG_USR_ID
+			,REG_DTTM
+		) VALUES (
+		     #{svcDevDetSetSeq}
+			,#{svcDevAttbSeq}
+			,#{svcCd}
+			,#{devDetSetCdId}
+			<!-- ,#{devDetSetCdNm} -->
+			,#{detSetCond}
+			,#{statusCd}
+			,#{iconUrl}
+			,#{detSetDesc}
+			,#{regUsrId}
+			,DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+
+	<delete id="deleleteRoleMapAll">
+		DELETE FROM TB_IOT_ROLE_REL_CP
+	</delete>
+
+	<delete id="deleleteServiceMAll">
+		DELETE FROM TB_IOT_SVC_M_CP
+	</delete>
+
+	<delete id="deleleteDeviceMAll" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevMDTO">
+		DELETE FROM TB_IOT_SVC_DEV_M_CP
+		WHERE SVC_CD = #{svcCd}
+			AND DEV_CLS_CD = #{devClsCd}
+	</delete>
+
+	<delete id="deleleteDeviceMAttr" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevAtbDTO">
+		DELETE FROM TB_IOT_S_DEV_ATB_CP
+			WHERE SVC_CD = #{svcCd}
+			AND DEV_CLS_CD = #{devClsCd}
+	</delete>
+
+	<delete id="deleleteDeviceMAttrSet" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevAtbSetDTO">
+		DELETE FROM TB_IOT_S_DEV_ATB_SET_CP A
+		WHERE A.S_DEV_ATTB_SEQ IN
+				(
+					SELECT
+						S_DEV_ATTB_SEQ
+					FROM  TB_IOT_S_DEV_ATB ATB
+					WHERE ATB.DEV_CLS_CD = #{devClsCd}
+					AND ATB.SVC_CD = #{svcCd}
+				)
+	</delete>
+	<delete id="deleleteDeviceDetSet" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevDetSetDTO">
+		DELETE FROM TB_IOT_S_DEV_DET_SET_CP A
+		WHERE A.S_DEV_ATTB_SEQ IN
+				(
+					SELECT
+						S_DEV_ATTB_SEQ
+					FROM  TB_IOT_S_DEV_ATB ATB
+					WHERE ATB.DEV_CLS_CD = #{devClsCd}
+					AND ATB.SVC_CD = #{svcCd}
+				)
+	</delete>
+
+	<delete id="deleleteValRuleAll" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO">
+		DELETE FROM TB_IOT_DEV_COL_RULE_CP A
+		 WHERE DEV_SEQ IN (
+	 						SELECT DEV_SEQ
+	 						FROM TB_IOT_SVC_DEV_M
+	 						WHERE DEV_CLS_CD = #{devClsCd}
+ 						)
+	</delete>
+
+	<delete id="deleleteApiValRuleAll">
+		DELETE FROM TB_IOT_DEV_COL_RULE_CP A
+		 WHERE DEV_SEQ ='0'
+	</delete>
+
+	<insert id="insertRuleVal" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntValRuleDTO">
+		INSERT INTO TB_IOT_VAL_RULE_CP (
+			API_SEQ
+			,DEV_SEQ
+			,VAL_RULE_SEQ
+			,VAL_RULE_NAME
+			,RULE_MSG_TYPE
+			,RULE_KIND
+			,DEFAULT_YN
+			,NULL_YN
+			,EMPTY_YN
+			,DATA_SIZE
+			,DATA_MIN
+			,DATA_MAX
+			,ALLOW_REGEX
+			,NOTALLOW_REGEX
+			,REG_USR_ID
+			,REG_DTTM
+			,MOD_USR_ID
+			,MOD_DTTM
+			,DATA_TYPE
+		)
+		VALUES (
+			#{apiSeq}
+			,#{devSeq}
+			,#{valRuleSeq}
+			,#{valRuleName}
+			,#{ruleMsgType}
+			,#{ruleKind}
+			,#{defaultYn}
+			,#{nullYn}
+			,#{emptyYn}
+			,#{dataSize}
+			,#{dataMin}
+			,#{dataMax}
+			,#{allowRegex}
+			,#{notallowRegex}
+			,#{regUsrId}
+			,DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')
+			,''
+			,''
+			,#{dataType}
+	)
+	</insert>
+
+	<delete id="deleleteRuleParseAll" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO">
+		DELETE FROM TB_IOT_DEV_COL_RULE_CP
+		WHERE DEV_SEQ IN (
+	 						SELECT DEV_SEQ
+	 						FROM TB_IOT_SVC_DEV_M
+	 						WHERE DEV_CLS_CD = #{devClsCd}
+ 						)
+			AND    RULE_COL_TYPE NOT IN ('GN00000185','GN00000186')
+	</delete>
+
+	<delete id="deleleteRuleMapAll" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO">
+		DELETE FROM TB_IOT_DEV_COL_RULE_CP
+		WHERE DEV_SEQ IN (
+						SELECT DEV_SEQ
+						FROM TB_IOT_SVC_DEV_M
+						WHERE DEV_CLS_CD = #{devClsCd}
+					)
+		AND    RULE_COL_TYPE = 'GN00000186'
+	</delete>
+
+	<insert id="insertRuleCol" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntColRuleDTO">
+		INSERT INTO TB_IOT_DEV_COL_RULE_CP (
+			DEVRULE_SEQ,
+			API_SEQ,
+			DEV_SEQ,
+			RULE_MSG_TYPE,
+			RULE_COL_TYPE,
+			RULE_DEV_TYPE,
+			RULE_SEQ,
+			RULE_REQUEST,
+			RULE_SOURCEKEY,
+			RULE_KIND,
+			RULE_BYTE_POSI,
+			RULE_BIT_POSI,
+			RULE_NUMBER,
+			RULE_POINT,
+			RULE_TARGETKEY,
+			REG_USR_ID,
+			REG_DTTM
+		)
+		VALUES (
+			(SELECT MAX(NVL(DEVRULE_SEQ,0)) + 1 FROM TB_IOT_DEV_COL_RULE_CP WHERE DEVRULE_SEQ  >=0 ),
+			#{apiSeq},
+			#{devSeq},
+			#{ruleMsgType},
+			#{ruleColType},
+			#{ruleDevType},
+			#{ruleSeq},
+			#{ruleRequest},
+			#{ruleSourcekey},
+			#{ruleKind},
+			#{ruleBytePosi},
+			#{ruleBitPosi},
+			#{ruleNumber},
+			#{rulePoint},
+			#{ruleTargetkey},
+			#{regUsrId},
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+
+
+
+	<insert id="insertRuleApi" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntApiRuleDTO">
+		INSERT INTO TB_IOT_DEV_API_RULE_CP (
+			API_SEQ
+			,DEV_SEQ
+			,CALL_API_SEQ
+			,REG_USR_ID
+			,REG_DTTM
+		)
+		VALUES (
+			 #{apiSeq}
+			,#{devSeq}
+			,#{callApiSeq}
+			,#{regUsrId}
+			,DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')
+		)
+	</insert>
+
+	<delete id="deleleteRuleApiRuleAll" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO">
+		DELETE FROM TB_IOT_DEV_API_RULE_CP
+		WHERE DEV_SEQ IN (
+						SELECT DEV_SEQ
+						FROM TB_IOT_SVC_DEV_M
+						WHERE DEV_CLS_CD = #{devClsCd}
+					)
+	</delete>
+
+	<select id="retrieveSvcCdForSev" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="java.util.HashMap">
+		SELECT CD_SEQ as "cdSeq"
+			 , LANG_SET as "langSet"
+			 , CD_ID as "cdId"
+			 , CD_NM as "cdNm"
+			 , USE_YN as "useYn"
+			 , PARENT_CD_ID as "parentCdId"
+			 , FIRST_CD_ID as "firstCdId"
+			 , CD_ORDER as "cdOrder"
+			 , PARAM_KEY as "paramKey"
+			 , PARAM_VAL as "paramVal"
+			 , CD_DESC  as "cdDesc"
+			 , LVL AS "lvl"
+		  FROM TB_IOT_CM_CD
+		 WHERE CD_ID =  #{svcCd}
+		UNION
+		SELECT CD_SEQ as "cdSeq"
+			 , LANG_SET as "langSet"
+			 , CD_ID as "cdId"
+			 , CD_NM as "cdNm"
+			 , USE_YN as "useYn"
+			 , PARENT_CD_ID as "parentCdId"
+			 , FIRST_CD_ID as "firstCdId"
+			 , CD_ORDER as "cdOrder"
+			 , PARAM_KEY as "paramKey"
+			 , PARAM_VAL as "paramVal"
+			 , CD_DESC  as "cdDesc"
+			 , LVL AS "lvl"
+		  FROM TB_IOT_CM_CD
+		 WHERE CD_ID IN (SELECT DEV_CLS_CD
+		                   FROM TB_IOT_SVC_M
+		                  WHERE SVC_CD = #{svcCd})
+	</select>
+
+	<select id="retrieveClsImgForSev" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT
+		    DEV_CLS_SEQ as "devClsSeq",
+		    DEV_CLS_CD as "devClsCd",
+		    ICON_CD as "iconCd",
+		    ORG_FILE as "orgFile",
+		    SERVER_FILE as "serverFile",
+		    WEB_URI as "webUri"
+		FROM
+		    TB_IOT_DEV_CLS_IMG
+		WHERE
+		    DEV_CLS_CD = #{devClsCd}
+	</select>
+
+	<select id="retrieveIotMdlList" parameterType="kr.co.scp.ccp.iotMgnt.dto.IotMgntDTO" resultType="kr.co.scp.ccp.iotMgnt.dto.IotMgntSDevMDTO">
+		SELECT
+			DEV_SEQ AS "svcDevSeq"
+			,#{svcCd} AS "svcCd"
+			,DEV_CLS_CD
+			,DEV_CLS_CD_NM
+			,DEV_MDL_CD
+			,DEV_MDL_NM
+			,STATUS_CD
+			,PARENT_DEV_SEQ
+			,VENDOR_NM
+			,NORMAL_ICON_FILE
+			,ABNORMAL_ICON_FILE
+			,ABNORMAL_ICON_FILE2
+			,DEV_MDL_VAL
+			,DEV_SEQ
+		FROM   TB_IOT_SVC_DEV_M
+		WHERE DEV_CLS_CD = #{devClsCd}
+		AND DEV_MDL_CD NOT LIKE 'LGE%'
+		AND USE_YN = 'Y'
+		AND STATUS_CD = 'A'
+		<if test="devMdlCd != null and devMdlCd != ''">
+			AND DEV_MDL_CD = #{devMdlCd}
+		</if>
+	</select>
+</mapper>

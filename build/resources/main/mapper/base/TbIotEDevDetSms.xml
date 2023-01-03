@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.ccp.iotEDev.dao.IotEDevDetSmsDAO">
+<!-- 
+	파일명    : /mapper/TbIotEdevDetSms.xml 
+	작성일자 :  
+	작성자    :  
+	설명      : 장애sms
+-->	 
+	
+	<!-- 장애sms List 조회 -->
+	<select id="retrieveEDevDetSmsList" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSmsDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSmsDTO">
+		SELECT M.ENTR_NO,
+               M.CTN, 
+               M.DEV_UNAME,
+               M.DEV_CLS_CD, 
+        	   CD_CLS.CD_NM  DEV_CLS_CD_NM,
+               M.DEV_MDL_CD,
+               CD_MDL.DEV_MDL_NM DEV_MDL_NM,
+               M.ENTR_DEV_SEQ,
+			   L.INST_ADDR,
+			   L.INST_ADDR_DETAIL
+        FROM TB_IOT_ENTR_DEV_M M
+		LEFT OUTER JOIN TB_IOT_E_DEV_INS_LOC L 
+		ON  M.ENTR_DEV_SEQ = L.ENTR_DEV_SEQ
+		LEFT OUTER JOIN TB_IOT_SVC_DEV_M CD_MDL
+		ON  M.DEV_MDL_CD = CD_MDL.DEV_MDL_CD
+		LEFT OUTER JOIN TB_IOT_CM_CD CD_CLS
+		ON  M.DEV_CLS_CD = CD_CLS.CD_ID
+		AND CD_CLS.LANG_SET = #{charSet}
+        WHERE M.CUST_SEQ 		= #{custSeq}
+        AND M.DEV_MDL_CD 		= #{devMdlCd} 
+		ORDER BY M.ENTR_DEV_SEQ DESC
+		LIMIT #{startPage} - 1, (#{startPage} - 1) + #{displayRowCount} 
+	</select>
+	  
+	<!-- 장애sms 갯수 조회 -->
+	<select id="retrieveEDevDetSmsListCount" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSmsDTO" resultType="java.lang.Integer">
+		SELECT /* TbIotEdevDetSms.xml, retrieveEDevDetSmsList  */
+			   COUNT(M.CUST_SEQ) AS CNT
+        FROM TB_IOT_ENTR_DEV_M M
+		LEFT OUTER JOIN TB_IOT_E_DEV_INS_LOC L 
+		ON  M.ENTR_DEV_SEQ = L.ENTR_DEV_SEQ
+        WHERE M.CUST_SEQ 		= #{custSeq}
+        AND M.DEV_MDL_CD 		= #{devMdlCd} 
+	</select>
+	
+	
+	<!-- 장애sms DevAttb List 조회  (저장된 정보)-->
+	<select id="retrieveEDevDetDevAttbList_EDev" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetAttbDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetAttbDTO">
+	   SELECT /* TbIotEdevDetSms.xml, retrieveEDevDetDevAttbList_EDev  */
+			   AA.DET_SET_COND
+			  ,AA.SEND_MSG
+			  ,AA.ENTR_DEV_SEQ
+			  ,AA.E_DEV_DET_SET_SEQ AS DET_SET_SEQ
+			  ,AA.DEV_DET_SET_CD_ID
+			  ,(SELECT  CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = AA.DEV_DET_SET_CD_ID AND LANG_SET = #{langSet}) DEV_DET_SET_CD_NM
+			  ,CASE
+			  	   WHEN AA.SEND_GUBUN IS NULL THEN '1'
+			       ELSE AA.SEND_GUBUN
+			   END AS SEND_GUBUN
+			  ,AA.SEND_MSG_TMPL
+			  ,AA.RECV_TEL_NO
+			  ,AA.DEV_CLS_CD
+			  ,AA.DEV_MDL_CD
+			  ,BB.DEV_ATTB_CD_ID
+			  ,(SELECT  CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = BB.DEV_ATTB_CD_ID AND LANG_SET = #{langSet}) DEV_ATTB_CD_NM
+			  ,BB.E_DEV_CUR_VAL_SEQ AS CUR_VAL_SEQ
+			  ,AA.DET_APPLY_YN
+		FROM TB_IOT_E_DEV_DET_SET AA
+		INNER JOIN TB_IOT_E_DEV_CUR_VAL BB
+		ON AA.E_DEV_CUR_VAL_SEQ = BB.E_DEV_CUR_VAL_SEQ
+		AND AA.DEV_MDL_CD = #{devMdlCd} 
+		AND AA.DEV_CLS_CD = #{devClsCd}
+		WHERE AA.ENTR_DEV_SEQ = #{entrDevSeq} 
+        ORDER BY DEV_ATTB_CD_ID ASC ,DEV_DET_SET_CD_NM DESC
+	</select>   
+	
+	
+	<!-- 장애sms DevAttb List 조회 (저장 대상 조회)-->
+	<select id="retrieveEDevDetDevAttbList_SDev" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetAttbDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetAttbDTO">
+	   SELECT /* TbIotEdevDetSms.xml, retrieveEDevDetDevAttbList_SDev  */ 
+		      B.DET_SET_COND
+			  ,'' AS SEND_MSG
+			  ,0 AS ENTR_DEV_SEQ
+			  ,0 AS DET_SET_SEQ  
+			  ,B.DEV_DET_SET_CD_ID	  
+			  ,(SELECT  CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = B.DEV_DET_SET_CD_ID AND LANG_SET = #{langSet}) DEV_DET_SET_CD_NM
+			  ,'1' AS SEND_GUBUN
+			  ,'' AS SEND_MSG_TMPL
+			  ,'' AS RECV_TEL_NO
+			  ,A.DEV_CLS_CD
+			  ,A.DEV_MDL_CD
+			  ,A.DEV_ATTB_CD_ID
+			  ,(SELECT  CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = A.DEV_ATTB_CD_ID AND LANG_SET = #{langSet}) DEV_ATTB_CD_NM
+			  ,0 AS CUR_VAL_SEQ
+			  ,'N' AS DET_APPLY_YN
+		FROM TB_IOT_S_DEV_ATB A
+		INNER JOIN TB_IOT_S_DEV_DET_SET B
+		ON A.S_DEV_ATTB_SEQ = B.S_DEV_ATTB_SEQ 
+		AND A.DEV_MDL_CD = #{devMdlCd}
+		AND A.DEV_CLS_CD = #{devClsCd}
+		INNER JOIN TB_IOT_ENTR_DEV_M M
+		ON A.SVC_CD = M.SVC_CD 
+		AND A.DEV_MDL_CD = M.DEV_MDL_CD
+		AND A.DEV_CLS_CD = M.DEV_CLS_CD
+		AND ENTR_DEV_SEQ = #{entrDevSeq} 
+        ORDER BY DEV_ATTB_CD_ID ASC ,DEV_DET_SET_CD_NM DESC
+	</select>   
+	
+	
+	<!-- 장애sms CurValSeq 조회 -->
+	<select id="retrieveEDevDetDevCurValSeq" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetAttbDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetAttbDTO">
+	   SELECT  
+			 E_DEV_CUR_VAL_SEQ   AS CUR_VAL_SEQ      
+       FROM TB_IOT_E_DEV_CUR_VAL
+       WHERE ENTR_DEV_SEQ = #{entrDevSeq}
+       AND DEV_MDL_CD = #{devMdlCd} 
+       AND DEV_CLS_CD = #{devClsCd}
+       AND DEV_ATTB_CD_ID = #{devAttbCdId}
+	</select>   
+	
+	<!-- 사용자 List 조회 -->
+	<select id="retrieveEDevDetUserList" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSmsDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSmsDTO">
+		SELECT	
+				b.USR_NM AS USR_NM,
+		        c.ORG_NM AS ORG_NM,
+                b.USR_SEQ,
+                b.USR_LOGIN_ID
+		FROM	TB_IOT_CUST_M a
+		INNER JOIN	TB_IOT_USR_M b
+		ON		a.CUST_SEQ = b.CUST_SEQ
+		INNER JOIN TB_IOT_ORG c
+		ON		b.ORG_SEQ = c.ORG_SEQ
+		WHERE	1=1
+		 AND 	a.CUST_SEQ = #{custSeq}
+	  	<choose>
+			<when test=" searchCon == 'usrNm'">
+				<if test=" null != retrieveVal">
+					AND		b.USR_NM LIKE   CONCAT(#{retrieveVal},'%') 
+				</if>
+			</when>
+			<when test=" searchCon == 'smsRcvNo'">
+				<if test=" null != retrieveVal">
+   					AND		b.SMS_RCV_NO LIKE   CONCAT(#{retrieveVal},'%') 
+				</if>
+			</when>
+			<when test=" searchCon == 'orgSeq'">
+				<if test=" null != retrieveVal">
+   					AND		c.ORG_SEQ = #{retrieveVal} 
+				</if>
+			</when>
+		</choose> 
+        ORDER BY b.USR_NM ,c.ORG_NM
+	</select> 
+	
+	<!-- 사용자 List 조회 -->
+	<select id="retrieveEDevDetUserListByDetSetSeq" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetRcvUsrDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetRcvUsrDTO">
+		SELECT	
+				b.USR_NM AS USR_NM,
+		        c.ORG_NM AS ORG_NM,
+                b.USR_SEQ,
+                b.USR_LOGIN_ID
+		FROM	TB_IOT_CUST_M a
+		INNER JOIN	TB_IOT_USR_M b
+		ON		a.CUST_SEQ = b.CUST_SEQ
+		INNER JOIN TB_IOT_ORG c
+		ON		b.ORG_SEQ = c.ORG_SEQ 
+		INNER JOIN TB_IOT_E_DEV_DET_SMS d
+		ON		b.USR_SEQ = d.USR_SEQ
+		WHERE	1=1
+        AND d.E_DEV_DET_SET_SEQ = #{detSetSeq}    
+        ORDER BY b.USR_NM ,c.ORG_NM
+	</select>   
+	 
+	<insert id="insertEDevDetSet" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSetDTO">
+		INSERT INTO TB_IOT_E_DEV_DET_SET 
+		(  
+			 ENTR_DEV_SEQ
+			,E_DEV_CUR_VAL_SEQ
+			,DEV_DET_SET_CD_ID
+			,DET_SET_COND
+			,DEV_CLS_CD
+			,DEV_MDL_CD
+			,DET_APPLY_YN
+			,DET_SET_DESC
+			,ICON_URL
+			,SEND_GUBUN
+			,SEND_MSG
+			,SEND_MSG_TMPL
+			,RECV_TEL_NO
+			,REG_USR_ID
+			,REG_DTTM
+			,MOD_USR_ID
+			,MOD_DTTM
+		)
+		VALUES 
+		(	 
+			 #{entrDevSeq}   
+			,#{curValSeq}   
+			,#{devDetSetCdId} 
+			,#{detSetCond}   
+			,#{devClsCd}   
+			,#{devMdlCd}   
+			,#{detApplyYn}  
+			,#{detSetDesc}  
+			,#{iconUrl} 
+			,#{sendGubun} 
+			,#{sendMsg}
+			,#{sendMsgTmpl}
+            ,#{recvTelNo}
+            ,#{regUsrId}
+            ,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+            ,#{regUsrId}
+            ,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+	   )  		
+	   <selectKey keyProperty="eDevDetSetSeq" resultType="String"	order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert> 
+		 
+	<select id="retrieveEDevDetSetChk" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSetDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSetDTO">
+		SELECT 	
+				E_DEV_DET_SET_SEQ 
+		FROM 	TB_IOT_E_DEV_DET_SET 
+		WHERE ENTR_DEV_SEQ = #{entrDevSeq}   
+		AND   E_DEV_CUR_VAL_SEQ = #{curValSeq}
+		AND   DEV_DET_SET_CD_ID = #{devDetSetCdId}
+        ORDER BY E_DEV_DET_SET_SEQ DESC        
+        LIMIT 1
+	</select>     	
+	 
+	<update id="updateEDevDetSet" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSetDTO">
+		UPDATE 
+			   TB_IOT_E_DEV_DET_SET
+		   SET DET_SET_COND = #{detSetCond}
+		      ,SEND_GUBUN   = #{sendGubun}
+			  ,SEND_MSG     = #{sendMsg}
+			  ,SEND_MSG_TMPL = #{sendMsgTmpl}
+			  ,RECV_TEL_NO = #{recvTelNo}
+			  ,DET_APPLY_YN = #{detApplyYn}
+			  ,MOD_USR_ID = #{regUsrId}
+			  ,MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE E_DEV_DET_SET_SEQ = #{eDevDetSetSeq}   
+		  
+	</update> 
+	 
+	<insert id="insertEDevDetSms" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index"  open="INSERT ALL " separator=" " close="SELECT count(1)" > 
+			INTO TB_IOT_E_DEV_DET_SMS (
+				 E_DEV_DET_SET_SEQ
+				,USR_SEQ
+				,REG_USR_ID
+				,REG_DTTM
+				,MOD_USR_ID
+				,MOD_DTTM
+			) VALUES
+			( 
+				 #{item.eDevDetSetSeq} 
+				,#{item.usrSeq}
+	            ,#{item.regUsrId}
+	            ,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+	            ,#{item.regUsrId}
+	            ,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+		</foreach>
+	</insert>
+	
+	  
+	
+	<delete id="deleteEDevDetRcvUsr" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSmsUsrDTO">
+	    DELETE FROM  
+	    	        TB_IOT_E_DEV_DET_SMS   
+		WHERE E_DEV_DET_SET_SEQ = #{eDevDetSetSeq} 
+		AND USR_SEQ = #{usrSeq}
+	</delete>
+	
+	<delete id="deleteEDevDetRcvUsrAll" parameterType="java.util.List">
+	    DELETE FROM  
+	    	        TB_IOT_E_DEV_DET_SMS   
+	   	WHERE  E_DEV_DET_SET_SEQ IN 
+		<foreach collection="list" item="item" index="index"  open="(" separator="," close=")" >  
+		 #{item.eDevDetSetSeq} 
+		</foreach>
+	</delete>
+		
+	<update id="updateEDevDetSms" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSmsUsrDTO">
+		UPDATE  
+			   TB_IOT_E_DEV_DET_SMS
+		   SET MOD_USR_ID   = #{regUsrId}
+			  ,MOD_DTTM     = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE E_DEV_DET_SET_SEQ = #{eDevDetSetSeq}   
+		   AND USR_SEQ = #{usrSeq}    
+		  
+	</update>
+	
+	<select id="retrieveEDevDetSmsChk" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSmsUsrDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSmsUsrDTO">
+		SELECT 	 
+				E_DEV_DET_SET_SEQ 
+		FROM 	TB_IOT_E_DEV_DET_SMS 
+		WHERE E_DEV_DET_SET_SEQ = #{eDevDetSetSeq}   
+		AND   USR_SEQ = #{usrSeq} 
+        ORDER BY E_DEV_DET_SET_SEQ DESC
+        LIMIT 1
+	</select>  
+	 
+	<!-- Message List 조회 -->
+	<select id="retrieveEDevDetMessageList" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSmsDTO" resultType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSmsDTO">
+		SELECT 	 
+			  PARAM_KEY 
+			, PARAM_VAL
+		 FROM TB_IOT_CM_CD 		      
+		WHERE USE_YN = 'Y'		
+		  AND LANG_SET     = #{charSet}
+		  AND PARENT_CD_ID = #{parentCdId}
+	</select>
+	
+	<update id="updateEDevCurVal" parameterType="kr.co.scp.ccp.iotEDev.dto.TbIotEdevDetSetDTO">
+		UPDATE 
+			   TB_IOT_E_DEV_CUR_VAL
+		   SET DET_STATUS_CD_ID = null 
+		 WHERE E_DEV_CUR_VAL_SEQ = #{curValSeq}  
+	</update>  
+</mapper>

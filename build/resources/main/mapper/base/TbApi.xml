@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.api.dao.TbIotApiDAO">
+
+	<select id="retrieveTbIotApiList" parameterType="kr.co.scp.common.api.dto.TbIotApiDTO" resultType="kr.co.scp.common.api.dto.TbIotApiDTO">
+		SELECT API_SEQ
+			 , SERVER_GUBUN
+			 , B.CD_NM AS SERVER_NM
+			 , API_NM
+			 , API_URI
+			 , API_DESC
+			 , API_FORMAT
+			 , TMPL_GUBUN
+			 , CASE
+				WHEN A.REG_DTTM <![CDATA[ >= ]]>  IFNULL(A.MOD_DTTM, 0) THEN DATE_FORMAT(A.REG_DTTM,'%Y-%m-%d %H:%i:%S')
+				WHEN A.REG_DTTM <![CDATA[ < ]]>  A.MOD_DTTM THEN DATE_FORMAT(A.MOD_DTTM,'%Y-%m-%d %H:%i:%S')
+			  END AS regDttm
+			 , CASE
+				WHEN A.REG_DTTM <![CDATA[ >= ]]> IFNULL(A.MOD_DTTM, 0) THEN (SELECT USR_NM FROM TB_IOT_USR_M WHERE USR_LOGIN_ID = A.REG_USR_ID)
+				WHEN A.REG_DTTM <![CDATA[ < ]]> A.MOD_DTTM THEN (SELECT USR_NM FROM TB_IOT_USR_M WHERE USR_LOGIN_ID = A.MOD_USR_ID)
+			  END AS regUserId
+<!-- 			 , A.REG_USR_ID AS regUserId -->
+<!-- 			 , DATE_FORMAT(A.REG_DATE , '%Y-%m-%d %H:%i:%s') AS regDttm	 -->
+		 FROM TB_IOT_API A
+		    , TB_IOT_CM_CD B
+		WHERE A.SERVER_GUBUN = B.CD_ID
+		  AND B.PARENT_CD_ID = 'GN00000008'
+		  AND B.LANG_SET = #{langSet}
+		<if test="apiNm != null">
+			AND A.API_NM LIKE CONCAT(#{apiNm},'%')
+		</if>
+		<if test="apiUri != null">
+			AND A.API_URI LIKE CONCAT(#{apiUri},'%')
+		</if>
+		<if test="apiSeq != null">
+			AND A.API_SEQ = #{apiSeq}
+		</if>
+		<if test="tmplGubun != null">
+			AND A.TMPL_GUBUN = #{tmplGubun}
+		</if>
+		ORDER BY A.REG_DTTM DESC
+		LIMIT ${currentPage-1}, ${displayRowCount}
+	</select>
+
+
+	<select id="retrieveTbIotApiCount" parameterType="kr.co.scp.common.api.dto.TbIotApiDTO" resultType="java.lang.Integer">
+		SELECT  COUNT(API_SEQ)
+	 	FROM TB_IOT_API A, TB_IOT_CM_CD B
+		WHERE A.SERVER_GUBUN = B.CD_ID
+		  AND B.PARENT_CD_ID = 'GN00000008'
+		  AND B.LANG_SET = #{langSet}
+		<if test="apiNm != null">
+			AND A.API_NM LIKE CONCAT(#{apiNm},'%')
+		</if>
+		<if test="apiUri != null">
+			AND A.API_URI LIKE CONCAT(#{apiUri},'%')
+		</if>
+		<if test="apiSeq != null">
+			AND A.API_SEQ = #{apiSeq}
+		</if>
+		<if test="tmplGubun != null">
+			AND A.TMPL_GUBUN = #{tmplGubun}
+		</if>
+	</select>
+
+	<select id="retrieveTbIotDashApiList" parameterType="kr.co.scp.common.api.dto.TbIotApiDTO" resultType="kr.co.scp.common.api.dto.TbIotApiDTO">
+		SELECT API_SEQ
+			 , SERVER_GUBUN
+			 , API_NM
+			 , API_URI
+			 , API_DESC
+			 , API_FORMAT
+			 , TMPL_GUBUN
+		FROM TB_IOT_API
+		WHERE 1=1
+		<if test="apiNm != null">
+			AND API_NM LIKE CONCAT(#{apiNm},'%')
+		</if>
+		<if test="tmplGubun != null">
+			AND TMPL_GUBUN = #{tmplGubun}
+		</if>
+		ORDER BY API_SEQ
+	</select>
+
+	<insert id="insertTbIotApi" 	parameterType="kr.co.scp.common.api.dto.TbIotApiDTO">
+		INSERT INTO TB_IOT_API(API_NM,
+								 SERVER_GUBUN,
+								 API_URI,
+								 API_DESC,
+								 API_FORMAT,
+								 TMPL_GUBUN,
+								 REG_USR_ID,
+								 REG_DTTM)
+			   VALUES (#{apiNm},
+			   		   #{serverGubun},
+					   #{apiUri},
+					   #{apiDesc},
+					   #{apiFormat},
+					   #{tmplGubun},
+			   		   #{regUserId},
+					   DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+					   )
+
+		<selectKey keyProperty="apiSeq" resultType="String" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+
+	</insert>
+
+
+	<update id="updateTbIotApi" parameterType="kr.co.scp.common.api.dto.TbIotApiDTO">
+		UPDATE TB_IOT_API
+		  SET API_NM = #{apiNm}
+		    , SERVER_GUBUN = #{serverGubun}
+		    , API_URI = #{apiUri}
+		    , API_DESC = #{apiDesc}
+		    , API_FORMAT = #{apiFormat}
+		    , TMPL_GUBUN = #{tmplGubun}
+		    , MOD_USR_ID = #{modUserId}
+		    , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		WHERE API_SEQ = #{apiSeq}
+	</update>
+
+	<delete id="deleteTbIotApi" parameterType="kr.co.scp.common.api.dto.TbIotApiDTO">
+		DELETE FROM TB_IOT_API
+		WHERE API_SEQ = #{apiSeq}
+	</delete>
+
+	<select id="duplicationCheckApiNm"
+		parameterType="kr.co.scp.common.api.dto.TbIotApiDTO" resultType="java.lang.Integer">
+		SELECT COUNT(API_SEQ) AS chkCnt
+		FROM TB_IOT_API
+		WHERE API_NM = #{apiNm}
+	</select>
+
+	<select id="duplicationCheckApiUri"
+		parameterType="kr.co.scp.common.api.dto.TbIotApiDTO" resultType="java.lang.Integer">
+		SELECT COUNT(API_SEQ) AS chkCnt
+		FROM TB_IOT_API
+		WHERE API_URI = #{apiUri}
+	</select>
+</mapper>

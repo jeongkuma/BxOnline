@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotRoleMap.dao.RoleMapDAO">
+
+	<select id="retrieveRoleMapList" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO" resultType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO">
+		SELECT	ROLE_SEQ ,
+				SVC_CD ,
+				SVC_NM ,
+				ROLE_CD_ID ,
+				ROLE_CD_NM ,
+				MENU_PROG_NM ,
+				MENU_PROG_SEQ ,
+				MENU_PROG_GUBUN
+		 FROM (
+		SELECT		r.ROLE_SEQ ,
+					m.SVC_CD ,
+		            (SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = m.SVC_CD AND LANG_SET = #{langSet}) AS SVC_NM ,
+		            (SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = r.ROLE_CD_ID AND LANG_SET = #{langSet}) AS ROLE_CD_NM ,
+					r.ROLE_CD_ID ,
+					m.MENU_CD_NM AS MENU_PROG_NM ,
+					r.MENU_PROG_SEQ ,
+					CASE
+					WHEN r.MENU_PROG_GUBUN = 'M' THEN '메뉴'
+					WHEN r.MENU_PROG_GUBUN = 'P' THEN '프로그램'
+					END AS MENU_PROG_GUBUN
+		FROM		TB_IOT_ROLE_REL r
+		JOIN		TB_IOT_MENU m
+		ON			r.MENU_PROG_SEQ = m.MENU_SEQ
+		WHERE		r.MENU_PROG_GUBUN = 'M'
+		AND         m.USE_YN = 'Y'
+		AND			m.LANG_SET = #{langSet}
+		UNION
+		SELECT		ro.ROLE_SEQ ,
+					ro.SVC_CD ,
+					(SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = ro.SVC_CD AND LANG_SET = #{langSet}) AS SVC_NM ,
+					(SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = ro.ROLE_CD_ID AND LANG_SET = #{langSet}) AS ROLE_CD_NM ,
+					ro.ROLE_CD_ID ,
+					pr.PROG_NM AS MENU_PROG_NM ,
+					ro.MENU_PROG_SEQ ,
+					CASE
+					WHEN ro.MENU_PROG_GUBUN = 'M' THEN '메뉴'
+					WHEN ro.MENU_PROG_GUBUN = 'P' THEN '프로그램'
+					END AS MENU_PROG_GUBUN
+		FROM		TB_IOT_ROLE_REL ro
+		JOIN		TB_IOT_PROG pr
+		ON			ro.MENU_PROG_SEQ = pr.PROG_SEQ
+		WHERE		ro.MENU_PROG_GUBUN = 'P' ) AS tot_map
+		WHERE		1=1
+		<if test="roleCdId != 'GN00000038'">
+		AND			tot_map.SVC_CD = #{svcCd}
+		</if>
+		<if test="roleType != 'all' and roleType != null">
+		AND			tot_map.ROLE_CD_ID = #{roleType}
+		</if>
+		<if test="svcType != 'all' and svcType != null">
+		AND			tot_map.SVC_CD = #{svcType}
+		</if>
+		<if test="gubunType != 'all' and gubunType != null">
+		AND			tot_map.MENU_PROG_GUBUN = #{gubunType}
+		</if>
+		<if test="inputValue != null and inputValue != ''">
+		AND			tot_map.MENU_PROG_NM LIKE CONCAT(#{inputValue},'%')
+		</if>
+		ORDER BY	tot_map.ROLE_SEQ DESC
+		LIMIT ${startPage-1}, ${displayRowCount}
+	</select>
+
+	<select id="retrieveRoleMapListCount" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO" resultType="java.lang.Integer">
+		SELECT COUNT(ROLE_SEQ) FROM (
+		SELECT		r.ROLE_SEQ ,
+					m.SVC_CD ,
+		            (SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = m.SVC_CD AND LANG_SET = #{langSet}) AS SVC_NM ,
+					r.ROLE_CD_ID ,
+					m.MENU_CD_NM AS MENU_PROG_NM ,
+					r.MENU_PROG_SEQ ,
+					CASE
+					WHEN r.MENU_PROG_GUBUN = 'M' THEN '메뉴'
+					WHEN r.MENU_PROG_GUBUN = 'P' THEN '프로그램'
+					END AS MENU_PROG_GUBUN
+		FROM		TB_IOT_ROLE_REL r
+		JOIN		TB_IOT_MENU m
+		ON			r.MENU_PROG_SEQ = m.MENU_SEQ
+		WHERE		r.MENU_PROG_GUBUN = 'M'
+		AND         m.USE_YN = 'Y'
+		AND			m.LANG_SET = #{langSet}
+		UNION
+		SELECT		ro.ROLE_SEQ ,
+					ro.SVC_CD ,
+					(SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = ro.SVC_CD AND LANG_SET = #{langSet}) AS SVC_NM ,
+					ro.ROLE_CD_ID ,
+					pr.PROG_NM AS MENU_PROG_NM ,
+					ro.MENU_PROG_SEQ ,
+					CASE
+					WHEN ro.MENU_PROG_GUBUN = 'M' THEN '메뉴'
+					WHEN ro.MENU_PROG_GUBUN = 'P' THEN '프로그램'
+					END AS MENU_PROG_GUBUN
+		FROM		TB_IOT_ROLE_REL ro
+		JOIN		TB_IOT_PROG pr
+		ON			ro.MENU_PROG_SEQ = pr.PROG_SEQ
+		WHERE		ro.MENU_PROG_GUBUN = 'P' ) AS tot_map
+		WHERE		1=1
+		<if test="roleCdId != 'GN00000038'">
+		AND			tot_map.SVC_CD = #{svcCd}
+		</if>
+		<if test="roleType != 'all' and roleType != null">
+		AND			tot_map.ROLE_CD_ID = #{roleType}
+		</if>
+		<if test="svcType != 'all' and svcType != null">
+		AND			tot_map.SVC_CD = #{svcType}
+		</if>
+		<if test="gubunType != 'all' and gubunType != null">
+		AND			tot_map.MENU_PROG_GUBUN = #{gubunType}
+		</if>
+		<if test="inputValue != null and inputValue != ''">
+		AND			tot_map.MENU_PROG_NM LIKE CONCAT(#{inputValue},'%')
+		</if>
+	</select>
+
+	<select id="retrieveProgList" resultType="kr.co.scp.ccp.iotRoleMap.dto.ProgListDTO">
+		SELECT	PROG_SEQ ,
+				PROG_NM ,
+		        UI_PATH
+		FROM	TB_IOT_PROG
+		WHERE	USE_YN = 'Y'
+	</select>
+
+	<select id="retrieveMenuList" resultType="kr.co.scp.ccp.iotRoleMap.dto.MenuListDTO" parameterType="kr.co.scp.ccp.iotRoleMap.dto.MenuListDTO">
+		SELECT	MENU_SEQ ,
+				MENU_CD_ID ,
+				MENU_CD_NM ,
+				MENU_LEVEL ,
+				UP_MENU_SEQ ,
+				MENU_ORDER
+		FROM	TB_IOT_MENU
+		WHERE	SVC_CD = #{svcCd}
+		AND		LANG_SET = #{langSet}
+	    AND		USE_YN = 'Y'
+		ORDER BY MENU_LEVEL, MENU_ORDER
+	</select>
+
+	<select id="retrieveRoleMapMenuList" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO" resultType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO">
+		SELECT		r.ROLE_SEQ ,
+					m.SVC_CD ,
+					r.ROLE_CD_ID ,
+					r.MENU_PROG_SEQ
+		FROM		TB_IOT_ROLE_REL r
+		JOIN		TB_IOT_MENU m
+		ON			r.MENU_PROG_SEQ = m.MENU_SEQ
+		WHERE		m.SVC_CD = #{svcCd}
+		AND			m.LANG_SET = #{langSet}
+		AND			r.MENU_PROG_GUBUN = 'M'
+		AND			r.ROLE_CD_ID = #{roleCdId}
+	</select>
+
+	<select id="retrieveRoleMapProgList" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO" resultType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO">
+		SELECT		ROLE_SEQ ,
+					SVC_CD ,
+					ROLE_CD_ID ,
+					MENU_PROG_SEQ
+		FROM		TB_IOT_ROLE_REL
+		WHERE		SVC_CD = #{svcCd}
+		AND			MENU_PROG_GUBUN = 'P'
+		AND			ROLE_CD_ID = #{roleCdId}
+	</select>
+
+	<select id="retrieveRoleMapDetail" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO"  resultType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO">
+		SELECT		ROLE_CD_ID ,
+					MENU_PROG_SEQ ,
+					MENU_PROG_GUBUN
+		FROM		TB_IOT_ROLE_REL
+		WHERE		ROLE_SEQ = #{mapSeq}
+	</select>
+
+	<select id="retrieveRoleCdList" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO" resultType="kr.co.scp.ccp.iotRoleMap.dto.RoleCdListDTO">
+		SELECT		CD_ID AS ROLE_CD_ID,
+					CD_NM AS ROLE_CD_NM
+		FROM		TB_IOT_CM_CD
+		WHERE		PARENT_CD_ID = #{parentRoleCd}
+		AND			USE_YN = 'Y'
+		AND			LANG_SET = #{langSet}
+		<if test="roleCdId != 'GN00000038'">
+		AND			CD_ID != 'GN00000038'
+		</if>
+	</select>
+
+	<select id="retrieveSvcCdList" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO" resultType="kr.co.scp.ccp.iotRoleMap.dto.SvcCdListDTO">
+		SELECT		CD_ID AS SVC_CD_ID,
+					CD_NM AS SVC_CD_NM
+		FROM		TB_IOT_CM_CD
+		WHERE		PARENT_CD_ID = #{parentSvcCd}
+		AND			LANG_SET = #{langSet}
+		AND			USE_YN != 'N'
+		<if test="roleCdId != 'GN00000038'">
+			AND			CD_ID = #{svcCd}
+		</if>
+	</select>
+
+	<insert id="insertMenuRoleAuth" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO">
+		INSERT	INTO TB_IOT_ROLE_REL (
+				SVC_CD,
+				ROLE_CD_ID,
+				MENU_PROG_SEQ,
+				MENU_PROG_GUBUN,
+				REG_USR_ID ,
+				REG_DTTM)
+		VALUES  ((SELECT SVC_CD FROM TB_IOT_MENU WHERE MENU_SEQ = #{menuProgSeq}),
+				#{roleCdId},
+				#{menuProgSeq},
+				'M',
+				#{regUserId},
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%s'))
+	</insert>
+
+	<insert id="insertProgRoleAuth" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO">
+		INSERT	INTO TB_IOT_ROLE_REL (
+				SVC_CD,
+				ROLE_CD_ID,
+				MENU_PROG_SEQ,
+				MENU_PROG_GUBUN,
+				REG_USR_ID ,
+				REG_DTTM)
+		VALUES  (#{svcCd},
+				#{roleCdId},
+				#{menuProgSeq},
+				'P',
+				#{regUserId},
+				DATE_FORMAT(NOW(), '%Y%m%d%H%i%s'))
+	</insert>
+
+	<!-- <update id="updateRoleMap" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO">
+		UPDATE	TB_IOT_ROLE_REL
+		SET		TX_YN = #{txYn} ,
+				MOD_USR_ID = #{modUsrId} ,
+			    MOD_DTTM = DATE_FORMAT(now(), '%Y%m%d%H%i%s')
+		WHERE	ROLE_SEQ = #{roleSeq}
+	</update> -->
+
+	<delete id="deleteMenuRoleAuth" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO">
+		DELETE
+		FROM		TB_IOT_ROLE_REL
+		WHERE		MENU_PROG_GUBUN = 'M'
+		AND			SVC_CD = #{svcCd}
+		AND			ROLE_CD_ID = #{roleCdId}
+	</delete>
+
+	<delete id="deleteProgRoleAuth" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO">
+		DELETE
+		FROM		TB_IOT_ROLE_REL
+		WHERE		MENU_PROG_GUBUN = 'P'
+		AND			SVC_CD = #{svcCd}
+		AND			ROLE_CD_ID = #{roleCdId}
+	</delete>
+
+	<delete id="deleteRoleMap" parameterType="kr.co.scp.ccp.iotRoleMap.dto.TbIotRoleMapDTO">
+		DELETE
+		FROM		TB_IOT_ROLE_REL
+		WHERE		ROLE_SEQ = #{roleSeq}
+	</delete>
+</mapper>

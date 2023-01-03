@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.iotSvc.dao.TbIotSvcDao">
+<!--
+	파일명    : /mapper/TbIotSvc.xml
+	작성일자 : 2019-05-02
+	작성자    : 지정호, 정병수
+	설명       : 서비스 관리
+-->
+	<!-- 서비스 목록 조회  -->
+	<select id="retrieveIotSvc" resultType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto">
+   	   SELECT
+  			  a.SVC_SEQ
+			, a.SVC_CD
+			, b.CD_NM AS SVC_CD_NM
+			, a.SVC_LEVEL
+			, a.SVC_ORDER
+			, a.UP_SVC_SEQ
+-- 			, a.DEV_CLS_CDR
+			, b.CD_SEQ AS SVC_CD_SEQ
+		 FROM TB_IOT_SVC_M a
+         LEFT OUTER JOIN
+              TB_IOT_CM_CD b
+           ON NVL(a.DEV_CLS_CD, a.SVC_CD) = b.CD_ID
+          <if test="null != langSet" >
+        WHERE b.LANG_SET = #{langSet}
+          </if>
+		ORDER BY SVC_LEVEL, SVC_ORDER
+	</select>
+
+	<!-- 서비스 조회 by orgSeq -->
+	<select id="retrieveIotSvcBySeq" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto" resultType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto">
+	  SELECT
+  			  a.SVC_SEQ
+			, a.SVC_CD
+			, b.CD_NM AS SVC_CD_NM
+			, a.SVC_LEVEL
+			, a.SVC_ORDER
+			, a.UP_SVC_SEQ
+			, a.DEV_CLS_CD
+		 FROM TB_IOT_SVC_M a
+         LEFT OUTER JOIN
+              TB_IOT_CM_CD b
+           ON NVL(a.DEV_CLS_CD, a.SVC_CD) = b.CD_ID
+          AND b.LANG_SET = #{langSet}
+        WHERE SVC_SEQ = #{svcSeq}
+	</select>
+
+	<!-- 서비스 등록  -->
+	<insert id="createIotSvc" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto">
+		<selectKey keyProperty="svcSeq" order="BEFORE" resultType="String">
+			SELECT MAX(SVC_SEQ)+1 AS SVC_SEQ FROM TB_IOT_SVC_M
+		</selectKey>
+		INSERT INTO TB_IOT_SVC_M
+			(
+			  SVC_CD
+			, DEV_CLS_CD
+			, SVC_LEVEL
+			, SVC_ORDER
+			, UP_SVC_SEQ
+			, REG_USR_ID
+			, REG_DTTM
+			)
+			VALUES
+			(
+			  #{svcCd}
+			, #{devClsCd}
+			, #{svcLevel}
+			<if test=" svcLevel == 1 " >
+			, (SELECT IFNULL(MAX(a.SVC_ORDER), 0) + 1 FROM TB_IOT_SVC_M a WHERE a.SVC_LEVEL = 1)
+			</if>
+			<if test=" svcLevel == 2 " >
+			, (SELECT IFNULL(MAX(a.SVC_ORDER), 0) + 1 FROM TB_IOT_SVC_M a WHERE a.SVC_CD = #{svcCd})
+			</if>
+			, #{upSvcSeq}
+			, #{regUsrId}
+			, DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+	</insert>
+
+	<!-- 단말유형 목록 조회 -->
+	<select id="retrieveDevClsList" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcMDto" resultType="kr.co.scp.common.iotSvc.dto.TbIotSvcMDto">
+        SELECT	CD_ID	AS DEV_CLS_CD,
+				CD_NM	AS DEV_CLS_NM
+		FROM	TB_IOT_CM_CD
+		WHERE	PARENT_CD_ID = #{parentCd}
+		AND		USE_YN = 'Y'
+		AND		LANG_SET = #{langSet}
+	</select>
+
+	<!-- 단말유형 목록 조회 -->
+	<select id="getServiceDevCls" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcMDto" resultType="kr.co.scp.common.iotSvc.dto.TbIotSvcMDto">
+		SELECT A.DEV_CLS_CD,
+		      B.CD_NM AS devClsNm
+		FROM TB_IOT_SVC_M A
+		INNER JOIN TB_IOT_CM_CD B ON(A.DEV_CLS_CD = B.CD_ID AND B.LANG_SET = #{langSet})
+		WHERE A.SVC_CD = #{svcCd}
+	</select>
+
+	<select id="retrieveSvcMapDevBySvcCd" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto" resultType="kr.co.scp.common.iotSvc.dto.TbIotSvcMDto">
+	  SELECT
+  			  a.SVC_SEQ
+			, a.SVC_CD
+			, b.CD_NM AS SVC_CD_NM
+			, a.SVC_LEVEL
+			, a.SVC_ORDER
+			, a.UP_SVC_SEQ
+			, a.DEV_CLS_CD
+			, c.CD_NM AS DEV_CLS_NM
+		 FROM TB_IOT_SVC_M a
+              LEFT OUTER JOIN
+              TB_IOT_CM_CD b
+              on a.SVC_CD  = b.CD_ID
+		   	  LEFT OUTER JOIN
+              TB_IOT_CM_CD c
+           ON a.DEV_CLS_CD = c.CD_ID
+        WHERE SVC_CD = #{svcCd}
+        AND	  DEV_CLS_CD IS NOT NULL
+	</select>
+
+	<delete id="deleteSvcMapDevCls" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto">
+		DELETE FROM TB_IOT_SVC_M
+		WHERE		SVC_CD = #{svcCd}
+		AND			DEV_CLS_CD IS NOT NULL
+	</delete>
+
+	<insert id="insertSvcMapDevCls" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto">
+		INSERT INTO TB_IOT_SVC_M (
+									SVC_CD,
+									DEV_CLS_CD,
+									SVC_LEVEL,
+									SVC_ORDER,
+									UP_SVC_SEQ,
+									REG_USR_ID,
+									REG_DTTM)
+		VALUES 					 (
+									#{svcCd},
+									#{devClsCd},
+									2,
+									(SELECT MAX(a.SVC_ORDER)+1
+									FROM	TB_IOT_SVC_M a
+									WHERE	a.SVC_CD = #{svcCd}),
+									(SELECT	b.SVC_SEQ
+									FROM	TB_IOT_SVC_M b
+									WHERE	b.SVC_CD = #{svcCd}
+									AND		b.DEV_CLS_CD IS NULL),
+									#{regUsrId},
+									DATE_FORMAT(NOW(), '%Y%m%d%H%i%s'))
+	</insert>
+
+	<insert id="createIotDevClsImg" parameterType="kr.co.scp.common.iotSvc.dto.TbIotDevClsImgDto">
+		INSERT INTO TB_IOT_DEV_CLS_IMG
+			(
+				DEV_CLS_CD
+			  , ICON_CD
+			  , SERVER_FILE
+			  , ORG_FILE
+			  , WEB_URI
+			  , REG_USR_ID
+			  , REG_DTTM
+			)
+			VALUES
+			(
+				#{devClsCd}
+			  , #{iconCd}
+			  , #{serverFile}
+			  , #{orgFile}
+			  , #{webUri}
+			  , #{regUsrId}
+			  , DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')
+			)
+	</insert>
+
+	<select id="retrieveIotDevClsImg" parameterType="kr.co.scp.common.iotSvc.dto.TbIotDevClsImgDto" resultType="kr.co.scp.common.iotSvc.dto.TbIotDevClsImgDto">
+		SELECT
+		        DEV_CLS_SEQ
+  			  , DEV_CLS_CD
+			  , ICON_CD
+			  , SERVER_FILE
+			  , ORG_FILE
+			  , WEB_URI
+		 FROM TB_IOT_DEV_CLS_IMG
+		WHERE DEV_CLS_CD = #{devClsCd}
+	</select>
+
+<!--	<update id="updateIotSvc" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcUDto">-->
+<!--		UPDATE TB_IOT_SVC_M-->
+<!--		   SET MOD_USR_ID = #{modUsrId}-->
+<!--		   <if test="svcLevel == 1">-->
+<!--		   		SVC_CD = #{svcCd}-->
+<!--		   </if>-->
+<!--		   <if test="svcLevel == 2">-->
+<!--		   		DEV_CLS_CD = #{devClsCd}-->
+<!--		   </if>-->
+<!--		    , MOD_DTTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')-->
+<!--		WHERE SVC_SEQ = #{svcSeq}-->
+<!--	</update>-->
+
+	<delete id="deleteIotDevClsImg" parameterType="kr.co.scp.common.iotSvc.dto.TbIotDevClsImgDto">
+		DELETE FROM TB_IOT_DEV_CLS_IMG
+		 WHERE DEV_CLS_CD = #{devClsCd}
+		   AND ICON_CD    = #{iconCd}
+	</delete>
+
+	<select id="retrieveIotSvcOnly" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto" resultType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto">
+   	   SELECT
+  			  a.SVC_SEQ
+			, a.SVC_CD
+			, b.CD_NM AS SVC_CD_NM
+			, a.SVC_LEVEL
+			, a.SVC_ORDER
+			, a.UP_SVC_SEQ
+			, a.DEV_CLS_CD
+		 FROM TB_IOT_SVC_M a
+              LEFT OUTER JOIN
+              TB_IOT_CM_CD b
+           ON a.SVC_CD  = b.CD_ID
+          AND b.LANG_SET = #{langSet}
+		WHERE a.SVC_LEVEL = 1
+		  AND a.SVC_CD = #{svcCd}
+		ORDER BY a.SVC_LEVEL, a.SVC_ORDER
+	</select>
+
+	<select id="retrieveIotCmCdForSvc" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto" resultType="java.util.HashMap">
+   	   SELECT B.CD_ID AS SVC_CD,
+              B.CD_NM AS SVC_NM
+		FROM TB_IOT_SVC_M A,
+             TB_IOT_CM_CD B
+    WHERE A.SVC_CD = B.CD_ID
+      AND A.DEV_CLS_CD IS NULL
+      AND B.PARENT_CD_ID = 'SD00000001'
+      AND B.LANG_SET = #{langSet}
+	</select>
+
+	<select id="retrieveIotCmCdForDevDlsCd"  parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto" resultType="java.util.HashMap">
+   	    SELECT B.CD_ID	AS DEV_CLS_CD,
+			   B.CD_NM	AS DEV_CLS_NM
+			FROM TB_IOT_SVC_M A,
+	             TB_IOT_CM_CD B
+	    WHERE A.DEV_CLS_CD = B.CD_ID
+	      AND A.DEV_CLS_CD IS NOT NULL
+	      AND B.PARENT_CD_ID = 'SD00000002'
+	      <if test="svcCd != null and svcCd != ''">
+	      	AND A.SVC_CD = #{svcCd}
+	      </if>
+	      AND B.LANG_SET = #{langSet}
+	      GROUP BY CD_ID, CD_NM
+	</select>
+</mapper>

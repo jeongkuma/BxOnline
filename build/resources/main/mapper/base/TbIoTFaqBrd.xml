@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotFaqBoard.dao.FaqBoardDAO">
+
+	<select id="retrieveFaqBoardList" parameterType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdDTO" resultType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdListDTO">
+		SELECT FAQ_SEQ
+	         , CATEGORY_CD_ID
+	         , (SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = CATEGORY_CD_ID) AS CATEGORY_CD_NM
+			 , SUBJECT
+			 , QUESTION
+			 , ANSWER
+			 , INTEREST_YN
+			 , IFNULL(MOD_DTTM, REG_DTTM) AS REG_DTTM
+		 FROM TB_IOT_BRD_FAQ
+		WHERE USE_YN = 'Y'
+		<if test="categoryCdId != 'category' and categoryCdId != null">
+			AND CATEGORY_CD_ID = #{categoryCdId}
+		</if>
+		<if test="subject != null">
+			AND SUBJECT LIKE CONCAT(#{subject},'%')
+		</if>
+		<if test="question != null">
+			AND QUESTION LIKE CONCAT(#{question},'%')
+		</if>
+		<if test="allSearch!= null">
+			AND (SUBJECT LIKE CONCAT(#{allSearch},'%') || QUESTION LIKE CONCAT(#{allSearch},'%'))
+		</if>
+		<if test="searchStartDttm != null">
+			AND REG_DTTM BETWEEN REPLACE(#{searchStartDttm},'-', '') AND CONCAT(REPLACE(#{searchEndDttm}, '-', ''),'235959')
+		</if>
+		ORDER BY IFNULL(MOD_DTTM, REG_DTTM) DESC
+		LIMIT ${startPage-1}, ${displayRowCount}
+	</select>
+
+	<select id="retrieveFaqBoardCount" parameterType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdDTO" resultType="java.lang.Integer">
+
+		SELECT COUNT(FAQ_SEQ) AS CNT
+		  FROM TB_IOT_BRD_FAQ
+		  WHERE USE_YN = 'Y'
+		<if test="categoryCdId != 'category' and categoryCdId != null">
+			AND CATEGORY_CD_ID = #{categoryCdId}
+		</if>
+		<if test="subject != null">
+			AND SUBJECT LIKE CONCAT(#{subject},'%')
+		</if>
+		<if test="question != null">
+			AND QUESTION LIKE CONCAT(#{question},'%')
+		</if>
+		<if test="allSearch!= null">
+			AND (SUBJECT LIKE CONCAT(#{allSearch},'%') || QUESTION LIKE CONCAT(#{allSearch},'%'))
+		</if>
+		<if test="searchStartDttm != null">
+			AND REG_DTTM BETWEEN REPLACE(#{searchStartDttm},'-', '') AND CONCAT(REPLACE(#{searchEndDttm}, '-', ''),'235959')
+		</if>
+	</select>
+
+	<select id="retrieveCategoryList" parameterType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdDTO" resultType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdCategoryDTO">
+		SELECT	CD_ID AS CATEGORY_CD_ID,
+				CD_NM AS CATEGORY_CD_NM
+		FROM	TB_IOT_CM_CD
+		WHERE	PARENT_CD_ID = #{parentCdId}
+	</select>
+
+	<update id="deleteFaqBoard" parameterType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdDTO">
+		UPDATE TB_IOT_BRD_FAQ
+			SET USE_YN='N',
+				MOD_USR_ID = #{modUserId},
+				MOD_DTTM = DATE_FORMAT(CURRENT_TIMESTAMP(), '%Y%m%d%H%i%S')
+		WHERE FAQ_SEQ= #{faqSeq}
+	</update>
+
+
+	<select id="retrieveFaqBoardDetail" parameterType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdDTO" resultType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdDetailDTO">
+		SELECT  FAQ_SEQ
+		      , CATEGORY_CD_ID
+		      , (SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = CATEGORY_CD_ID) AS CATEGORY_CD_NM
+			  , SUBJECT
+			  , QUESTION
+			  , ANSWER
+			  , INTEREST_YN
+		FROM TB_IOT_BRD_FAQ
+		WHERE FAQ_SEQ = #{faqSeq}
+	</select>
+
+
+	<insert id="insertTbIotFaqBrd" parameterType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdDTO">
+		INSERT INTO TB_IOT_BRD_FAQ(	CATEGORY_CD_ID,
+									SUBJECT,
+								   	QUESTION,
+								   	ANSWER,
+								   	INTEREST_YN,
+								   	REG_USR_ID,
+								   	REG_DTTM,
+								   	USE_YN)
+			  VALUES (	#{categoryCdId},
+					 	#{subject},
+	                  	#{question},
+	                  	#{answer},
+	                  	#{interestYn},
+	                  	#{regUserId},
+	                  	DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'),
+	                  	'Y')
+		<selectKey keyProperty="faqSeq" resultType="String" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+
+	</insert>
+
+
+	<update id="updateIotFaqBrd" parameterType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdDTO">
+		UPDATE TB_IOT_BRD_FAQ
+		   SET CATEGORY_CD_ID = #{categoryCdId}
+		      ,SUBJECT = #{subject}
+		      ,QUESTION = #{question}
+		      ,ANSWER = #{answer}
+		      ,INTEREST_YN = #{interestYn}
+		      ,MOD_USR_ID = #{modUserId}
+		      ,MOD_DTTM = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		 WHERE FAQ_SEQ = #{faqSeq}
+	</update>
+
+ 	<select id="retrieveFaqBoardUser" parameterType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdDTO" resultType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdUserDTO">
+		SELECT		FAQ_SEQ ,
+					CATEGORY_CD_ID ,
+		            (SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = CATEGORY_CD_ID) AS CATEGORY_CD_NM ,
+					QUESTION
+		FROM		TB_IOT_BRD_FAQ
+		WHERE		USE_YN = 'Y'
+	    AND FAQ_SEQ <![CDATA[ < ]]> 9999999999999999999999999999
+		<if test="categoryCdId != null">
+		AND			CATEGORY_CD_ID = #{categoryCdId}
+		</if>
+		<if test="question != null">
+		AND			QUESTION LIKE CONCAT(#{question},'%')
+		</if>
+		ORDER BY IFNULL(MOD_DTTM, REG_DTTM) DESC
+		LIMIT 		${currentPage-1}, ${displayRowCount}
+	</select>
+
+	<select id="retrieveFaqBoardInterest" parameterType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdDTO" resultType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdUserDTO">
+		SELECT		FAQ_SEQ ,
+					CATEGORY_CD_ID ,
+		            (SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = CATEGORY_CD_ID) AS CATEGORY_CD_NM ,
+					QUESTION
+		FROM		TB_IOT_BRD_FAQ
+		WHERE		USE_YN = 'Y'
+		AND			INTEREST_YN = 'Y'
+		ORDER BY IFNULL(MOD_DTTM, REG_DTTM) DESC
+	</select>
+
+	<select id="checkRegUser" parameterType="kr.co.scp.ccp.iotFaqBoard.dto.TbIoTFaqBrdDTO" resultType="java.lang.String">
+		SELECT	REG_USR_ID
+		FROM	TB_IOT_BRD_FAQ
+		WHERE	FAQ_SEQ = #{faqSeq}
+	</select>
+</mapper>

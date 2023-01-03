@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+	파일명    : /mapper/rulelist.xml 
+	작성일자 : 2019-02-17
+	작성자    :
+	설명      : 수집 관리
+-->
+<mapper namespace="kr.co.abacus.common.api.dao.ExceptionDAO">
+    <!--  사용자 목록 조회  -->
+	<select id="getExceptionList" parameterType="kr.co.abacus.common.api.dto.ExceptionDTO" resultType="java.util.Map">
+		SELECT
+			MSG_KEY, MSG_CODE, MSG_DESC, MSG_TYPE, MSG_STATUS
+		FROM TB_IOT_EXCEPT_MSG
+		WHERE 1 = 1
+			<if test="is_success != null">
+				AND IS_SUCCESS = #{is_success}
+			</if>
+			<if test="msg_key != null">
+				AND MSG_KEY = #{msg_key}
+			</if>
+	</select>
+	
+</mapper>

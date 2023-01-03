@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.rule.dao.TbIotValRuleDAO">
+	<!-- 파일명 : /mapper/TbIoTValRule.xml -->
+
+	<!-- 검증룰 속성 조회 -->
+	<select id="retrieveTbIotValRuleInfoList" parameterType="kr.co.scp.common.rule.dto.TbIotValRuleDTO" resultType="kr.co.scp.common.rule.dto.TbIotValRuleDTO">
+		SELECT
+			A.API_SEQ AS apiSeq
+			,B.API_URI as ruleUri
+			,A.DEV_SEQ as devSeq
+			,A.VAL_RULE_SEQ as valRuleSeq
+			,A.RULE_KIND as ruleRequest
+			,A.VAL_RULE_NAME as valRuleName
+			,A.RULE_MSG_TYPE as ruleMsgType
+			,A.DEFAULT_YN as defaultYn
+			,A.NULL_YN as nullYn
+			,A.EMPTY_YN as emptyYn
+			,A.DATA_TYPE as dataType
+			,A.DATA_SIZE as dataSize
+			,A.DATA_MIN as dataMin
+			,A.DATA_MAX as dataMax
+			,A.ALLOW_REGEX as allowRegex
+			,A.NOTALLOW_REGEX as notallowRegex
+			,A.REG_USR_ID as regUsrId
+			,A.REG_DTTM as regDttm
+			,A.MOD_USR_ID as modUsrId
+			,A.MOD_DTTM as modDttm
+		FROM TB_IOT_VAL_RULE A ,TB_IOT_API B
+		WHERE 1=1
+		<choose>
+			<when test="devSeq == null">
+				AND A.DEV_SEQ = 0
+			</when>
+			<otherwise>
+				AND A.DEV_SEQ = #{devSeq}
+			</otherwise>
+		</choose>
+		<choose>
+			<when test="ruleMsgType == null or ruleMsgType == ''">
+				AND A.RULE_MSG_TYPE = 1
+			</when>
+			<otherwise>
+				AND A.RULE_MSG_TYPE = #{ruleMsgType}
+			</otherwise>
+		</choose>
+			AND A.API_SEQ = #{apiSeq}
+			AND A.API_SEQ = B.API_SEQ
+	</select>
+
+	<insert id="insertTbIoTValRule" parameterType="kr.co.scp.common.rule.dto.TbIotValRuleDTO">
+		insert into	TB_IOT_VAL_RULE
+		(
+			API_SEQ,
+			DEV_SEQ,
+			VAL_RULE_SEQ,
+			VAL_RULE_NAME,
+			RULE_MSG_TYPE,
+			RULE_KIND,
+			DEFAULT_YN,
+			NULL_YN,
+			EMPTY_YN,
+			DATA_TYPE,
+			DATA_SIZE,
+			DATA_MIN,
+			DATA_MAX,
+			ALLOW_REGEX,
+			NOTALLOW_REGEX,
+			REG_USR_ID,
+			REG_DTTM
+		)
+		values
+		(
+			#{apiSeq},
+			#{devSeq},
+			(
+				SELECT
+					IFNULL(MAX(VAL_RULE_SEQ),0) + 1
+				FROM TB_IOT_VAL_RULE BB
+				WHERE BB.API_SEQ = #{apiSeq}
+					AND BB.DEV_SEQ = #{devSeq}
+			),
+			#{valRuleName},
+			#{ruleMsgType},
+			#{ruleKind},
+			#{defaultYn},
+			#{nullYn},
+			#{emptyYn},
+			#{dataType},
+			#{dataSize},
+			#{dataMin},
+			#{dataMax},
+			#{allowRegex},
+			#{notallowRegex},
+			#{regUsrId},
+			DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		)
+	</insert>
+
+	<delete id="deleteAllTbIotValRule" parameterType="kr.co.scp.common.rule.dto.TbIotValRuleDTO">
+		DELETE FROM TB_IOT_VAL_RULE A
+		WHERE  A.API_SEQ = #{apiSeq}
+			AND A.DEV_SEQ = #{devSeq}
+		<choose>
+			<when test="ruleMsgType == null or ruleMsgType == ''">
+				AND A.RULE_MSG_TYPE = 1
+			</when>
+			<otherwise>
+				AND A.RULE_MSG_TYPE = #{ruleMsgType}
+			</otherwise>
+		</choose>
+	</delete>
+
+</mapper>

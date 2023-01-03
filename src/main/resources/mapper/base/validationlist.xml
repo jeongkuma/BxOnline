@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+	파일명    : /mapper/rulelist.xml
+	작성일자 : 2019-02-17
+	작성자    :
+	설명      : 수집 관리
+-->
+<mapper namespace="kr.co.abacus.common.api.validation">
+
+	<!-- 검증 룰 목록 조회  -->
+	<select id="getRules" parameterType="kr.co.abacus.common.api.dto.ValidationDTO" resultType="map">
+		SELECT
+			A.API_URI AS RULE_URI, VR.VAL_RULE_NAME, VR.RULE_KIND, VR.RULE_KIND,
+			VR.DEFAULT_YN, VR.NULL_YN, VR.EMPTY_YN,
+			VR.DATA_TYPE, VR.DATA_SIZE, VR.DATA_MIN, VR.DATA_MAX,
+			VR.ALLOW_REGEX, VR.NOTALLOW_REGEX
+		FROM TB_IOT_API A JOIN TB_IOT_VAL_RULE VR
+			ON VR.API_SEQ = A.API_SEQ
+			<if test="uuid != null">
+			JOIN TB_IOT_SVC_DEV_M D
+			ON D.DEV_SEQ = VR.DEV_SEQ
+      		JOIN (SELECT DISTINCT CUST_SEQ, DEV_CLS_CD, DEV_MDL_CD
+        		FROM TB_IOT_ENTR_DEV_M
+        		WHERE 1=1
+					AND DEV_UUID = #{uuid}
+				) ED
+      		ON ED.SVC_CD = D.SVC_CD AND ED.DEV_CLS_CD = D.DEV_CLS_CD AND ED.DEV_MDL_CD = D.DEV_MDL_CD
+      		</if>
+		WHERE 1 = 1
+			<if test="httpUri != null">
+			AND A.API_URI = #{httpUri}
+			</if>
+	</select>
+
+
+</mapper>

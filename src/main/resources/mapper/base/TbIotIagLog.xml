@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iagEvent.dao.IagLogDAO">
+
+	<insert id="insertTbIotIagLog" parameterType="kr.co.scp.ccp.iagEvent.dto.TbIotIagLogDTO">
+		<!--
+		INSERT INTO TB_IOT_IAG_LOG (LOG_DTTM,
+									HEADER_INFO,
+									BODY_INFO,
+									REG_USR_ID,
+									REG_DTTM)
+							VALUES (NOW(),
+									#{headerInfo},
+									#{bodyInfo},
+									'IAG',
+									DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'))
+		<selectKey keyProperty="logSeq" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		-->
+	</insert>
+
+        <update id="updateTbIotIagLog" parameterType="kr.co.scp.ccp.iagEvent.dto.TbIotIagLogDTO">
+			<!--
+			   UPDATE TB_IOT_IAG_LOG
+                  SET STATUS_CD  = #{statusCd},
+                      MOD_USR_ID = 'IAG',
+                      MOD_DTTM   = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+                WHERE LOG_SEQ = #{logSeq}
+            -->
+           </update>
+
+       </mapper>

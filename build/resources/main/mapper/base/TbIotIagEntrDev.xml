@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.ccp.iagEvent.dao.IagEntrDevDAO">
+
+	<select id="retrieveTbIotIagEntrDev" parameterType="kr.co.scp.ccp.iagEvent.dto.TbIotIagEntrDevDTO" resultType="java.lang.Integer">
+		SELECT COUNT(1)
+		  FROM TB_IOT_ENTR_DEV_M
+		 WHERE ENTR_NO        = #{iagEventSubsDTO.entrNo}
+		   AND MANF_SERIAL_NO = #{baseSerialNo}
+	</select>
+
+	<select id="retrieveTbIotIagEntrDevImg" parameterType="kr.co.scp.ccp.iagEvent.dto.TbIotIagEntrDevDTO" resultType="java.lang.String">
+		SELECT DEV_IMG_PATH
+		  FROM TB_IOT_ENTR_DEV_M
+		 WHERE ENTR_NO        = #{iagEventSubsDTO.entrNo}
+		   AND MANF_SERIAL_NO = #{baseSerialNo}
+		   AND DEV_IMG_PATH is not null
+	</select>
+
+	<insert id="insertTbIotIagEntrDev" parameterType="kr.co.scp.ccp.iagEvent.dto.TbIotIagEntrDevDTO">
+		INSERT INTO TB_IOT_ENTR_DEV_M (EVENT_DTTM,
+									   DEV_CLS_CD,
+									   DEV_MDL_CD,
+									   STATUS_CD,
+									   SVC_CD,
+									   EVENT_CODE,
+									   IAG_EVENT_CODE, 
+									   HLDR_CUST_NO, 
+									   ENTR_NO, 
+									   ACENO,
+									   CHNG_BFR_PROD_NO, 
+									   PROD_NO,
+									   ITEM_ID,
+									   MANF_SERIAL_NO,
+									   PREV_MANF_SERIAL_NO,
+									   DEV_ESN,
+									   CTN,
+									   DEV_UUID,
+									   REG_USR_ID,
+									   REG_DTTM)
+							   VALUES (NOW(),
+									   #{tbIotIagSvcDevDTO.devClsCd},
+									   #{tbIotIagSvcDevDTO.devMdlCd},
+									   #{tbIotIagSvcDevDTO.statusCd},
+									   #{tbIotIagSvcDevDTO.svcCd},
+									   #{eventCode},
+									   #{iagEventCode},
+									   #{iagEventSubsDTO.hldrCustNo},
+									   #{iagEventSubsDTO.entrNo},
+									   #{iagEventSubsDTO.aceNo},
+									   #{iagEventSubsDTO.chngBfrProdNo},
+									   #{iagEventSubsDTO.prodNo},
+									   #{iagEventDeviceDTO.itemId},
+									   #{iagEventDeviceDTO.manfSerialNo},
+									   #{iagEventDeviceDTO.prevManfSerialNo},
+									   #{iagEventDeviceDTO.devEsn},
+									   #{ctn},
+									   #{devUuid},
+									   'IAG',
+									   DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'))
+		<selectKey keyProperty="entrDevSeq" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>	             
+
+	<update id="updateTbIotIagEntrDev" parameterType="kr.co.scp.ccp.iagEvent.dto.TbIotIagEntrDevDTO">
+		UPDATE TB_IOT_ENTR_DEV_M
+		   SET EVENT_DTTM          = NOW(),
+			   EVENT_CODE          = #{eventCode},
+			   IAG_EVENT_CODE      = #{iagEventCode},
+			   HLDR_CUST_NO        = #{iagEventSubsDTO.hldrCustNo},
+			   ENTR_NO             = #{iagEventSubsDTO.entrNo},
+			   ACENO               = #{iagEventSubsDTO.aceNo},
+			   CHNG_BFR_PROD_NO    = #{iagEventSubsDTO.chngBfrProdNo},
+			   PROD_NO             = #{iagEventSubsDTO.prodNo},
+			   ITEM_ID             = #{iagEventDeviceDTO.itemId},
+			   MANF_SERIAL_NO      = #{iagEventDeviceDTO.manfSerialNo},
+			   PREV_MANF_SERIAL_NO = #{iagEventDeviceDTO.prevManfSerialNo},
+			   DEV_ESN             = #{iagEventDeviceDTO.devEsn},
+			   STATUS_CD           = #{tbIotIagSvcDevDTO.statusCd},
+			   CTN                 = #{ctn},
+			   DEV_UUID            = #{devUuid},
+			   MOD_USR_ID          = 'IAG',
+			   MOD_DTTM            = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		 WHERE ENTR_NO        = #{iagEventSubsDTO.entrNo}
+		   AND MANF_SERIAL_NO = #{baseSerialNo}
+	</update>
+
+	<update id="updateTbIotIagEntrDevC17CAN" parameterType="kr.co.scp.ccp.iagEvent.dto.TbIotIagEntrDevDTO">
+		UPDATE TB_IOT_ENTR_DEV_M
+		   SET EVENT_DTTM          = NOW(),
+			   EVENT_CODE          = #{eventCode},
+			   IAG_EVENT_CODE      = #{iagEventCode},
+			   HLDR_CUST_NO        = #{iagEventSubsDTO.hldrCustNo},
+			   ENTR_NO             = #{iagEventSubsDTO.entrNo},
+			   ACENO               = #{iagEventSubsDTO.aceNo},
+			   CHNG_BFR_PROD_NO    = #{iagEventSubsDTO.chngBfrProdNo},
+			   PROD_NO             = #{iagEventSubsDTO.prodNo},
+			   ITEM_ID             = #{iagEventDeviceDTO.itemId},
+			   MANF_SERIAL_NO      = #{iagEventDeviceDTO.manfSerialNo},
+			   PREV_MANF_SERIAL_NO = #{iagEventDeviceDTO.prevManfSerialNo},
+			   DEV_ESN             = #{iagEventDeviceDTO.devEsn},
+			   STATUS_CD           = #{tbIotIagSvcDevDTO.statusCd},
+			   CTN                 = #{ctn},
+			   DEV_UUID            = #{devUuid},
+			   DEV_IMG_PATH        = null,
+			   DEV_IMG_FILE_NM     = null,
+			   MOD_USR_ID          = 'IAG',
+			   MOD_DTTM            = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		 WHERE ENTR_NO        = #{iagEventSubsDTO.entrNo}
+		   AND MANF_SERIAL_NO = #{baseSerialNo}
+	</update>
+
+</mapper>

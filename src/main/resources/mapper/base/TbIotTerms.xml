@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotTerms.dao.TbIotTermsDAO">
+
+	<select id="checkTermsAgrYn" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="kr.co.scp.ccp.iotTerms.dto.TbIotTermsDTO">
+		SELECT	AGR_H.TERMS_AGR_YN
+		FROM	TB_IOT_TERMS_AGR_H AGR_H
+		JOIN	TB_IOT_TERMS_SVC_M SVC_M
+		ON		AGR_H.IOT_TERMS_NO = SVC_M.IOT_TERMS_NO
+		WHERE	AGR_H.USR_SEQ = (SELECT	USR_SEQ
+							FROM	TB_IOT_USR_M
+							WHERE	USR_LOGIN_ID = #{usrLoginId}
+							AND		CUST_SEQ = (SELECT	CUST_SEQ
+												FROM	TB_IOT_CUST_M
+												WHERE	CUST_LOGIN_ID = #{custLoginId}))
+		AND		SVC_M.REQ_YN = 'Y'
+	</select>
+
+	<select id="retrieveTermsReq" parameterType="kr.co.scp.ccp.iotTerms.dto.TbIotTermsDTO" resultType="kr.co.scp.ccp.iotTerms.dto.TbIotTermsDTO">
+		SELECT	TER.IOT_TERMS_NO ,
+				IOT_TERMS_KD_CD ,
+				(SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = TER.IOT_TERMS_KD_CD AND LANG_SET = #{langSet}) AS IOT_TERMS_NM,
+				TER.IOT_TERMS_ORDER ,
+				TER.IOT_TERMS_CNTN ,
+				TER.REQ_YN,
+				'N' AS CHECK_YN
+		FROM	TB_IOT_TERMS_SVC_M TER
+		WHERE	TER.USE_YN = 'Y'
+		AND		TER.REQ_YN = 'Y'
+	</select>
+
+	<select id="retrieveTermsOpt" parameterType="kr.co.scp.ccp.iotTerms.dto.TbIotTermsDTO" resultType="kr.co.scp.ccp.iotTerms.dto.TbIotTermsDTO">
+		SELECT	TER.IOT_TERMS_NO ,
+				IOT_TERMS_KD_CD ,
+				(SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = TER.IOT_TERMS_KD_CD AND LANG_SET = #{langSet}) AS IOT_TERMS_NM,
+				TER.IOT_TERMS_ORDER ,
+				TER.IOT_TERMS_CNTN ,
+				TER.REQ_YN,
+				'N' AS CHECK_YN
+		FROM	TB_IOT_TERMS_SVC_M TER
+		WHERE	TER.USE_YN = 'Y'
+		AND		TER.REQ_YN = 'N'
+	</select>
+
+	<insert id="createTermsAgr" parameterType="kr.co.scp.ccp.iotTerms.dto.TbIotTermsDTO">
+		INSERT INTO TB_IOT_TERMS_AGR_H (
+					IOT_TERMS_NO ,
+					USR_SEQ ,
+					TERMS_AGR_YN ,
+					TERMS_AGR_DTTM ,
+					REG_USR_ID ,
+					REG_DTTM )
+		VALUES	   (#{iotTermsNo} ,
+					(SELECT USR_SEQ
+					FROM TB_IOT_USR_M
+					WHERE USR_LOGIN_ID = #{usrLoginId}
+					AND CUST_SEQ = (SELECT CUST_SEQ
+									FROM TB_IOT_CUST_M
+									WHERE CUST_LOGIN_ID = #{custLoginId})),
+					'Y',
+					NOW(),
+					#{usrLoginId},
+					DATE_FORMAT(NOW(), '%Y%m%d%H%i%s'))
+	</insert>
+</mapper>

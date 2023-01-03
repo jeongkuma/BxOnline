@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.login.dao.LoginDAO">
+
+	<!-- 로그인 테스트 -->
+	<select id="selectTest" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="kr.co.scp.ccp.login.dto.LoginDTO">
+		SELECT CUST_LOGIN_ID
+		FROM TB_IOT_CUST_M LIMIT 1;
+	</select>
+
+	<select id="processIotLogin" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="kr.co.scp.ccp.login.dto.LoginDTO">
+		SELECT a.CUST_LOGIN_ID
+			 , a.CUST_SEQ
+             , a.LOGIN_STEP_CNT
+             , a.CUST_TEL_NO
+             , a.SVC_CD
+	         , b.USR_LOGIN_ID
+	         , b.USR_SEQ
+	         , b.USR_PWD
+	         , b.USR_NM
+	         , b.ROLE_CD_ID
+	         , (SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID = b.ROLE_CD_ID AND LANG_SET = #{langSet}) AS ROLE_CD_NM
+	         , b.SMS_RCV_NO
+	         , b.USR_PHONE_NO
+	         , IFNULL(b.LOGIN_FAIL_CNT ,'0') AS LOGIN_FAIL_CNT
+	         , SMS_AUTH_FAIL_CNT
+   	         , b.USR_SLP_YN
+             , b.USR_LCK_YN
+             , b.FIRST_LOGIN_YN
+             , IFNULL(b.PWD_NXT_DTTM ,'') AS PWD_NXT_DTTM
+             , IFNULL(b.PWD_MOD_DTTM ,'') AS PWD_MOD_DTTM
+             , b.ORG_SEQ
+             , c.ORG_NM
+             , NOW() AS NOW_DTTM
+		  FROM TB_IOT_CUST_M a
+	  	  JOIN TB_IOT_USR_M b
+		 	ON a.CUST_SEQ = b.CUST_SEQ
+		  JOIN TB_IOT_ORG c
+		  	ON b.ORG_SEQ = c.ORG_SEQ
+		 WHERE binary(a.CUST_LOGIN_ID) = #{custLoginId}
+		   AND binary(b.USR_LOGIN_ID) = #{usrLoginId}
+		   AND b.USE_YN = 'Y'
+   		   AND a.USE_YN = 'Y'
+		   AND (SELECT cmcd.CD_ID
+                FROM TB_IOT_CM_CD cmcd
+                WHERE cmcd.CD_ID = (SELECT tbCust.SVC_CD
+                               FROM TB_IOT_CUST_M tbCust
+                               WHERE tbCust.CUST_LOGIN_ID = #{custLoginId})
+                AND cmcd.USE_YN <![CDATA[<>]]> 'N'
+                AND cmcd.LANG_SET = #{langSet}) IS NOT NULL
+	</select>
+
+	<!--
+	    로그인 실패 카운트 증가 처리
+	 -->
+	<update id="updateLoginFailCnt" parameterType="kr.co.scp.ccp.login.dto.LoginDTO">
+		UPDATE TB_IOT_USR_M
+		   SET LOGIN_FAIL_CNT = #{loginFailCnt}
+		WHERE USR_SEQ = #{usrSeq}
+	</update>
+
+	<!--
+	    잠금 계정 전환
+	 -->
+	<update id="updateUsrLckYn" parameterType="kr.co.scp.ccp.login.dto.LoginDTO">
+		UPDATE TB_IOT_USR_M
+		   SET LOGIN_FAIL_CNT = 0
+		   	 , SMS_AUTH_FAIL_CNT = 0
+		     , USR_LCK_YN = 1
+		     , USR_LCK_MOD_DTTM =  DATE_FORMAT(CURRENT_TIMESTAMP(), '%Y%m%d%H%i%S')
+		     , USR_STTS_MOD_DTTM = DATE_FORMAT(CURRENT_TIMESTAMP(), '%Y%m%d%H%i%S')
+		 WHERE USR_SEQ = #{usrSeq}
+	</update>
+
+	<!--
+		SMS 인증 정보 조회
+	 -->
+	<select id="processIotCheckUsrAuthNo" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="kr.co.scp.ccp.login.dto.LoginDTO">
+		SELECT	AUTH_CD_ID
+				, AUTH_NO
+				, AUTH_SMS_SND_DTTM
+				, IFNULL(DATE_FORMAT(AUTH_NO_EXPIRE_DTTM, '%Y%m%d%H%i%S'), 0) AS AUTH_NO_EXPIRE_DTTM
+				, AUTH_SUCC_DTTM
+				, USR_LCK_YN
+				, NOW() AS NOW_DTTM
+		FROM	TB_IOT_USR_M
+		WHERE	CUST_SEQ = (SELECT	a.CUST_SEQ
+							FROM	TB_IOT_CUST_M a
+		                    WHERE	a.CUST_LOGIN_ID = #{custLoginId})
+		<if test="usrNm != null">
+		AND		USR_NM = #{usrNm}
+		AND		USR_PHONE_NO = #{usrPhoneNo}
+		</if>
+		<if test="usrLoginId != null">
+		AND		binary(USR_LOGIN_ID) = #{usrLoginId}
+		</if>
+	</select>
+
+	<!--
+		SMS 인증 번호 저장
+	-->
+	<update id="updateAuthNo" parameterType="kr.co.scp.ccp.login.dto.LoginDTO">
+		UPDATE	TB_IOT_USR_M
+		SET		AUTH_NO = #{authNo},
+				AUTH_NO_EXPIRE_DTTM= DATE_FORMAT(DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL 3 MINUTE), '%Y%m%d%H%i%S'),
+				AUTH_SMS_SND_DTTM  = DATE_FORMAT(CURRENT_TIMESTAMP(), '%Y%m%d%H%i%S'),
+				AUTH_CD_ID = #{authCdId}
+				<if test = "roleCdId != 'GN00000038' and roleCdId != 'GN00000033'">
+				, SMS_AUTH_FAIL_CNT = #{smsAuthFailCnt}
+				</if>
+		WHERE	CUST_SEQ = (SELECT	a.CUST_SEQ
+							FROM	TB_IOT_CUST_M a
+		                    WHERE	a.CUST_LOGIN_ID = #{custLoginId})
+		<if test="usrNm != null">
+		AND		USR_NM = #{usrNm}
+		AND		USR_PHONE_NO = #{usrPhoneNo}
+		</if>
+		<if test="usrLoginId != null">
+		AND		binary(USR_LOGIN_ID) = #{usrLoginId}
+		</if>
+
+	</update>
+
+	<!--
+		로그인 성공 처리
+	-->
+	<update id="updateUsrLastLoginDttm" parameterType="kr.co.scp.ccp.login.dto.LoginDTO">
+		UPDATE	TB_IOT_USR_M
+		   SET  LAST_LOGIN_DTTM = CURRENT_TIMESTAMP ,
+		   		LOGIN_FAIL_CNT = 0 ,
+		   		FIRST_LOGIN_YN = 'N'
+		 WHERE USR_SEQ = #{usrSeq}
+	</update>
+
+	<!--
+		SMS 인증 성공 처리
+	-->
+	<update id="updateAuthSuccDttm" parameterType="kr.co.scp.ccp.login.dto.LoginDTO">
+		UPDATE	TB_IOT_USR_M
+		   SET  AUTH_SUCC_DTTM = DATE_FORMAT(CURRENT_TIMESTAMP(), '%Y%m%d%H%i%S') ,
+		   		AUTH_NO = null,
+		   		AUTH_NO_EXPIRE_DTTM = null,
+		   		SMS_AUTH_FAIL_CNT = 0
+		 WHERE	CUST_SEQ = (SELECT	a.CUST_SEQ
+							FROM	TB_IOT_CUST_M a
+		                    WHERE	a.CUST_LOGIN_ID = #{custLoginId})
+   		<if test="usrNm != null">
+		AND		USR_NM = #{usrNm}
+		AND		USR_PHONE_NO = #{usrPhoneNo}
+		</if>
+		<if test="usrLoginId != null">
+		AND		binary(USR_LOGIN_ID) = #{usrLoginId}
+		</if>
+	</update>
+
+	<!--
+		이용약관 동의 여부 변경
+	-->
+<!-- 	<update id="updateIotTermsAgreeYn" parameterType="kr.co.scp.ccp.login.dto.LoginDTO">
+		UPDATE	TB_IOT_USR_M
+		   SET	TERMS_AGREE_YN = #{termsAgreeYn} ,
+		   		TERMS_AGREE_DTTM = DATE_FORMAT(current_timestamp(),'%Y%m%d%H%i%s')
+		 WHERE	binary(USR_LOGIN_ID) = #{usrLoginId}
+		 AND	CUST_SEQ = (SELECT	a.CUST_SEQ
+							FROM	TB_IOT_CUST_M a
+		                    WHERE	a.CUST_LOGIN_ID = #{custLoginId})
+	</update> -->
+
+	<!--
+		사용자 패스워드 변경 및 이력 저장
+	 -->
+	<update id="updateIotUsrPwd" parameterType="kr.co.scp.ccp.login.dto.LoginDTO">
+		UPDATE	TB_IOT_USR_M
+		   SET  USR_PWD = #{usrPwd},
+		   		PWD_MOD_DTTM = DATE_FORMAT(CURRENT_TIMESTAMP(),'%Y%m%d%H%i%s'),
+		   		PWD_NXT_DTTM = NULL
+   		<if test="pwdChange != null and pwdChange == 'firstChange'">
+   				, FIRST_LOGIN_YN = 'N'
+   		</if>
+		 WHERE	binary(USR_LOGIN_ID) = #{usrLoginId}
+		 AND	CUST_SEQ = (SELECT	a.CUST_SEQ
+							FROM	TB_IOT_CUST_M a
+		                    WHERE	a.CUST_LOGIN_ID = #{custLoginId})
+	</update>
+
+	<update id="updateIotUsrPwdHist" parameterType="kr.co.scp.ccp.login.dto.LoginDTO">
+		INSERT INTO TB_IOT_USR_PWD_HIST
+			   (   USR_SEQ
+				 , CHG_DATE
+				 , REG_USR_ID
+	             , REG_DTTM
+	             , USR_PWD)
+		VALUES ((SELECT 	USR_SEQ
+				 FROM 		TB_IOT_USR_M
+		         WHERE 		binary(USR_LOGIN_ID) = #{usrLoginId}
+		         AND		CUST_SEQ = (SELECT	CUST_SEQ
+		         						FROM	TB_IOT_CUST_M
+		         						WHERE	CUST_LOGIN_ID = #{custLoginId}))
+		         , DATE_FORMAT(CURRENT_TIMESTAMP(),'%Y%m%d%H%i%s')
+		         , #{usrLoginId}
+	             , DATE_FORMAT(CURRENT_TIMESTAMP(),'%Y%m%d%H%i%s')
+	             , #{usrPwd});
+	</update>
+
+	<select id="retrieveUsrPwdCur" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="java.lang.String">
+		SELECT
+			   b.USR_PWD
+	      FROM TB_IOT_USR_PWD_HIST b
+		 WHERE b.USR_SEQ = (SELECT
+		 						   USR_SEQ
+							  FROM TB_IOT_USR_M a
+		                	 WHERE USR_LOGIN_ID = #{usrLoginId}
+		                	   AND CUST_SEQ = ( SELECT
+		                	                           CUST_SEQ
+		                	   					  FROM TB_IOT_CUST_M
+		                	   					 WHERE CUST_LOGIN_ID = #{custLoginId}
+	                	   					  )
+           	   			    )
+	    ORDER BY b.CHG_DATE DESC, b.PWD_HIST_SEQ DESC
+	    LIMIT 3
+	</select>
+
+	<!--
+		사용자 패스워드 다음에 변경
+	 -->
+	<update id="updateIotUsrPwdNxt" parameterType="kr.co.scp.ccp.login.dto.LoginDTO">
+		UPDATE	TB_IOT_USR_M
+		   SET  PWD_NXT_DTTM = DATE_FORMAT(DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL 1 MONTH), '%Y%m%d%H%i%S')
+		 WHERE	binary(USR_LOGIN_ID) = #{usrLoginId}
+		 AND	CUST_SEQ = (SELECT	a.CUST_SEQ
+							FROM	TB_IOT_CUST_M a
+		                    WHERE	binary(a.CUST_LOGIN_ID) = #{custLoginId})
+	</update>
+
+	<!--
+		사용자 암호 변경 이력 조회(최근 3건)
+	-->
+	<select id="retrieveUsrPwdHist" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="kr.co.scp.ccp.login.dto.LoginDTO">
+		SELECT		USR_PWD
+		FROM		TB_IOT_USR_PWD_HIST
+		WHERE		USR_SEQ = (SELECT	USR_SEQ
+							   FROM		TB_IOT_USR_M a
+		                	   WHERE	binary(USR_LOGIN_ID) = #{usrLoginId}
+		                	   AND		CUST_SEQ = (SELECT	CUST_SEQ
+		                	   						FROM	TB_IOT_CUST_M
+		                	   						WHERE	CUST_LOGIN_ID = #{custLoginId}))
+		ORDER BY	REG_DTTM DESC
+		LIMIT		3
+	</select>
+
+	<!-- 인증번호 요청 시 사용자 정보 확인 -->
+	<select id="retrieveIotUsrInfo" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="kr.co.scp.ccp.login.dto.LoginDTO">
+		SELECT	a.CUST_LOGIN_ID,
+				b.USR_NM,
+				b.USR_LOGIN_ID,
+		        b.USR_PHONE_NO,
+		        IFNULL(b.USR_LCK_YN, 0) AS USR_LCK_YN,
+		        IFNULL(b.USR_SLP_YN, 0) AS USR_SLP_YN,
+		        b.FIRST_LOGIN_YN
+		FROM	TB_IOT_CUST_M a
+		JOIN	TB_IOT_USR_M b
+		ON		a.CUST_SEQ = b.CUST_SEQ
+		WHERE	binary(a.CUST_LOGIN_ID) = #{custLoginId}
+		AND		a.USE_YN = 'Y'
+		AND		b.USE_YN = 'Y'
+		<if test="usrNm != null">
+		AND		b.USR_NM = #{usrNm}
+		AND		b.USR_PHONE_NO = #{usrPhoneNo}
+		</if>
+		<if test="usrLoginId != null">
+        AND 	binary(b.USR_LOGIN_ID) = #{usrLoginId}
+   		AND		b.USR_PHONE_NO = #{usrPhoneNo}
+	  	</if>
+	</select>
+
+	<!-- 사용자 개인정보 조회  -->
+	<select id="retrieveIotUsrPersonalInfo" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="kr.co.scp.ccp.login.dto.LoginUserPersonalInfoDTO">
+		SELECT	USR_LOGIN_ID ,
+				USR_NM ,
+				SMS_RCV_NO ,
+				USR_PHONE_NO ,
+		        USR_EMAIL
+		FROM	TB_IOT_USR_M
+		WHERE	USR_LOGIN_ID = #{usrLoginId}
+		AND		CUST_SEQ = (SELECT CUST_SEQ
+							FROM	TB_IOT_CUST_M
+		                    WHERE	binary(CUST_LOGIN_ID) = #{custLoginId})
+	</select>
+
+	<!-- DB 현재 시각 조회 -->
+<!-- 	<select id="retrieveCurrentTimeStamp" resultType="java.lang.Long">
+		SELECT		DATE_FORMAT(CURRENT_TIMESTAMP(), '%Y%m%d%H%i%S')
+		FROM		DUAL
+	</select> -->
+
+	<!-- 마지막 비밀번호 변경 일시 판별 -->
+	<select id="checkModDttm" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="java.lang.String">
+		SELECT CASE
+					WHEN NOW() <![CDATA[>]]> DATE_ADD(#{pwdModDttm}, INTERVAL 3 MONTH) THEN 'Y'
+		        	ELSE 'N'
+		        END AS "RESULT"
+		FROM 	TB_IOT_USR_M
+		WHERE	USR_SEQ = #{usrSeq}
+	</select>
+
+	<!-- <select id="checkTermsAgree" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="java.lang.String">
+		SELECT	TERMS_AGREE_YN
+		FROM	TB_IOT_USR_M
+		WHERE	binary(USR_LOGIN_ID) = #{usrLoginId}
+	</select> -->
+
+	<!-- 비밀번호 변경 시 비밀번호에 아이디와 전화번호가 들어있는지 판별 -->
+	<select id="checkPwdVal" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="java.lang.String">
+		SELECT CASE
+		        WHEN 0 <![CDATA[<]]> INSTR(#{usrPwd}, USR_LOGIN_ID) THEN 'F'
+		        WHEN 0 <![CDATA[<]]> INSTR(#{usrPwd}, SUBSTR(USR_PHONE_NO,4)) THEN 'F'
+		        WHEN 0 <![CDATA[<]]> INSTR(#{usrPwd}, SUBSTR(USR_PHONE_NO,-4)) THEN 'F'
+		        ELSE 'T'
+		        END AS RESULT
+		FROM	TB_IOT_USR_M
+		WHERE	USR_LOGIN_ID = #{usrLoginId}
+		AND		CUST_SEQ = (SELECT	CUST_SEQ
+						 	FROM	TB_IOT_CUST_M
+						 	WHERE	CUST_LOGIN_ID = #{custLoginId})
+	</select>
+
+	<!-- 비밀번호 다음에 변경 날짜에 도달했는지 판별 -->
+	<select id="checkPwdNxt" parameterType="kr.co.scp.ccp.login.dto.LoginDTO" resultType="java.lang.String">
+		SELECT CASE
+	        WHEN PWD_NXT_DTTM <![CDATA[<=]]> NOW() THEN 'Y'
+	        ELSE 'N'
+	        END AS result
+		FROM TB_IOT_USR_M
+		WHERE USR_SEQ = #{usrSeq}
+	</select>
+
+	<!-- 로그인 고객사 로고 조회 -->
+	<select id="retrieveLogo" parameterType="kr.co.scp.ccp.login.dto.LogoDTO" resultType="kr.co.scp.ccp.login.dto.LogoDTO">
+		SELECT	FILE_NAME
+				, FILE_PATH
+		FROM	TB_IOT_BRD_FILE_LIST
+		WHERE	CONTENT_SEQ = #{custSeq}
+		AND		CONTENT_TYPE = #{contentType}
+		<if test='userPlatform == "W"'>
+		AND		ORG_FILE_NAME = (	SELECT	CUST_WLOGO_FILE
+									FROM	TB_IOT_CUST_M
+									WHERE	CUST_SEQ = #{custSeq})
+		</if>
+		<if test='userPlatform == "M"'>
+		AND		ORG_FILE_NAME = (	SELECT	CUST_MLOGO_FILE
+									FROM	TB_IOT_CUST_M
+									WHERE	CUST_SEQ = #{custSeq})
+		</if>
+	</select>
+</mapper>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotDev.dao.IotDevDetSetParamDAO">
+
+    <!-- 장비 이상징후SET 등록 -->
+    <insert id="insertTbIotDevDetSetParam" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDetSetDTO">
+       INSERT INTO TB_IOT_S_DEV_DET_SET (
+                S_DEV_ATTB_SEQ
+                ,SVC_CD
+                ,DEV_DET_SET_CD_ID
+                ,DET_SET_COND
+                ,STATUS_CD
+                ,ICON_URL
+                ,DET_SET_DESC
+                ,REG_USR_ID
+                ,REG_DTTM
+                ,MOD_USR_ID
+                ,MOD_DTTM)
+       VALUES
+             (
+                #{devAttbSeq}
+                ,#{svcCd}
+                ,#{devDetSetCdId}
+                ,#{detSetCond}
+                ,(SELECT PARAM_KEY
+                 FROM TB_IOT_CM_CD
+                WHERE CD_ID = 'GN00000148')
+                ,#{iconUrl}
+                ,#{detSetDesc}
+                ,#{regUsrId}
+                ,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+                ,null
+                ,null
+             )
+     </insert>
+
+    <!-- 장비 이상징후SET 수정 -->
+    <update id="updateTbIotDevDetSetParam" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDetSetDTO">
+		UPDATE TB_IOT_S_DEV_DET_SET
+		   SET DEV_DET_SET_CD_ID  = #{devDetSetCdId}
+		     , DET_SET_COND       = #{detSetCond}
+		     , DET_SET_DESC       = #{detSetDesc}
+	       ,MOD_USR_ID   =  #{modUsrId}
+         ,MOD_DTTM     =  DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE S_DEV_DET_SET_SEQ = #{devDetSetSeq}
+	</update>
+
+    <!-- 장비 이상징후SET 삭제 -->
+    <update id="deleteTbIotDevDetSetParam" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDetSetDTO">
+		UPDATE TB_IOT_S_DEV_DET_SET
+		   SET STATUS_CD = 'C'
+	        ,MOD_USR_ID   =  #{modUsrId}
+          ,MOD_DTTM     =  DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE S_DEV_DET_SET_SEQ = #{devDetSetSeq}
+	</update>
+
+
+</mapper>

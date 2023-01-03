@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotPushTopic.dao.PushTopicDAO">
+
+	<select id="retrievePushTopicHumidityList" parameterType="kr.co.scp.ccp.iotPushTopic.dto.PushTopicHumidityDTO" resultType="kr.co.scp.ccp.iotPushTopic.dto.PushTopicHumidityDTO">
+		SELECT DBMS_RANDOM.VALUE() AS HUMIDITY FROM DUAL
+	</select>
+
+	<select id="retrievePushTopicTemperatureList" parameterType="kr.co.scp.ccp.iotPushTopic.dto.PushTopicTemperatureDTO" resultType="kr.co.scp.ccp.iotPushTopic.dto.PushTopicTemperatureDTO">
+		SELECT DBMS_RANDOM.VALUE() AS TEMPERATURE FROM DUAL
+	</select>
+
+<!-- 	장비유형별장비현황(가입장비의 상태가 사용중(A)인장비현황) -->
+	<select id="retrievePushTopicDevClsStatusList" parameterType="java.util.Map" resultType="kr.co.scp.ccp.iotPushTopic.dto.PushTopicDevClsStatusDTO">
+		SELECT SDM.DEV_CLS_CD_NM
+			, COUNT(CASE WHEN DEV.STATUS_CD = 'A' THEN 1 ELSE NULL END) AS ACT -- 가입중
+			, COUNT(CASE WHEN DEV.STATUS_CD = 'S' THEN 1 ELSE NULL END) AS SUS -- 일시정지
+			, COUNT(CASE WHEN DEV.STATUS_CD = 'C' THEN 1 ELSE NULL END) AS CAN -- 해지
+		FROM TB_IOT_ENTR_DEV_M DEV
+		INNER JOIN TB_IOT_SVC_DEV_M SDM
+			ON DEV.SVC_CD = SDM.SVC_CD
+		AND DEV.DEV_CLS_CD = SDM.DEV_CLS_CD
+		AND DEV.DEV_MDL_CD = SDM.DEV_MDL_CD
+		WHERE DEV.CUST_SEQ = #{defCustSeq}
+		<choose>
+			<when test="orgSeq != null">
+				AND DEV.ORG_SEQ = #{orgSeq}
+			</when>
+		</choose>
+		<if test="ctn != null">
+			AND DEV.CTN = #{ctn}
+		</if>
+		<if test="devUname != null">
+			AND DEV.DEV_UNAME = #{devUname}
+		</if>
+		GROUP BY SDM.DEV_CLS_CD_NM
+		ORDER BY SDM.DEV_CLS_CD_NM
+	</select>
+
+<!-- 	이상등급별 이상항목(주의/경미/이상) -->
+	<select id="retrievePushTopicLevelDetStatusList" parameterType="java.util.Map" resultType="kr.co.scp.ccp.iotPushTopic.dto.PushTopicLevelDetStatusDTO">
+		SELECT  DEV_CLS_CD_NM
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000004' THEN 1 ELSE NULL END) AS DS00000004 -- 이상
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000005' THEN 1 ELSE NULL END) AS DS00000005 -- 주의
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000006' THEN 1 ELSE NULL END) AS DS00000006 -- 경미
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000007' THEN 1 ELSE NULL END) AS DS00000007 -- 정상
+		FROM (
+			SELECT SDM.DEV_CLS_CD_NM,
+					IF(CURVAL.DET_STATUS_CD_ID IS NULL, 'DS00000007', DET_STATUS_CD_ID) AS DET_STATUS_CD_ID
+			FROM TB_IOT_ENTR_DEV_M DEV
+			INNER JOIN  TB_IOT_E_DEV_CUR_VAL CURVAL
+				ON DEV.ENTR_DEV_SEQ = CURVAL.ENTR_DEV_SEQ
+			INNER JOIN TB_IOT_SVC_DEV_M SDM
+				ON DEV.SVC_CD = SDM.SVC_CD
+			AND DEV.DEV_CLS_CD = SDM.DEV_CLS_CD
+			AND DEV.DEV_MDL_CD = SDM.DEV_MDL_CD
+			WHERE DEV.STATUS_CD = 'A'
+			AND DEV.CUST_SEQ = #{defCustSeq}
+			<choose>
+				<when test="orgSeq != null">
+					AND DEV.ORG_SEQ = #{orgSeq}
+				</when>
+			</choose>
+			<if test="ctn != null">
+				AND DEV.CTN = #{ctn}
+			</if>
+			<if test="devUname != null">
+				AND DEV.DEV_UNAME = #{devUname}
+			</if>
+		)
+		GROUP BY DEV_CLS_CD_NM
+		ORDER BY DEV_CLS_CD_NM
+	</select>
+
+
+
+<!-- 	속성별 이상항목(온도/압력 등) -->
+	<select id="retrievePushTopicAttbDetStatusList" parameterType="java.util.Map" resultType="kr.co.scp.ccp.iotPushTopic.dto.PushTopicAttbDetStatusDTO">
+		SELECT  DEV_CLS_CD_NM
+			,    DEV_ATTB_CD_NM
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000004' THEN 1 ELSE NULL END) AS DS00000004 -- 이상
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000005' THEN 1 ELSE NULL END) AS DS00000005 -- 주의
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000006' THEN 1 ELSE NULL END) AS DS00000006 -- 경미
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000007' THEN 1 ELSE NULL END) AS DS00000007 -- 정상
+		FROM (
+			SELECT SDM.DEV_CLS_CD_NM,
+					ICD.CD_NM AS DEV_ATTB_CD_NM,
+					IF(CURVAL.DET_STATUS_CD_ID IS NULL, 'DS00000007', DET_STATUS_CD_ID) AS DET_STATUS_CD_ID
+			FROM TB_IOT_ENTR_DEV_M DEV
+			INNER JOIN  TB_IOT_E_DEV_CUR_VAL CURVAL
+				ON DEV.ENTR_DEV_SEQ = CURVAL.ENTR_DEV_SEQ
+			INNER JOIN TB_IOT_SVC_DEV_M SDM
+				ON DEV.SVC_CD = SDM.SVC_CD
+			AND DEV.DEV_CLS_CD = SDM.DEV_CLS_CD
+			AND DEV.DEV_MDL_CD = SDM.DEV_MDL_CD
+			INNER JOIN TB_IOT_CM_CD ICD
+				ON CURVAL.DEV_ATTB_CD_ID = ICD.CD_ID
+			AND ICD.LANG_SET = #{langSet}
+			WHERE DEV.STATUS_CD = 'A'
+			AND DEV.CUST_SEQ = #{defCustSeq}
+			AND CURVAL.E_DEV_CUR_VAL_SEQ IN (SELECT E_DEV_CUR_VAL_SEQ FROM TB_IOT_E_DEV_DET_SET DETSET WHERE DETSET.ENTR_DEV_SEQ = CURVAL.ENTR_DEV_SEQ AND DETSET.DET_APPLY_YN = 'Y')
+			<choose>
+				<when test="orgSeq != null">
+					AND DEV.ORG_SEQ = #{orgSeq}
+				</when>
+			</choose>
+			<if test="ctn != null">
+				AND DEV.CTN = #{ctn}
+			</if>
+			<if test="devUname != null">
+				AND DEV.DEV_UNAME = #{devUname}
+			</if>
+		)
+		GROUP BY DEV_CLS_CD_NM, DEV_ATTB_CD_NM
+		ORDER BY DEV_CLS_CD_NM
+	</select>
+
+
+	<select id="retrievePushTopicAttbColStatusList" parameterType="java.util.Map" resultType="HashMap">
+			SELECT * FROM (
+				SELECT
+					CONCAT(LEFT(DATE_FORMAT(NOW(), '%Y'),2),A.ATTB_VL01) AS colDate
+					, A.ATTB_VL01
+					, A.ATTB_VL02
+					, A.ATTB_VL03
+					, A.ATTB_VL04
+					, A.ATTB_VL05
+					, A.ATTB_VL06
+					, A.ATTB_VL07
+					, A.ATTB_VL08
+					, A.ATTB_VL09
+					, A.ATTB_VL10
+					, A.ATTB_VL11
+					, A.ATTB_VL12
+					, A.ATTB_VL13
+					, A.ATTB_VL14
+					, A.ATTB_VL15
+					, A.ATTB_VL16
+					, A.ATTB_VL17
+					, A.ATTB_VL18
+					, A.ATTB_VL19
+					, A.ATTB_VL20
+					, A.ATTB_VL21
+					, A.ATTB_VL22
+					, A.ATTB_VL23
+					, A.ATTB_VL24
+					, A.ATTB_VL25
+					, A.ATTB_VL26
+					, A.ATTB_VL27
+					, A.ATTB_VL28
+					, A.ATTB_VL29
+					, A.ATTB_VL30
+					, A.ATTB_VL31
+					, A.ATTB_VL32
+					, A.ATTB_VL33
+					, A.ATTB_VL34
+					, A.ATTB_VL35
+					, A.ATTB_VL36
+					, A.ATTB_VL37
+					, A.ATTB_VL38
+					, A.ATTB_VL39
+					, A.ATTB_VL40
+					, A.ATTB_VL41
+					, A.ATTB_VL42
+					, A.ATTB_VL43
+					, A.ATTB_VL44
+					, A.ATTB_VL45
+					, A.ATTB_VL46
+					, A.ATTB_VL47
+					, A.ATTB_VL48
+					, A.ATTB_VL49
+					, A.ATTB_VL50
+				FROM TB_IOT_E_DEV_HIST A
+				INNER JOIN TB_IOT_ENTR_DEV_M B
+				ON A.ENTR_DEV_SEQ = B.ENTR_DEV_SEQ AND B.STATUS_CD = 'A'
+				WHERE DATE_FORMAT(A.COL_DATE,'%Y%m%d') >= DATE_FORMAT(NOW(),'%Y%m%d')
+				<if test="ctn != null">
+					AND B.CTN = #{ctn}
+				</if>
+				<if test="devUname != null">
+					AND B.DEV_UNAME = #{devUname}
+				</if>
+				ORDER BY colDate DESC
+				LIMIT 12
+			) AA
+			ORDER BY colDate
+	</select>
+
+	<select id="retrievePushTopicAttbCurrentColStatusList" parameterType="java.util.Map" resultType="HashMap">
+		 SELECT
+		 	  CONCAT(LEFT(DATE_FORMAT(NOW(), '%Y'),2),A.ATTB_VL01) AS colDate
+			, A.ATTB_VL01
+			, A.ATTB_VL02
+			, A.ATTB_VL03
+			, A.ATTB_VL04
+			, A.ATTB_VL05
+			, A.ATTB_VL06
+			, A.ATTB_VL07
+			, A.ATTB_VL08
+			, A.ATTB_VL09
+			, A.ATTB_VL10
+			, A.ATTB_VL11
+			, A.ATTB_VL12
+			, A.ATTB_VL13
+			, A.ATTB_VL14
+			, A.ATTB_VL15
+			, A.ATTB_VL16
+			, A.ATTB_VL17
+			, A.ATTB_VL18
+			, A.ATTB_VL19
+			, A.ATTB_VL20
+			, A.ATTB_VL21
+			, A.ATTB_VL22
+			, A.ATTB_VL23
+			, A.ATTB_VL24
+			, A.ATTB_VL25
+			, A.ATTB_VL26
+			, A.ATTB_VL27
+			, A.ATTB_VL28
+			, A.ATTB_VL29
+			, A.ATTB_VL30
+			, A.ATTB_VL31
+			, A.ATTB_VL32
+			, A.ATTB_VL33
+			, A.ATTB_VL34
+			, A.ATTB_VL35
+			, A.ATTB_VL36
+			, A.ATTB_VL37
+			, A.ATTB_VL38
+			, A.ATTB_VL39
+			, A.ATTB_VL40
+			, A.ATTB_VL41
+			, A.ATTB_VL42
+			, A.ATTB_VL43
+			, A.ATTB_VL44
+			, A.ATTB_VL45
+			, A.ATTB_VL46
+			, A.ATTB_VL47
+			, A.ATTB_VL48
+			, A.ATTB_VL49
+			, A.ATTB_VL50
+		FROM TB_IOT_E_DEV_COL_VAL A
+		INNER JOIN TB_IOT_ENTR_DEV_M B
+		ON A.ENTR_DEV_SEQ = B.ENTR_DEV_SEQ AND B.STATUS_CD = 'A'
+		WHERE A.ATTB_VL01 IS NOT NULL
+		<if test="ctn != null">
+			AND B.CTN = #{ctn}
+		</if>
+		<if test="devUname != null">
+			AND B.DEV_UNAME = #{devUname}
+		</if>
+	</select>
+
+	<select id="retrievePushTopicAttbCurrentStatusList" parameterType="java.util.Map" resultType="HashMap">
+		 SELECT DATE_FORMAT(A.CUR_STS_DATE,'%Y-%m-%d %H:%i:%s') AS colDate
+			, A.ATTB_VL01
+			, A.ATTB_VL02
+			, A.ATTB_VL03
+			, A.ATTB_VL04
+			, A.ATTB_VL05
+			, A.ATTB_VL06
+			, A.ATTB_VL07
+			, A.ATTB_VL08
+			, A.ATTB_VL09
+			, A.ATTB_VL10
+			, A.ATTB_VL11
+			, A.ATTB_VL12
+			, A.ATTB_VL13
+			, A.ATTB_VL14
+			, A.ATTB_VL15
+			, A.ATTB_VL16
+			, A.ATTB_VL17
+			, A.ATTB_VL18
+			, A.ATTB_VL19
+			, A.ATTB_VL20
+			, A.ATTB_VL21
+			, A.ATTB_VL22
+			, A.ATTB_VL23
+			, A.ATTB_VL24
+			, A.ATTB_VL25
+			, A.ATTB_VL26
+			, A.ATTB_VL27
+			, A.ATTB_VL28
+			, A.ATTB_VL29
+			, A.ATTB_VL30
+			, A.ATTB_VL31
+			, A.ATTB_VL32
+			, A.ATTB_VL33
+			, A.ATTB_VL34
+			, A.ATTB_VL35
+			, A.ATTB_VL36
+			, A.ATTB_VL37
+			, A.ATTB_VL38
+			, A.ATTB_VL39
+			, A.ATTB_VL40
+			, A.ATTB_VL41
+			, A.ATTB_VL42
+			, A.ATTB_VL43
+			, A.ATTB_VL44
+			, A.ATTB_VL45
+			, A.ATTB_VL46
+			, A.ATTB_VL47
+			, A.ATTB_VL48
+			, A.ATTB_VL49
+			, A.ATTB_VL50
+		FROM TB_IOT_E_DEV_COL_VAL A
+		INNER JOIN TB_IOT_ENTR_DEV_M B
+		ON A.ENTR_DEV_SEQ = B.ENTR_DEV_SEQ AND B.STATUS_CD = 'A'
+		WHERE 1=1
+		<if test="ctn != null">
+			AND B.CTN = #{ctn}
+		</if>
+		<if test="devUname != null">
+			AND B.DEV_UNAME = #{devUname}
+		</if>
+	</select>
+
+	<select id="retrievePushTopicDevClsStatusPieList" parameterType="java.util.Map" resultType="kr.co.scp.ccp.iotPushTopic.dto.PushTopicDevClsStatusDTO">
+		SELECT SDM.DEV_CLS_CD_NM
+			, COUNT(CASE WHEN DEV.STATUS_CD = 'A' THEN 1 ELSE NULL END) AS ACT -- 가입중
+			, COUNT(CASE WHEN DEV.STATUS_CD = 'S' THEN 1 ELSE NULL END) AS SUS -- 일시정지
+			, COUNT(CASE WHEN DEV.STATUS_CD = 'C' THEN 1 ELSE NULL END) AS CAN -- 해지
+		FROM TB_IOT_ENTR_DEV_M DEV
+		INNER JOIN TB_IOT_SVC_DEV_M SDM
+			ON DEV.SVC_CD = SDM.SVC_CD
+		AND DEV.DEV_CLS_CD = SDM.DEV_CLS_CD
+		AND DEV.DEV_MDL_CD = SDM.DEV_MDL_CD
+		WHERE DEV.CUST_SEQ = #{defCustSeq}
+		<choose>
+		<when test="orgSeq != null">
+			AND DEV.ORG_SEQ = #{orgSeq}
+		</when>
+		<otherwise>
+			AND DEV.ORG_SEQ = #{defOrgSeq}
+		</otherwise>
+		</choose>
+		<if test="ctn != null">
+			AND DEV.CTN = #{ctn}
+		</if>
+		<if test="devClsCd != null">
+			AND DEV.DEV_CLS_CD = #{devClsCd}
+		</if>
+		<if test="devUname != null">
+			AND DEV.DEV_UNAME = #{devUname}
+		</if>
+		GROUP BY SDM.DEV_CLS_CD_NM
+		ORDER BY SDM.DEV_CLS_CD_NM
+	</select>
+
+<!-- 	이상등급별 이상항목(주의/경미/이상) -->
+	<select id="retrievePushTopicLevelDetStatusPieList" parameterType="java.util.Map" resultType="kr.co.scp.ccp.iotPushTopic.dto.PushTopicLevelDetStatusDTO">
+		SELECT  DEV_CLS_CD_NM
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000004' THEN 1 ELSE NULL END) AS DS00000004 -- 이상
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000005' THEN 1 ELSE NULL END) AS DS00000005 -- 주의
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000006' THEN 1 ELSE NULL END) AS DS00000006 -- 경미
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000007' THEN 1 ELSE NULL END) AS DS00000007 -- 정상
+		FROM (
+			SELECT SDM.DEV_CLS_CD_NM,
+				IF(CURVAL.DET_STATUS_CD_ID IS NULL, 'DS00000007', DET_STATUS_CD_ID) AS DET_STATUS_CD_ID
+			FROM TB_IOT_ENTR_DEV_M DEV
+			INNER JOIN  TB_IOT_E_DEV_CUR_VAL CURVAL
+				ON DEV.ENTR_DEV_SEQ = CURVAL.ENTR_DEV_SEQ
+			INNER JOIN TB_IOT_SVC_DEV_M SDM
+				ON DEV.SVC_CD = SDM.SVC_CD
+			AND DEV.DEV_CLS_CD = SDM.DEV_CLS_CD
+			AND DEV.DEV_MDL_CD = SDM.DEV_MDL_CD
+			WHERE DEV.STATUS_CD = 'A'
+			AND DEV.CUST_SEQ = #{defCustSeq}
+		<choose>
+		<when test="orgSeq != null">
+			AND DEV.ORG_SEQ = #{orgSeq}
+		</when>
+		<otherwise>
+			AND DEV.ORG_SEQ = #{defOrgSeq}
+		</otherwise>
+		</choose>
+		<if test="ctn != null">
+			AND DEV.CTN = #{ctn}
+		</if>
+		<if test="devClsCd != null">
+			AND DEV.DEV_CLS_CD = #{devClsCd}
+		</if>
+		<if test="devUname != null">
+			AND DEV.DEV_UNAME = #{devUname}
+		</if>
+		GROUP BY DEV_CLS_CD_NM
+		ORDER BY DEV_CLS_CD_NM
+	</select>
+
+
+
+<!-- 	속성별 이상항목(온도/압력 등) -->
+	<select id="retrievePushTopicAttbDetStatusPieList" parameterType="java.util.Map" resultType="kr.co.scp.ccp.iotPushTopic.dto.PushTopicAttbDetStatusDTO">
+		SELECT  DEV_CLS_CD_NM
+			,    DEV_ATTB_CD_NM
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000004' THEN 1 ELSE NULL END) AS DS00000004 -- 이상
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000005' THEN 1 ELSE NULL END) AS DS00000005 -- 주의
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000006' THEN 1 ELSE NULL END) AS DS00000006 -- 경미
+			, COUNT(CASE WHEN DET_STATUS_CD_ID = 'DS00000007' THEN 1 ELSE NULL END) AS DS00000007 -- 정상
+		FROM (
+			SELECT SDM.DEV_CLS_CD_NM,
+					ICD.CD_NM AS DEV_ATTB_CD_NM,
+					IF(CURVAL.DET_STATUS_CD_ID IS NULL, 'DS00000007', DET_STATUS_CD_ID) AS DET_STATUS_CD_ID
+			FROM TB_IOT_ENTR_DEV_M DEV
+			INNER JOIN  TB_IOT_E_DEV_CUR_VAL CURVAL
+				ON DEV.ENTR_DEV_SEQ = CURVAL.ENTR_DEV_SEQ
+			INNER JOIN TB_IOT_SVC_DEV_M SDM
+				ON DEV.SVC_CD = SDM.SVC_CD
+			AND DEV.DEV_CLS_CD = SDM.DEV_CLS_CD
+			AND DEV.DEV_MDL_CD = SDM.DEV_MDL_CD
+			INNER JOIN TB_IOT_CM_CD ICD
+				ON CURVAL.DEV_ATTB_CD_ID = ICD.CD_ID
+			AND ICD.LANG_SET = #{langSet}
+			WHERE DEV.STATUS_CD = 'A'
+			AND DEV.CUST_SEQ = #{defCustSeq}
+			AND CURVAL.E_DEV_CUR_VAL_SEQ IN (SELECT E_DEV_CUR_VAL_SEQ FROM TB_IOT_E_DEV_DET_SET DETSET WHERE DETSET.ENTR_DEV_SEQ = CURVAL.ENTR_DEV_SEQ AND DETSET.DET_APPLY_YN = 'Y')
+			<choose>
+			<when test="orgSeq != null">
+				AND DEV.ORG_SEQ = #{orgSeq}
+			</when>
+			<otherwise>
+				AND DEV.ORG_SEQ = #{defOrgSeq}
+			</otherwise>
+			</choose>
+			<if test="ctn != null">
+				AND DEV.CTN = #{ctn}
+			</if>
+			<if test="devClsCd != null">
+				AND DEV.DEV_CLS_CD = #{devClsCd}
+			</if>
+			<if test="devUname != null">
+				AND DEV.DEV_UNAME = #{devUname}
+			</if>
+		)
+		GROUP BY DEV_CLS_CD_NM, DEV_ATTB_CD_NM
+		ORDER BY DEV_CLS_CD_NM
+	</select>
+</mapper>

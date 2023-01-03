@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotDev.dao.IotDevAttrParamDAO">
+    <!--장비 속성 등록 -->
+    <insert id="insertTbIotDevParam" >
+       INSERT INTO TB_IOT_S_DEV_ATB
+             (
+               S_DEV_SEQ,
+               DEV_ATTB_CD_ID,
+               SVC_CD,
+               DEV_CLS_CD,
+               DEV_MDL_CD,
+               INPUT_TYPE,
+               PARAM_KEY,
+               COL_NM_CD,
+               CON_NM_CD,
+               STA_AVG_NM_CD,
+               STA_SUM_NM_CD,
+               DET_NM_CD,
+               MAP_YN,
+               UNIT,
+               ORDER_NO,
+               STATUS_CD,
+               DEV_ATTB_TYPE,
+               REG_USR_ID,
+               REG_DTTM,
+               MOD_USR_ID,
+               MOD_DTTM)
+        VALUES
+                (
+                #{devSeq}
+                 ,#{devAttbCdId}
+                 ,#{svcCd}
+                 ,#{devClsCd}
+                 ,#{devMdlCd}
+                 ,#{inputType}
+                 ,#{paramKey}
+                 ,#{colNmCd}
+                 ,#{conNmCd}
+                 ,#{staAvgNmCd}
+                 ,#{staSumNmCd}
+                 ,#{detNmCd}
+                 ,#{mapYn}
+                 ,#{unit}
+                 ,#{orderNo}
+                 ,(SELECT A.PARAM_KEY FROM TB_IOT_CM_CD A
+                    WHERE CD_ID = 'GN00000148')
+                 ,#{devAttbType}
+                 ,#{regUsrId}
+                 ,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+                 ,null
+                 ,null
+                )
+    </insert>
+
+    <!--장비 속성 업데이트  -->
+    <update id="updateTbIotDevParam" >
+             UPDATE TB_IOT_S_DEV_ATB
+                SET MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+                    ,INPUT_TYPE      =  #{inputType}
+                <if test="paramKey != null">
+                    ,PARAM_KEY      =  #{paramKey}
+                </if>
+                    ,COL_NM_CD    =  #{colNmCd}
+                <if test="conNmCd != null">
+                    ,CON_NM_CD    =  #{conNmCd}
+                </if>
+                <if test="staAvgNmCd != null">
+                    ,STA_AVG_NM_CD    =  #{staAvgNmCd}
+                </if>
+                <if test="staSumNmCd != null">
+                    ,STA_SUM_NM_CD    =  #{staSumNmCd}
+                </if>
+                <if test="detNmCd != null">
+                    ,DET_NM_CD      =    #{detNmCd}
+                </if>
+                <if test="mapYn != null">
+                    ,MAP_YN       =  #{mapYn}
+                </if>
+                    ,UNIT     =  #{unit}
+                <if test="orderNo != null">
+                    ,ORDER_NO     = #{orderNo}
+                </if>
+                <if test="modUsrId != null">
+                    ,MOD_USR_ID   =  #{modUsrId}
+                </if>
+           WHERE S_DEV_ATTB_SEQ = #{devAttbSeq}
+    </update>
+
+	<select id="retrieveIotAttbSetCnt" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrParamDTO" resultType="java.lang.Integer">
+           SELECT COUNT(*)
+             FROM TB_IOT_S_DEV_ATB_SET
+            WHERE S_DEV_ATTB_SEQ = #{devAttbSeq}
+	          AND 1=1
+	</select>
+
+	<select id="retrieveIotDetSetCnt" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrParamDTO" resultType="java.lang.Integer">
+           SELECT COUNT(*)
+             FROM TB_IOT_S_DEV_DET_SET
+            WHERE S_DEV_ATTB_SEQ = #{devAttbSeq}
+	          AND 1=1
+	</select>
+
+
+<!-- 장비속성 삭제 업데이트 -->
+	<update id="deleteTbIotDevParam" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrParamDTO">
+		UPDATE TB_IOT_S_DEV_ATB
+		   SET STATUS_CD = 'C'
+		      ,MOD_USR_ID   =  #{modUserId}
+          ,MOD_DTTM     =  DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE S_DEV_ATTB_SEQ = #{devAttbSeq}
+	</update>
+
+ <!-- 장비속성SET 삭제 업데이트 -->
+	<update id="deleteTbIotDevAttbSetParam" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrParamDTO">
+		UPDATE TB_IOT_S_DEV_ATB_SET
+		   SET STATUS_CD = 'C'
+		      ,MOD_USR_ID   =  #{modUserId}
+              ,MOD_DTTM     =  DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE S_DEV_ATTB_SEQ = #{devAttbSeq}
+	</update>
+
+<!-- 이상징후 삭제 업데이트 -->
+	<update id="deleteTbIotDevDetSetParam" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrParamDTO">
+		UPDATE TB_IOT_S_DEV_DET_SET
+		   SET STATUS_CD = 'C'
+		      ,MOD_USR_ID   =  #{modUserId}
+              ,MOD_DTTM     =  DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE S_DEV_ATTB_SEQ = #{devAttbSeq}
+	</update>
+
+</mapper>

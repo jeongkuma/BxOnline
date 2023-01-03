@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.ccp.iotCtrl.dao.IotCtrlDAO">
+<!--
+	파일명    : /mapper/TbIotCtrl.xml
+	작성일자 : 2019-04.09
+	설명      : 제어
+-->
+
+	<!-- 가입별장비 현재수집정보 조회 -->
+	<select id="retrieveTbIotCtrlList" parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO" resultType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO">
+		SELECT	A.ENTR_DEV_SEQ
+				,A.DEV_MDL_CD
+				,A.DEV_CLS_CD
+				,(SELECT MAX(DEV_CLS_CD_NM) FROM TB_IOT_SVC_DEV_M WHERE SVC_CD=A.SVC_CD AND DEV_CLS_CD=A.DEV_CLS_CD) AS DEV_CLS_CD_NM
+				,(SELECT DEV_MDL_NM FROM TB_IOT_SVC_DEV_M WHERE SVC_CD=A.SVC_CD AND DEV_CLS_CD=A.DEV_CLS_CD AND DEV_MDL_CD=A.DEV_MDL_CD) AS DEV_MDL_NM
+				,A.CTN
+				,A.DEV_UUID
+				,A.DEV_UNAME
+				,A.ENTR_NO
+				,D.CUR_DEV_VAL
+				,A.INST_NO
+				,A.DEV_BUILDING_NM
+				,D.CTL_TYPE
+				,(SELECT B.CD_NM FROM TB_IOT_CM_CD B WHERE B.CD_ID = D.CTL_TYPE AND B.LANG_SET = 'ko') AS CTL_TYPE_NM
+				,D.DEV_ATTR_CD_ID
+				,(SELECT E.CD_NM FROM TB_IOT_CM_CD E WHERE E.CD_ID = D.DEV_ATTR_CD_ID AND E.LANG_SET = 'ko') AS DEV_ATTR_CD_NM
+				,D.DEV_VAL
+				,D.CTL_DATE
+				,D.DEV_TIME
+				,D.PRC_CD
+				, CASE D.PRC_CD
+					WHEN '00' THEN '예약'
+					WHEN '11' THEN '취소'
+					WHEN '01' THEN '완료'
+					WHEN '10' THEN '처리중'
+					WHEN '98' THEN '응답실패'
+					WHEN '99' THEN '전송실패'
+					END AS "PRC_CD_NM"
+		FROM	TB_IOT_ENTR_DEV_M A
+		LEFT JOIN	TB_IOT_CTL_M D ON A.ENTR_DEV_SEQ = D.ENTR_DEV_SEQ
+		WHERE	A.STATUS_CD='A'
+		<if test="svcCd != null and svcCd != ''">
+			AND A.SVC_CD = #{svcCd}
+		</if>
+		<if test="devClsCd != null and devClsCd != ''">
+			AND A.DEV_CLS_CD = #{devClsCd}
+		</if>
+		<if test="devMdlCd != null and devMdlCd != ''">
+			AND A.DEV_MDL_CD = #{devMdlCd}
+		</if>
+		<if test="ctn != null and ctn != ''">
+			AND A.CTN LIKE CONCAT(#{ctn},'%')
+		</if>
+		<if test="entityId != null and entityId != ''">
+			AND A.DEV_UUID LIKE CONCAT(#{entityId},'%')
+		</if>
+		GROUP BY A.ENTR_DEV_SEQ
+		ORDER BY D.CTL_DATE DESC, A.REG_DTTM DESC
+		LIMIT ${(startPage-1)}, ${displayRowCount}
+	</select>
+
+	<!-- 가입별장비 현재수집정보 조회개수 -->
+	<select id="retrieveTbIotCtrlCount" parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM TB_IOT_ENTR_DEV_M A
+		WHERE A.STATUS_CD='A'
+		AND A.CUST_SEQ = #{custSeq}
+		<if test="svcCd != null and svcCd != ''">
+			AND A.SVC_CD = #{svcCd}
+		</if>
+		<if test="devClsCd != null and devClsCd != ''">
+			AND A.DEV_CLS_CD = #{devClsCd}
+		</if>
+		<if test="devMdlCd != null and devMdlCd != ''">
+			AND A.DEV_MDL_CD = #{devMdlCd}
+		</if>
+		<if test="ctn != null and ctn != ''">
+			AND A.CTN LIKE CONCAT(#{ctn}, '%')
+		</if>
+		<if test="entityId != null and entityId != ''">
+			AND A.DEV_UUID LIKE CONCAT(#{entityId},'%')
+		</if>
+	</select>
+
+	<!-- 제어항목정보 -->
+	<select id="retrieveTbIotCtrlRsvList" parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO" resultType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO">
+		SELECT
+		     A.ENTR_DEV_SEQ
+		   , A.CUST_SEQ
+		   , A.SVC_CD
+		   , A.DEV_CLS_CD
+		   , (SELECT MAX(DEV_CLS_CD_NM) FROM TB_IOT_SVC_DEV_M WHERE SVC_CD=A.SVC_CD AND DEV_CLS_CD=A.DEV_CLS_CD) AS DEV_CLS_CD_NM
+		   , A.DEV_MDL_CD
+		   , (SELECT DEV_MDL_NM
+		        FROM TB_IOT_SVC_DEV_M
+		       WHERE SVC_CD=A.SVC_CD
+		         AND DEV_CLS_CD=A.DEV_CLS_CD
+		         AND DEV_MDL_CD=A.DEV_MDL_CD
+		   	   ) AS DEV_MDL_NM
+		   , A.ENTR_NO
+		   , A.CTN
+		   , A.DEV_UUID
+		   , A.COL_UNIT
+		   , A.SND_UNIT
+		   , A.COL_PERIOD
+		   , A.SND_PERIOD
+		   , C.DEV_ATTB_CD_ID
+		   , (SELECT CD_NM FROM TB_IOT_CM_CD WHERE CD_ID=C.DEV_ATTB_CD_ID AND LANG_SET = #{langSet} ) AS DEV_ATTB_CD_NM
+		   , C.S_DEV_ATTB_SEQ
+		   , C.INPUT_TYPE
+		       , CASE WHEN E.CUR_DEV_VAL IS NULL THEN D.DEV_VAL
+		              ELSE E.CUR_DEV_VAL
+		              END AS "COL_CUR_DEV_VAL"
+		   , E.CTL_SEQ
+		   , E.CTL_DATE
+		   , SUBSTR(C.CON_NM_CD, 1, 2) AS "COMMAND"
+-- 		   , SUBSTR(C.CON_NM_CD,0,2) AS "PAM_KEY"
+		   , C.CON_NM_CD AS "PAM_KEY"
+		   , E.DEV_VAL
+		   , E.CUR_DEV_VAL
+		   , E.CTL_TYPE
+		   , E.PRC_CD
+		   , E.RETRY_CNT
+		   , E.DEV_TIME
+		   , E.RES_DATE
+		   , B.DEV_MDL_VAL
+		FROM TB_IOT_ENTR_DEV_M A
+		INNER JOIN TB_IOT_SVC_DEV_M B ON A.SVC_CD=B.SVC_CD AND A.DEV_CLS_CD=B.DEV_CLS_CD AND A.DEV_MDL_CD=B.DEV_MDL_CD AND B.STATUS_CD = 'A'
+		INNER JOIN TB_IOT_S_DEV_ATB C ON B.S_DEV_SEQ = C.S_DEV_SEQ AND C.CON_NM_CD IS NOT NULL AND C.STATUS_CD ='A'
+		LEFT JOIN TB_IOT_E_DEV_CUR_VAL D ON A.ENTR_DEV_SEQ = D.ENTR_DEV_SEQ AND C.DEV_CLS_CD=D.DEV_CLS_CD AND C.DEV_MDL_CD=D.DEV_MDL_CD AND C.DEV_ATTB_CD_ID = D.DEV_ATTB_CD_ID
+		LEFT JOIN TB_IOT_CTL_M E ON A.ENTR_DEV_SEQ = E.ENTR_DEV_SEQ AND C.DEV_CLS_CD=E.DEV_CLS_CD AND C.DEV_MDL_CD=E.DEV_MDL_CD AND C.DEV_ATTB_CD_ID = E.DEV_ATTR_CD_ID
+		WHERE A.ENTR_DEV_SEQ=#{entrDevSeq}
+		  AND B.S_DEV_SEQ <![CDATA[<]]> 9999999999999999999999999
+		ORDER BY C.ORDER_NO
+	</select>
+
+	<!-- 제어항목별 속성셋 정보 -->
+	<select id="retrieveTbIotCtrlAttbList" parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO" resultType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO">
+		SELECT S_DEV_ATTB_SEQ
+		     , ( SELECT IOT_CM.CD_NM
+		           FROM TB_IOT_CM_CD IOT_CM
+		          WHERE IOT_CM.CD_ID=DEV_ATTB_SET_CD_ID
+	           ) AS DEV_ATTB_SET_CD_NM
+	         , DEV_ATTB_SET_VAL
+	         , SET_PARENT_CD_ID
+		FROM TB_IOT_S_DEV_ATB_SET
+		WHERE S_DEV_ATTB_SEQ=#{sDevAttbSeq}
+		AND STATUS_CD='A'
+		ORDER BY CAST(DEV_ATTB_SET_VAL AS UNSIGNED)
+	</select>
+	<!-- 가입별장비마스터 업데이트 -->
+	<update id="updateIotEntrDev" parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO">
+		UPDATE TB_IOT_ENTR_DEV_M
+		SET	MOD_USR_ID = #{modUsrId}
+		,MOD_DTTM = DATE_FORMAT(now(),'%Y%m%d%H%i%s')
+		<if test="colPeriod != null and colPeriod != ''">
+		,COL_PERIOD = #{colPeriod}
+		,COL_UNIT = #{colUnit}
+		</if>
+		<if test="sndPeriod != null and sndPeriod != ''">
+		,SND_PERIOD = #{sndPeriod}
+		,SND_UNIT = #{sndUnit}
+		</if>
+		<if test="bootDtm != null and bootDtm != ''">
+		,BOOT_DTM = #{bootDtm}
+		</if>
+		WHERE ENTR_DEV_SEQ=#{entrDevSeq}
+	</update>
+
+	<!-- 제어예약 확인 -->
+	<select id="retrieveTbIotCtlMprcCd"
+		parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO" resultType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO">
+		SELECT PRC_CD,CTL_SEQ FROM TB_IOT_CTL_M
+		WHERE ENTR_DEV_SEQ=#{entrDevSeq}
+		AND DEV_ATTR_CD_ID=#{devAttrCdId}
+	</select>
+
+	<!-- 제어정보 등록 -->
+	<insert id="insertIotCtlM" parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO" useGeneratedKeys="true" keyProperty="ctlSeq">
+		INSERT INTO TB_IOT_CTL_M (
+		    ENTR_DEV_SEQ,
+		    CTL_DATE,
+		    CUST_SEQ,
+		    SVC_CD,
+		    DEV_CLS_CD,
+		    DEV_MDL_CD,
+		    RES_DATE,
+		    ENTR_NO,
+		    CTN,
+		    ENTITY_ID,
+		    DEV_ATTR_CD_ID,
+		    PAM_KEY,
+		    DEV_VAL,
+		    CUR_DEV_VAL,
+		    CTL_TYPE,
+		    PRC_CD,
+		    RETRY_CNT,
+		    DEV_TIME,
+		    REG_USR_ID,
+		    REG_DTTM
+		) VALUES (
+			#{entrDevSeq},
+			STR_TO_DATE(#{ctlDate},'%Y%m%d%H%i%s'),
+			#{custSeq},
+			#{svcCd},
+			#{devClsCd},
+			#{devMdlCd},
+			STR_TO_DATE(#{resDate},'%Y%m%d%H%i%s'),
+			#{entrNo},
+			#{ctn},
+			#{entityId},
+			#{devAttrCdId},
+			#{pamKey},
+			#{devVal},
+			#{curDevVal},
+			#{ctlType},
+			#{prcCd},
+			#{retryCnt},
+			STR_TO_DATE(#{devTime},'%Y%m%d%H%i%s'),
+			#{regUsrId},
+			DATE_FORMAT(now(),'%Y%m%d%H%i%s')
+		)
+	</insert>
+
+	<!-- 제어정보 수정 -->
+	<update id="updateIotCtlM" parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO">
+		UPDATE TB_IOT_CTL_M
+			SET
+			MOD_USR_ID = #{modUsrId}
+			,MOD_DTTM = DATE_FORMAT(now(),'%Y%m%d%H%i%s')
+			<if test="ctlDate != null and ctlDate != ''">
+			,CTL_DATE = STR_TO_DATE(#{ctlDate},'%Y%m%d%H%i%s')
+			</if>
+			,RES_DATE = STR_TO_DATE(#{resDate},'%Y%m%d%H%i%s')
+			,DEV_VAL = #{devVal}
+			,CUR_DEV_VAL = #{curDevVal}
+			,PRC_CD = #{prcCd}
+			,RETRY_CNT = #{retryCnt}
+			,DEV_TIME = null
+			,CTL_TYPE = #{ctlType}
+		WHERE ENTR_DEV_SEQ=#{entrDevSeq}
+		AND DEV_ATTR_CD_ID=#{devAttrCdId}
+        <if test="ctlSeq != null and ctlSeq != ''">
+        AND CTL_SEQ=#{ctlSeq}
+        </if>
+	</update>
+
+	<!-- 제어이력정보 -->
+	<insert id="insertIotCtlHist" parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO">
+		INSERT INTO TB_IOT_CTL_HIST (
+		    CTL_DATE,
+		    CTL_SEQ,
+		    ENTR_DEV_SEQ,
+		    CUST_SEQ,
+		    SVC_CD,
+		    DEV_CLS_CD,
+		    DEV_MDL_CD,
+		    RES_DATE,
+		    ENTR_NO,
+		    CTN,
+		    ENTITY_ID,
+		    DEV_ATTR_CD_ID,
+		    PAM_KEY,
+		    DEV_VAL,
+		    CUR_DEV_VAL,
+		    CTL_TYPE,
+		    PRC_CD,
+		    RETRY_CNT,
+		    DEV_TIME,
+		    REG_USR_ID,
+		    REG_DTTM
+		) VALUES (
+			STR_TO_DATE(#{ctlDate},'%Y%m%d%H%i%s'),
+		    #{ctlSeq},
+			#{entrDevSeq},
+			#{custSeq},
+			#{svcCd},
+			#{devClsCd},
+			#{devMdlCd},
+			STR_TO_DATE(#{resDate},'%Y%m%d%H%i%s'),
+			#{entrNo},
+			#{ctn},
+			#{entityId},
+			#{devAttrCdId},
+			#{pamKey},
+			#{devVal},
+			#{curDevVal},
+			#{ctlType},
+			#{prcCd},
+			#{retryCnt},
+			STR_TO_DATE(#{devTime},'%Y%m%d%H%i%s'),
+			#{regUsrId},
+			DATE_FORMAT(now(),'%Y%m%d%H%i%s')
+		)
+	</insert>
+
+	<!-- 제어이력 수정 -->
+	<update id="updateIotCtlHist" parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO">
+		UPDATE TB_IOT_CTL_HIST
+			SET
+			MOD_USR_ID = #{modUsrId}
+			,MOD_DTTM = DATE_FORMAT(now(),'%Y%m%d%H%i%s')
+			<if test="ctlDate != null and ctlDate != ''">
+			,CTL_DATE = STR_TO_DATE(#{ctlDate},'%Y%m%d%H%i%s')
+			</if>
+			,RES_DATE = STR_TO_DATE(#{resDate},'%Y%m%d%H%i%s')
+			,DEV_VAL = #{devVal}
+			,CUR_DEV_VAL = #{curDevVal}
+			,PRC_CD = #{prcCd}
+			,RETRY_CNT = #{retryCnt}
+			,DEV_TIME = null
+        WHERE PRC_CD = '00'
+        <if test="ctlSeq != null and ctlSeq != ''">
+        AND CTL_SEQ=#{ctlSeq}
+        </if>
+		AND ENTR_DEV_SEQ=#{entrDevSeq}
+		AND DEV_ATTR_CD_ID=#{devAttrCdId}
+	</update>
+
+	<!-- 제어정보 예약취소 -->
+	<update id="deleteIotCtlM" parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO">
+		UPDATE TB_IOT_CTL_M
+			SET
+			MOD_USR_ID = #{modUsrId}
+			,MOD_DTTM = DATE_FORMAT(now(),'%Y%m%d%H%i%s')
+			,PRC_CD = #{prcCd}
+			,DEV_VAL = ''
+		WHERE PRC_CD ='00'
+        <if test="ctlSeq != null and ctlSeq != ''">
+        AND CTL_SEQ=#{ctlSeq}
+        </if>
+        AND ENTR_DEV_SEQ=#{entrDevSeq}
+		AND DEV_ATTR_CD_ID=#{devAttrCdId}
+	</update>
+
+	<!-- 제어이력 예약취소 -->
+	<update id="deleteIotCtlHist" parameterType="kr.co.scp.ccp.iotCtrl.dto.TbIotCtrlDTO">
+		UPDATE TB_IOT_CTL_HIST
+			SET
+			MOD_USR_ID = #{modUsrId}
+			,MOD_DTTM = DATE_FORMAT(now(),'%Y%m%d%H%i%s')
+			,PRC_CD = #{prcCd}
+			,DEV_VAL = ''
+        WHERE PRC_CD ='00'
+        AND CTL_SEQ=#{ctlSeq}
+		AND ENTR_DEV_SEQ=#{entrDevSeq}
+		AND DEV_ATTR_CD_ID=#{devAttrCdId}
+	</update>
+
+</mapper>

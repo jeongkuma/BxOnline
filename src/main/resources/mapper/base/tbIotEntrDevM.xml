@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iagEvent.dao.IagEntrDevMDAO">
+
+	<!-- CCTV 등록 정보 등록 -->
+	<insert id="insertTbIotEntrDevM" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+        <selectKey keyProperty="entrDevSeq" resultType="String" order="BEFORE">
+            SELECT SEQ_IOT_ENTR_DEV_M.NEXTVAL FROM DUAL
+        </selectKey>
+		INSERT INTO TB_IOT_ENTR_DEV_M (
+		       ENTR_DEV_SEQ
+             , SVC_CD
+             , EVENT_DTTM
+             , DEV_CLS_CD
+             , DEV_MDL_CD 
+             , HLDR_CUST_NO
+             , STATUS_CD
+             , EVENT_CODE
+             , IAG_EVENT_CODE
+             , ENTR_NO
+             , ACENO
+             , CHNG_BFR_PROD_NO
+             , PROD_NO
+             , ITEM_ID
+             , MANF_SERIAL_NO
+             , PREV_MANF_SERIAL_NO
+             , DEV_ESN
+             , CUST_SEQ
+             , ORG_SEQ
+             , DEV_UUID
+             , DEV_UNAME
+             , CTN
+             , MACHINE_NO
+             , USING_NO
+             , INST_NO
+             , DEV_IMG_PATH
+             , DEV_IMG_FILE_NM
+             , BOOT_DTM
+             , DEV_REGI_DT
+             , SND_PERIOD
+             , SND_UNIT
+             , COL_PERIOD
+             , COL_UNIT
+             , INST_DTTM
+             , DEV_BUILDING_NM
+             , REG_USR_ID
+             , REG_DTTM
+             , MOD_USR_ID
+             , MOD_DTTM
+		) VALUES (
+               #{entrDevSeq}
+             , #{svcCd}
+             , NOW()
+             , #{devClsCd}
+             , #{devMdlCd}
+             , #{hldrCustNo}
+             , #{statusCd}
+             , #{eventCode}
+             , #{iagEventCode}
+             , #{entrNo}
+             , #{aceno}
+             , #{chngBfrProdNo}
+             , #{prodNo}
+             , #{itemId}
+             , #{manfSerialNo}
+             , #{prevManfSerialNo}
+             , #{devEsn}
+             , #{custSeq}
+             , #{orgSeq}
+             , #{devUuid}
+             , #{devUname}
+             , #{ctn}
+             , #{machineNo}
+             , #{usingNo}
+             , #{instNo}
+             , #{devImgPath}
+             , #{devImgFileNm}
+             , #{bootDtm}
+             , DATE_FORMAT(#{devRegiDt}, '%Y%m%d') 
+             , #{sndPeriod}
+             , #{sndUnit}
+             , #{colPeriod}
+             , #{colUnit}
+             , DATE_FORMAT(#{instDttm}, '%Y%m%d')
+             , #{devBuildingNm}
+             , #{regUsrId}
+             , DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'))
+             , #{modUsrId}
+             , DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'))
+		)
+	</insert>
+	
+	<update id="updateTbIotEntrDevM" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+	    UPDATE TB_IOT_ENTR_DEV_M
+	       SET STATUS_CD         = #{statusCd}
+	         , IAG_EVENT_CODE    = #{iagEventCode}
+	         , MOD_USR_ID        = #{modUsrId}
+	         , MOD_DTTM          = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S'))
+         WHERE MANF_SERIAL_NO   = #{manfSerialNo}
+           AND CTN              = #{ctn} 
+	</update>
+	
+    <select id="retrieveTbIotEntrDevM" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO" resultType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+        SELECT ENTR_DEV_SEQ
+             , SVC_CD
+             , DEV_CLS_CD
+             , DEV_MDL_CD
+             , DEV_UUID
+             , STATUS_CD
+          FROM TB_IOT_ENTR_DEV_M
+         WHERE MANF_SERIAL_NO   = #{manfSerialNo}
+           AND CTN              = #{ctn} 
+           AND ROWNUM           = 1
+         ORDER BY STATUS_CD
+	</select>
+	
+	<delete id="deleteTbIotEntrDevM" parameterType="kr.co.scp.ccp.iotSelDevice.dto.TbIotEntrDevMDTO">
+        DELETE 
+    	  FROM TB_IOT_ENTR_DEV_M
+         WHERE MANF_SERIAL_NO   = #{manfSerialNo}
+          AND CTN               = #{ctn} 
+	</delete>
+	
+</mapper>

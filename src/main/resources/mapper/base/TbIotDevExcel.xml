@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotDev.dao.IotDevExcelDAO">
+
+	<select id="createIotPasteDev" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO">
+		SELECT #{custSeq} AS custSeq
+			 , #{devSvcCdNm} AS devSvcCdNm
+			 , DEV_CLS_CD_NM AS devClsCdNm
+		     , DEV_MDL_CD AS devMdlCd
+		     , DEV_MDL_NM AS devMdlNm
+		     , USE_YN AS useYn
+		     , VENDOR_NM AS vendorNm
+ 		  FROM TB_IOT_SVC_DEV_M
+ 		 WHERE 1=1
+	 	<if test="devSeq != null">
+         	AND DEV_SEQ IN <foreach collection="devSeq" item="item" separator="," open="(" close=")">#{item}</foreach>
+	 	</if>
+	</select>
+
+	<select id="createIotPasteDevAtb" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO">
+		SELECT #{custSeq} AS "custSeq"
+			  ,#{devSvcCdNm} AS "devSvcCdNm"
+			  ,M.DEV_CLS_CD_NM AS "devClsCdNm"
+			  ,A.DEV_ATTB_CD_ID AS "devAttbCdId"
+        	  ,A.DEV_ATTB_CD_NM AS "devAttbCdNm"
+        	  ,A.MIN_VAL AS "minVal"
+        	  ,A.MAX_VAL AS "maxVal"
+        	  ,A.COL_NM_CD AS "colNmCd"
+        	  ,A.CON_NM_CD AS "conNmCd"
+        	  ,A.STA_AVG_NM_CD AS "staNmCd"
+        	  ,A.DET_NM_CD AS "detNmCd"
+        	  ,A.MAP_YN AS "mapYn"
+		 FROM TB_IOT_SVC_DEV_M M
+			 ,TB_IOT_S_DEV_ATB A
+	    WHERE M.DEV_SEQ = A.DEV_SEQ
+		<if test="devSeq != null">
+          AND M.DEV_SEQ IN <foreach collection="devSeq" item="item" index="index" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+	</select>
+
+	<select id="createIotPasteDevAtbSet" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO">
+	 	SELECT #{custSeq} AS "custSeq"
+	 	        ,#{devSvcCdNm} AS "devSvcCdNm"
+	 			,A.DEV_ATTB_CD_ID AS "devAttbCdId"
+			  	,A.DEV_ATTB_CD_NM AS "devAttbCdNm"
+   			  	,S.DEV_ATTB_SET_CD_ID AS "devAttbSetCdId"
+   			    ,S.DEV_ATTB_SET_CD_NM AS "devAttbSetCdNm"
+		  FROM TB_IOT_SVC_DEV_M M
+			 	,TB_IOT_S_DEV_ATB A
+  				,TB_IOT_DEV_ATB_SET S
+		WHERE A.DEV_SEQ = M.DEV_SEQ
+ 			  AND A.DEV_ATTB_SEQ = S.DEV_ATTB_SEQ
+	  <if test="devSeq != null">
+          AND M.DEV_SEQ IN <foreach collection="devSeq" item="item" index="index" separator="," open="(" close=")">#{item}</foreach>
+	  </if>
+  	</select>
+
+	<select id="createIotPasteDevDetSet" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO">
+	 	SELECT #{custSeq} AS "custSeq"
+	 	      ,#{devSvcCdNm} AS "devSvcCdNm"
+	 		  ,A.DEV_ATTB_CD_ID AS "devAttbCdId"
+			  ,A.DEV_ATTB_CD_NM AS "devAttbCdNm"
+       		  ,S.DEV_DET_SET_CD_ID AS "devDetSetCdId"
+       		  ,S.DEV_DET_SET_CD_NM AS "devDetSetCdNm"
+       		  ,S.DET_SET_COND AS "detSetCond"
+       		  ,S.ICON_URL AS "iconUrl"
+		 FROM TB_IOT_SVC_DEV_M M
+			 ,TB_IOT_S_DEV_ATB A
+             ,TB_IOT_DEV_DET_SET S
+		WHERE M.DEV_SEQ = A.DEV_SEQ
+		  AND A.DEV_ATTB_SEQ = S.DEV_ATTB_SEQ
+	  <if test="devSeq != null">
+          AND M.DEV_SEQ IN <foreach collection="devSeq" item="item" index="index" separator="," open="(" close=")">#{item}</foreach>
+	  </if>
+	</select>
+
+	<!-- 고객 번호 조회 -->
+	<select id="retrieveCustSeq" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO" resultType="java.lang.Integer">
+		SELECT COUNT(*) AS "custSeq"
+		FROM TB_IOT_CUST_M
+		<if test="custSeq != null">
+		WHERE CUST_SEQ = #{custSeq}
+		</if>
+	</select>
+
+
+	<select id="createIotPasteDevAttr" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO">
+		SELECT
+			   DEV_CLS_CD_NM AS "devClsCdNm"
+		     , DEV_MDL_NM AS "devMdlNm"
+		     , USE_YN AS "useYn"
+		     , VENDOR_NM AS "vendorNm"
+ 		  FROM TB_IOT_SVC_DEV_M
+ 		  WHERE 1=1
+		<if test="devSeq != null">
+			AND DEV_SEQ IN <foreach collection="devSeq" item="item" index="index" separator="," open="(" close=")">#{item}</foreach>
+		</if>
+	</select>
+</mapper>

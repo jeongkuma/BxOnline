@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotOrg.dao.IotOrgDAO">
+<!--
+	파일명    : /mapper/TbIotOrg.xml
+	작성일자 : 2019-04.21
+	작성자    : 지정호
+	설명       : 조직 관리
+-->
+	<!-- 조직정보 조회  -->
+	<select id="retrieveIotOrg" parameterType="String" resultType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO">
+	   SELECT
+  			  ORG_SEQ
+			, ORG_NM
+			, ORG_LVL
+			, ORG_ORDER
+			, UP_ORG_SEQ
+			, USE_YN
+		 FROM TB_IOT_ORG
+		WHERE CUST_SEQ = #{custSeq}
+		ORDER BY ORG_LVL, ORG_ORDER
+	</select>
+
+	<!-- 조직정보 조회 by orgSeq -->
+	<select id="retrieveIotOrgBySeq" parameterType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO" resultType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgRDTO">
+	   SELECT
+  			  a.ORG_SEQ
+			, a.ORG_NM
+			, a.ORG_LVL
+			, a.ORG_ORDER
+			, a.UP_ORG_SEQ
+			, IFNULL(b.ORG_NM, '0') AS UP_ORG_NM
+			, a.USE_YN
+			, a.ORG_PATH
+		 FROM TB_IOT_ORG a
+		      LEFT OUTER JOIN
+		      TB_IOT_ORG b
+		   ON a.UP_ORG_SEQ = b.ORG_SEQ
+		WHERE a.ORG_SEQ    = #{orgSeq}
+		ORDER BY a.ORG_LVL
+	</select>
+
+	<!-- 조직명 중복조회  -->
+	<select id="retrieveIotOrgNmChk" parameterType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO" resultType="String">
+	   SELECT ORG_SEQ
+		 FROM TB_IOT_ORG
+		WHERE ORG_NM   = #{orgNm}
+		  AND CUST_SEQ = #{custSeq}
+	</select>
+
+	<!-- 조직명 조회  -->
+	<select id="retrieveIotOrgNm" parameterType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO" resultType="String">
+	   SELECT ORG_SEQ
+		 FROM TB_IOT_ORG
+		WHERE ORG_NM   = #{orgNm}
+		  AND CUST_SEQ = #{custSeq}
+	</select>
+
+	<!-- 사용자 화면 조직 조회  -->
+	<select id="retrieveIotOrgByUsr" parameterType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO" resultType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO">
+		SELECT
+			  ORG_SEQ
+			, ORG_NM
+			, ORG_PATH
+			, ORG_LVL
+		 FROM TB_IOT_ORG
+		WHERE CUST_SEQ = #{custSeq}
+		  AND USE_YN = 'Y'
+		ORDER BY ORG_LVL, ORG_ORDER
+	</select>
+
+	<select id="retrieveIotCustOrg" parameterType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO" resultType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO">
+		SELECT
+			  ORG_SEQ
+			, ORG_NM
+			, ORG_PATH
+			, ORG_LVL
+		 FROM TB_IOT_ORG
+		WHERE CUST_SEQ = #{custSeq}
+		  AND ORG_PATH LIKE CONCAT ('%', #{orgNm}, '%')
+		ORDER BY ORG_LVL, ORG_ORDER
+	</select>
+
+	<!-- 조직 레벨별 정보 조회  -->
+	<select id="retrieveIotOrgByOrder" parameterType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO" resultType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO">
+		SELECT
+  			  ORG_SEQ
+			, ORG_NM
+			, ORG_LVL
+			, ORG_ORDER
+			, ORG_PATH
+			, UP_ORG_SEQ
+			, USE_YN
+			, CUST_SEQ
+		 FROM TB_IOT_ORG
+		WHERE CUST_SEQ  = #{custSeq}
+		  AND ORG_LVL   = #{orgLvl}
+		ORDER BY ORG_LVL
+	</select>
+
+	<select id="retrieveOrgChildren" parameterType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO" resultType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO">
+		SELECT
+  			   ORG_SEQ
+			 , ORG_NM
+			 , ORG_LVL
+			 , ORG_ORDER
+			 , ORG_PATH
+			 , UP_ORG_SEQ
+			 , USE_YN
+			 , CUST_SEQ
+		  FROM TB_IOT_ORG
+		 WHERE UP_ORG_SEQ = #{orgSeq}
+	</select>
+
+	<update id="updateIotOrg" parameterType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO">
+		UPDATE TB_IOT_ORG
+		   SET ORG_NM    = #{orgNm}
+		     , ORG_ORDER = #{orgOrder}
+		     , ORG_PATH  = #{orgPath}
+		     , USE_YN    = #{useYn}
+   			 , MOD_USR_ID = #{modUsrId}
+			 , MOD_DTTM   = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		 WHERE CUST_SEQ  = #{custSeq}
+		   AND ORG_SEQ   = #{orgSeq}
+	</update>
+
+	<update id="deleteIotOrg" parameterType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO">
+		UPDATE TB_IOT_ORG
+		   SET USE_YN = 'N'
+		 WHERE CUST_SEQ  = #{custSeq}
+		   AND ORG_SEQ   = #{orgSeq}
+	</update>
+
+	<insert id="createIotOrg" parameterType="kr.co.scp.ccp.iotOrg.dto.TbIotOrgDTO">
+		INSERT INTO TB_IOT_ORG
+			(
+			  CUST_SEQ
+			, ORG_NM
+			, ORG_LVL
+			, ORG_ORDER
+			, USE_YN
+			, ORG_PATH
+			, UP_ORG_SEQ
+			, REG_USR_ID
+			, REG_DTTM
+			)
+			VALUES
+			(
+			  #{custSeq}
+			, #{orgNm}
+			, #{orgLvl}
+			<if test="upOrgSeq != '0'">
+			, (SELECT IFNULL(MAX(b.ORG_ORDER), 0) + 1 FROM TB_IOT_ORG b WHERE b.UP_ORG_SEQ = #{upOrgSeq}  AND CUST_SEQ = #{custSeq})
+			</if>
+			<if test="upOrgSeq == '0'">
+			, #{upOrgSeq}
+			</if>
+			, #{useYn}
+			, #{orgPath}
+			, #{upOrgSeq}
+			, #{regUsrId}
+			, DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+		<selectKey keyProperty="orgSeq" order="AFTER" resultType="String">
+			SELECT MAX(ORG_SEQ) AS ORG_SEQ FROM TB_IOT_ORG
+		</selectKey>
+	</insert>
+
+</mapper>

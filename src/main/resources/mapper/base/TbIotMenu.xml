@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.menu.dao.TbIotMenuDAO">
+
+	<select id="retrieveTbIotMenuList" parameterType="kr.co.scp.common.menu.dto.TbIotMenuDTO" resultType="kr.co.scp.common.menu.dto.TbIotMenuDTO">
+		  SELECT
+  			   a.MENU_SEQ
+		     , a.MENU_CD_ID
+		     , a.MENU_CD_NM
+		     , a.MENU_LEVEL
+		     , a.UP_MENU_SEQ
+		     , p.PROG_NM
+		     , p.PROG_ID
+		     , a.PROG_SEQ
+		     , a.MENU_ORDER
+		     , a.LANG_SET
+			<if test=" menuLevel != 1 ">
+			, b.MENU_CD_NM AS UP_MENU_NM
+			</if>
+			, a.USE_YN
+			, a.SVC_CD
+		 FROM TB_IOT_MENU a
+		   LEFT OUTER JOIN TB_IOT_PROG p ON a.PROG_SEQ = p.PROG_SEQ
+		 	<if test=" menuLevel != 1 ">
+		    INNER JOIN TB_IOT_MENU b ON a.UP_MENU_SEQ = b.MENU_SEQ
+		    </if>
+		WHERE a.MENU_SEQ = #{menuSeq}
+		  AND a.LANG_SET = #{langSet}
+		  AND a.SVC_CD = #{svcCd}
+		  <if test=" menuLevel != 1 ">
+		  	  AND b.LANG_SET = #{langSet}
+		  </if>
+		ORDER BY a.MENU_LEVEL, a.MENU_ORDER
+	</select>
+
+	<select id="retrieveMenuList" parameterType="kr.co.scp.common.menu.dto.CopyTbIotMenuDto" resultType="kr.co.scp.common.menu.dto.TbIotMenuDTO">
+		SELECT
+  			   a.MENU_SEQ
+			 , a.PROG_SEQ
+		     , a.MENU_CD_ID
+		     , a.MENU_CD_NM
+		     , a.SVC_CD
+		     , a.LANG_SET
+		     , a.MENU_LEVEL
+		     , a.UP_MENU_SEQ
+		     , a.MENU_ORDER
+			 , a.USE_YN
+		 FROM TB_IOT_MENU a
+		WHERE a.LANG_SET = #{orgLangSet}
+		  AND a.SVC_CD = #{orgSvcCd}
+		ORDER BY a.MENU_LEVEL, a.MENU_ORDER
+	</select>
+
+	<select id="retrieveMenuAllList" resultType="kr.co.scp.ccp.iotRoleMap.dto.MenuListDTO" parameterType="kr.co.scp.ccp.iotRoleMap.dto.MenuListDTO">
+		SELECT	MENU_SEQ ,
+				MENU_CD_ID ,
+                IF(USE_YN = 'N', '[미사용]' , MENU_CD_NM ) AS MENU_CD_NM,
+				MENU_LEVEL ,
+				UP_MENU_SEQ ,
+				MENU_ORDER
+		FROM	TB_IOT_MENU
+		WHERE	LANG_SET = #{langSet}
+		AND		SVC_CD = #{svcCd}
+		ORDER BY MENU_LEVEL, MENU_ORDER
+	</select>
+
+	<insert id="copyInsertTbIotMenu" parameterType="kr.co.scp.common.menu.dto.TbIotMenuDTO">
+		INSERT INTO TB_IOT_MENU(MENU_CD_ID,
+								 MENU_CD_NM,
+								 MENU_LEVEL,
+								 UP_MENU_SEQ,
+								 PROG_SEQ,
+								 MENU_ORDER,
+								 SVC_CD,
+								 LANG_SET,
+								 USE_YN,
+								 REG_USR_ID,
+								 REG_DTTM)
+			   VALUES (#{menuCdId},
+					   #{menuCdNm},
+					   #{menuLevel},
+					   #{upMenuSeq},
+					   <if test=" null != progSeq ">
+				   		  #{progSeq},
+					   </if>
+					   <if test="null == progSeq">
+					   	  null,
+					   </if>
+					   #{menuOrder},
+					   #{svcCd},
+					   #{langSet},
+					   #{useYn},
+			   		   #{regUserId},
+					   DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+					  )
+		<selectKey keyProperty="menuSeq" resultType="String" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+
+	<insert id="insertTbIotMenu" parameterType="kr.co.scp.common.menu.dto.TbIotMenuDTO">
+		<selectKey keyProperty="menuSeq" resultType="String" order="BEFORE">
+			SELECT MAX(MENU_SEQ) + 1 FROM TB_IOT_MENU
+		</selectKey>
+		INSERT INTO TB_IOT_MENU
+			(	MENU_SEQ,
+				MENU_CD_ID,
+				 MENU_CD_NM,
+				 MENU_LEVEL,
+				 UP_MENU_SEQ,
+				 PROG_SEQ,
+				 MENU_ORDER,
+				 SVC_CD,
+				 LANG_SET,
+				 USE_YN,
+				 REG_USR_ID,
+				 REG_DTTM)
+	   VALUES (
+	   		#{menuSeq},
+			CONCAT('M',#{menuSeq}),
+			#{menuCdNm},
+			#{menuLevel},
+			#{upMenuSeq},
+			<if test=" !progSeq.isEmpty()">
+			  #{progSeq},
+			</if>
+			<if test=" progSeq.isEmpty() ">
+			  null,
+			</if>
+			#{menuOrder},
+			#{svcCd},
+			#{langSet},
+			#{useYn},
+			#{regUserId},
+			DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+	</insert>
+
+
+	<update id="updateTbIotMenu" parameterType="kr.co.scp.common.menu.dto.TbIotMenuDTO">
+		UPDATE TB_IOT_MENU
+		  SET MENU_CD_NM = #{menuCdNm}
+		    , USE_YN = #{useYn}
+		    , PROG_SEQ = #{progSeq}
+		    , MENU_ORDER = #{menuOrder}
+		    , MOD_USR_ID = #{modUserId}
+		    , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		WHERE MENU_SEQ = #{menuSeq}
+	</update>
+
+	<update id="updateTbIotChildrenMenu" parameterType="kr.co.scp.common.menu.dto.TbIotMenuDTO">
+		UPDATE TB_IOT_MENU
+		  SET USE_YN = #{useYn}
+		    , MOD_USR_ID = #{modUserId}
+		    , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		WHERE UP_MENU_SEQ = #{menuSeq}
+	</update>
+
+	<delete id="deleteTbIotMenu" parameterType="kr.co.scp.common.menu.dto.TbIotMenuDTO">
+		DELETE FROM TB_IOT_MENU
+		WHERE MENU_SEQ = #{menuSeq}
+		  AND LANG_SET = #{langSet}
+	</delete>
+
+	<select id="duplicationCheckMenuNm" parameterType="kr.co.scp.common.menu.dto.TbIotMenuDTO" resultType="java.lang.Integer">
+		SELECT
+  			   COUNT(MENU_SEQ)
+		FROM TB_IOT_MENU
+		WHERE MENU_CD_NM = #{menuCdNm}
+		  AND LANG_SET = #{langSet}
+		  AND SVC_CD = #{svcCd}
+	</select>
+
+
+	<select id="getUpMenuSeq" parameterType="kr.co.scp.common.menu.dto.CopyTbIotMenuDto" resultType="java.lang.String">
+		SELECT
+  			   MENU_SEQ
+		FROM TB_IOT_MENU
+		WHERE LANG_SET = #{langSet}
+		  AND SVC_CD = #{svcCd}
+		  AND MENU_CD_ID = (SELECT MENU_CD_ID FROM TB_IOT_MENU WHERE MENU_SEQ = #{orgUpMenuSeq})
+	</select>
+
+	<select id="duplicationCheckMenuId" parameterType="kr.co.scp.common.menu.dto.TbIotMenuDTO" resultType="INTEGER">
+		SELECT
+  			   COUNT(MENU_SEQ)
+		FROM TB_IOT_MENU
+		WHERE MENU_CD_ID = #{menuCdId}
+		  AND LANG_SET = #{langSet}
+		  AND SVC_CD = #{svcCd}
+	</select>
+
+	<select id="duplicationCheckCopy" parameterType="kr.co.scp.common.menu.dto.CopyTbIotMenuDto" resultType="java.lang.Integer">
+		SELECT
+  			   COUNT(MENU_SEQ)
+		FROM TB_IOT_MENU
+		WHERE LANG_SET = #{langSet}
+		  AND SVC_CD = #{svcCd}
+	</select>
+
+	<select id="upMenuCheck" parameterType="kr.co.scp.common.menu.dto.TbIotMenuDTO" resultType="java.lang.Integer">
+		SELECT
+  			   COUNT(MENU_SEQ)
+		FROM TB_IOT_MENU
+		WHERE UP_MENU_SEQ = (SELECT MENU_SEQ FROM TB_IOT_MENU WHERE MENU_CD_ID = #{menuCdId} AND LANG_SET = #{langSet} AND SVC_CD = #{svcCd})
+	</select>
+
+	<select id="retrieveAuthMenu" parameterType="kr.co.scp.common.menu.dto.AuthMenuDTO" resultType="kr.co.scp.common.menu.dto.AuthMenuDTO">
+		SELECT 		M1.MENU_SEQ,
+					IFNULL(P.PROG_URI, '') AS PROG_URI,
+					M1.MENU_CD_ID,
+					IFNULL((SELECT M2.MENU_CD_ID FROM TB_IOT_MENU M2 WHERE M1.UP_MENU_SEQ = M2.MENU_SEQ),'#') AS PRNT_MENU_ID,
+					M1.MENU_LEVEL,
+					M1.MENU_ORDER,
+					M1.MENU_CD_NM
+		FROM 		TB_IOT_MENU M1
+		LEFT OUTER JOIN TB_IOT_PROG P
+		ON 			M1.PROG_SEQ = P.PROG_SEQ
+		AND 		P.USE_YN = 'Y'
+		LEFT OUTER JOIN TB_IOT_ROLE_REL R
+		ON 			M1.MENU_SEQ = R.MENU_PROG_SEQ
+		AND 		R.MENU_PROG_GUBUN = 'M'
+		AND 		R.ROLE_CD_ID = #{roleCdId}
+		WHERE 		M1.LANG_SET = #{langSet}
+		AND			M1.USE_YN = 'Y'
+		AND 		R.ROLE_SEQ IS NOT NULL
+		AND			M1.SVC_CD = #{svcCd}
+		ORDER BY 	M1.MENU_LEVEL, M1.MENU_ORDER
+	</select>
+
+	<select id="retrieveIotSvcCdList" parameterType="kr.co.scp.common.menu.dto.MenuCdDTO" resultType="kr.co.scp.common.menu.dto.MenuCdDTO">
+		SELECT		CD_ID AS SVC_CD_ID ,
+					CD_NM AS SVC_CD_NM
+		FROM		TB_IOT_CM_CD
+		WHERE		PARENT_CD_ID = #{parentCdId}
+		<if test="roleCdId != 'GN00000038'">
+		AND			CD_ID = #{svcCdId}
+		</if>
+		AND			USE_YN != 'N'
+		AND			LANG_SET = #{langSet}
+	</select>
+
+</mapper>

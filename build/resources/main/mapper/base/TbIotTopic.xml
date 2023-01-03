@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotTopic.dao.IotTopicDAO">
+
+	<select id="retrieveIotTopicList" parameterType="kr.co.scp.ccp.iotTopic.dto.TbIotTopicDTO" resultType="kr.co.scp.ccp.iotTopic.dto.TbIotTopicDTO">
+		SELECT
+			TOPIC_ID,
+			TOPIC_NM,
+			DAY_TIME,
+			BEAN_CD,
+			RSP_MSG,
+			TOPIC_DESC,
+			TOPIC_GUBUN,
+			REG_USR_ID,
+			REG_DTTM,
+			MOD_USR_ID,
+			MOD_DTTM
+		FROM TB_IOT_TOPIC
+
+	</select>
+
+	<select id="findByTopicId" parameterType="java.lang.String" resultType="kr.co.scp.ccp.iotTopic.dto.TbIotTopicDTO">
+
+		SELECT
+			TOPIC_ID,
+			TOPIC_NM,
+			DAY_TIME,
+			BEAN_CD,
+			RSP_MSG,
+			TOPIC_DESC,
+			TOPIC_GUBUN,
+			REG_USR_ID,
+			REG_DTTM,
+			MOD_USR_ID,
+			MOD_DTTM
+		FROM TB_IOT_TOPIC
+		WHERE TOPIC_ID = #{topicId}
+
+	</select>
+
+	<select id="retrieveIotUsrDashConList" parameterType="kr.co.scp.ccp.iotTopic.dto.TbIotUsrDashConDTO" resultType="kr.co.scp.ccp.iotTopic.dto.TbIotUsrDashConDTO">
+
+		SELECT
+			DISTINCT
+			TOPIC_ID,
+			TMPL_GUBUN,
+			TMPL_COND_VLU
+		FROM TB_IOT_USR_DASH_CON
+
+	</select>
+
+	<insert id="insertIotTopicDTO" parameterType="kr.co.scp.ccp.iotTopic.dto.TbIotTopicDTO">
+
+		INSERT INTO TB_IOT_TOPIC (
+			TOPIC_ID,
+			TOPIC_NM,
+			DAY_TIME,
+			BEAN_CD,
+			RSP_MSG,
+			TOPIC_DESC,
+			TOPIC_GUBUN,
+			REG_USR_ID,
+			REG_DTTM
+
+		) VALUES (
+			#{topicId},
+			#{topicNm},
+			#{dayTime},
+			#{beanCd},
+			#{rspMsg},
+			#{topicDesc},
+			#{topicGubun},
+			#{regUserId},
+			DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		)
+
+	</insert>
+
+	<update id="updateIotTopicDTO" parameterType="kr.co.scp.ccp.iotTopic.dto.TbIotTopicDTO">
+
+		UPDATE TB_IOT_TOPIC SET
+			TOPIC_NM = #{topicNm},
+			DAY_TIME = #{dayTime},
+			BEAN_CD = #{beanCd},
+			RSP_MSG = #{rspMsg},
+			TOPIC_DESC = #{topicDesc},
+			TOPIC_GUBUN = #{topicGubun},
+			MOD_USR_ID = #{modUsrId},
+			MOD_DTTM  =  DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		WHERE TOPIC_ID = #{topicId}
+
+	</update>
+
+
+	<insert id="insertIotUsrDashConList" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index"  open="INSERT ALL " separator=" " close="SELECT * FROM DUAL" >
+			INTO TB_IOT_USR_DASH_CON (
+				USR_SEQ,
+				TOPIC_ID,
+				TMPL_GUBUN,
+				TMPL_COND_VLU,
+				REG_USR_ID,
+				REG_DTTM
+			) VALUES
+			(
+				#{item.usrSeq},
+				#{item.topicId},
+				#{item.tmplGubun},
+				#{item.tmplCondVlu},
+				#{item.regUsrId},
+				DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			)
+		</foreach>
+	</insert>
+
+
+	<delete id="deleteIotUsrDashConList" parameterType="kr.co.scp.ccp.iotTopic.dto.TbIotTopicDTO">
+
+		DELETE FROM TB_IOT_USR_DASH_CON
+		WHERE USR_SEQ = #{usrSeq}
+		AND TOPIC_ID = #{topicId}
+
+	</delete>
+
+
+	<select id="getTopicList" resultType="kr.co.scp.ccp.iotTopic.dto.SelectTopicInfoDTO">
+		SELECT
+			TOPIC_ID,
+			TOPIC_NM,
+			DAY_TIME,
+			BEAN_CD,
+			RSP_MSG,
+			TOPIC_DESC,
+			TOPIC_GUBUN,
+			REG_USR_ID,
+			REG_DTTM,
+			MOD_USR_ID,
+			MOD_DTTM
+		FROM TB_IOT_TOPIC
+		WHERE TOPIC_GUBUN = 'D'
+
+	</select>
+
+</mapper>

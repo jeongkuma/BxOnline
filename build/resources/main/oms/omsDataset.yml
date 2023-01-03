@@ -1,0 +1,24 @@
+omssetting:
+  omsDataSet:
+  - SEQ_ID
+  - LOG_TIME
+  - LOG_TYPE
+  - SID
+  - RESULT_CODE
+  - REQ_TIME
+  - RSP_TIME
+  - CLIENT_IP
+  - DEV_INFO
+  - OS_INFO
+  - NW_INFO
+  - SVC_NAME
+  - DEV_MODEL
+  - CARRIER_TYPE
+  - FUNC_ID
+  - LOG_KEY
+  - CHANNEL_TYPE 
+  - CHANNEL
+  - SUB_CODE
+  - CUST_ID
+  - MID
+  - GRP_CODE

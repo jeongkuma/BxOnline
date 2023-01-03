@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.tmpl.dao.TbIotTmplHdrJqgridDAO">
+
+	<select id="retrieveTbIotTmplHdrJqgridList" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplHdrJqgridDTO" resultType="kr.co.scp.common.tmpl.dto.TbIotTmplHdrJqgridDTO">
+		SELECT TMPL_HDR_ATTB_SEQ
+			 , TMPL_SEQ
+			 , S_DEV_SEQ
+			 , COL_NAME_DATA
+			 , COL_MODEL_DATA
+			 , LANG_SET
+			 , TMP_1
+			 , TMP_2
+			 , TMP_3
+			 , COL_ORDER
+			 , DEV_CLS_CD
+		FROM TB_IOT_TMPL_HDR_GRID
+		WHERE TMPL_SEQ = #{tmplSeq}
+		  AND LANG_SET = #{langSet}
+		<if test="devClsCd != null and devClsCd neq 'all'">
+			AND DEV_CLS_CD = #{devClsCd}
+		</if>
+		ORDER BY TMPL_SEQ, COL_ORDER
+	</select>
+
+	<select id="retrieveJqData" parameterType="kr.co.scp.common.tmpl.dto.TbIotJqDataRequestDTO" resultType="kr.co.scp.common.tmpl.dto.TbIotJqDataResponseDTO">
+		   SELECT A.COL_NAME_DATA , A.COL_MODEL_DATA , A.DEV_CLS_CD
+		   FROM TB_IOT_TMPL_HDR_GRID A, TB_IOT_PROG C , TB_IOT_TMPL D
+		   WHERE A.TMPL_SEQ = D.TMPL_SEQ
+			    AND D.PROG_SEQ = C.PROG_SEQ
+			    AND A.LANG_SET = #{langSet}
+			    AND C.PROG_ID = #{progId}
+			    AND D.TMPL_CD_ID = #{tmpCdId}
+			<if test="devClsCdId != null and devClsCdId neq 'all'">
+				AND A.DEV_CLS_CD = #{devClsCdId}
+			</if>
+		  ORDER BY A.COL_ORDER,A.TMPL_HDR_ATTB_SEQ
+	</select>
+
+	<select id="retrieveJqDataExcel" parameterType="kr.co.scp.ccp.iotEntrDevHist.dto.TbIotEntrDevHistReqListDTO" resultType="kr.co.scp.common.tmpl.dto.TbIotJqDataResponseDTO">
+		   SELECT A.COL_NAME_DATA , A.COL_MODEL_DATA , A.DEV_CLS_CD
+			FROM TB_IOT_TMPL_HDR_GRID A, TB_IOT_PROG C , TB_IOT_TMPL D
+			WHERE A.TMPL_SEQ = D.TMPL_SEQ
+				AND D.PROG_SEQ = C.PROG_SEQ
+				AND A.LANG_SET = #{langSet}
+				AND C.PROG_ID = #{progId}
+				AND D.TMPL_CD_ID = #{tmpCdId}
+			<if test="headerDevClsCdId != null and headerDevClsCdId neq 'all'">
+				AND A.DEV_CLS_CD = #{headerDevClsCdId}
+			</if>
+			ORDER BY A.COL_ORDER,A.TMPL_HDR_ATTB_SEQ
+	</select>
+
+	<select id="retrieveEntrJqDataExcel" parameterType="kr.co.scp.ccp.iotEntrDevStat.dto.TbIotEntrDevStatDTO" resultType="kr.co.scp.common.tmpl.dto.TbIotJqDataResponseDTO">
+		SELECT A.COL_NAME_DATA , A.COL_MODEL_DATA , A.DEV_CLS_CD
+		FROM TB_IOT_TMPL_HDR_GRID A, TB_IOT_PROG C , TB_IOT_TMPL D
+		WHERE A.TMPL_SEQ = D.TMPL_SEQ
+			AND D.PROG_SEQ = C.PROG_SEQ
+			AND A.LANG_SET = #{langSet}
+			AND C.PROG_ID = #{progId}
+			AND D.TMPL_CD_ID = #{tmpCdId}
+		<if test="headerDevClsCdId != null and headerDevClsCdId neq 'all'">
+			AND A.DEV_CLS_CD = #{headerDevClsCdId}
+		</if>
+		ORDER BY A.COL_ORDER,A.TMPL_HDR_ATTB_SEQ
+	</select>
+
+	<insert id="insertTbIotTmplHdrJqgrid" 	parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplHdrJqgridDTO">
+		INSERT INTO TB_IOT_TMPL_HDR_GRID(
+								 TMPL_SEQ,
+								 S_DEV_SEQ,
+								 COL_NAME_DATA,
+								 COL_MODEL_DATA,
+								 LANG_SET,
+								 TMP_1,
+								 TMP_2,
+								 TMP_3,
+								 COL_ORDER,
+								 DEV_CLS_CD,
+								 REG_USR_ID,
+								 REG_DTTM)
+			   VALUES (#{tmplSeq},
+					   0,
+					   #{colNameData},
+					   #{colModelData},
+			   		   #{langSet},
+					   #{tmp1},
+					   #{tmp2},
+					   #{tmp3},
+					   #{colOrder},
+					   #{devClsCd},
+					   #{regUserId},
+					   DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+					   )
+
+	</insert>
+
+
+	<update id="updateTbIotTmplHdrJqgrid" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplHdrJqgridDTO">
+		UPDATE TB_IOT_TMPL_HDR_GRID
+		  SET TMPL_SEQ = #{tmplSeq}
+		    , S_DEV_SEQ = #{sDevSeq}
+		    , COL_NAME_DATA = #{colNameData}
+		    , COL_MODEL_DATA = #{colModelData}
+		    , LANG_SET = #{langSet}
+		    , TMP_1 = #{tmp1}
+		    , TMP_2 = #{tmp2}
+		    , TMP_3 = #{tmp3}
+		    , MOD_USR_ID = #{modUserId}
+		    , MOD_DTTM = #{modDttm}
+		WHERE TMPL_HDR_ATTB_SEQ = #{tmplHdrAttbSeq}
+	</update>
+
+	<delete id="deleteTbIotTmplHdrJqgrid" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplHdrJqgridDTO">
+		DELETE FROM TB_IOT_TMPL_HDR_GRID
+		WHERE TMPL_HDR_ATTB_SEQ = #{tmplHdrAttbSeq}
+	</delete>
+
+	<delete id="deleteTbIotTmplHdrJqgridAll" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplHdrJqgridDTO">
+		DELETE FROM TB_IOT_TMPL_HDR_GRID
+		WHERE TMPL_SEQ = #{tmplSeq}
+			AND LANG_SET = #{langSet}
+			AND DEV_CLS_CD = #{devClsCd}
+	</delete>
+
+	<select id="duplicationCharSet" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplHdrJqgridDTO" resultType="Integer">
+		SELECT COUNT(TMPL_HDR_ATTB_SEQ)
+		FROM TB_IOT_TMPL_HDR_GRID
+		WHERE TMPL_SEQ = #{tmplSeq}
+		AND LANG_SET = #{langSet}
+		<if test="devClsCd != null and devClsCd neq 'all'">
+			AND DEV_CLS_CD = #{devClsCd}
+		</if>
+	</select>
+
+	<select id="duplicationCheckCopy" parameterType="kr.co.scp.common.tmpl.dto.CopyJqGridDto" resultType="INTEGER">
+		SELECT COUNT(TMPL_HDR_ATTB_SEQ)
+		FROM TB_IOT_TMPL_HDR_GRID
+		WHERE TMPL_SEQ = #{tmplSeq}
+			AND LANG_SET = #{langSet}
+		<if test="devClsCd != null and devClsCd neq 'all'">
+			AND DEV_CLS_CD = #{devClsCd}
+		</if>
+	</select>
+
+	<select id="retrieveOrgTbIotTmplHdrJqgridList" parameterType="kr.co.scp.common.tmpl.dto.CopyJqGridDto" resultType="kr.co.scp.common.tmpl.dto.TbIotTmplHdrJqgridDTO">
+		SELECT
+			TMPL_HDR_ATTB_SEQ
+			, TMPL_SEQ
+			, S_DEV_SEQ
+			, COL_NAME_DATA
+			, COL_MODEL_DATA
+			, LANG_SET
+			, TMP_1
+			, TMP_2
+			, TMP_3
+			, COL_ORDER
+			, DEV_CLS_CD
+		FROM TB_IOT_TMPL_HDR_GRID
+		WHERE TMPL_SEQ = #{tmplSeq}
+			AND LANG_SET = #{orgLangSet}
+		<if test="orgDevClsCd != null and orgDevClsCd neq 'all'">
+			AND DEV_CLS_CD = #{orgDevClsCd}
+		</if>
+		ORDER BY TMPL_SEQ, COL_ORDER
+	</select>
+
+
+</mapper>

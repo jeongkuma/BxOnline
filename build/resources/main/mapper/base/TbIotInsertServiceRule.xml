@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.iotInsert.dao.IotInsertServiceRuleDAO">
+ 
+	
+	<select id="parseCount" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceMappigDTO" resultType="java.lang.Integer">
+		SELECT COUNT(*) as cnt
+	 	FROM TB_IOT_DEV_COL_RULE
+        WHERE DEVRULE_SEQ = #{devruleSeq}
+	</select>
+	
+	<delete id="deleteParseInfo" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceMappigDTO">
+	    DELETE FROM TB_IOT_DEV_COL_RULE
+		WHERE DEVRULE_SEQ = #{devruleSeq}
+	</delete>  
+
+	<delete id="deleteParseInfoAll" parameterType="java.util.List">
+	    DELETE FROM TB_IOT_DEV_COL_RULE   
+		WHERE DEVRULE_SEQ IN 
+		<foreach collection="list" item="item" index="index"  open="(" separator="," close=")" >  
+		 #{item.devruleSeq} 
+		</foreach>
+	</delete>
+	
+	<insert id="insertParseInfo" 	parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceMappigDTO">
+		INSERT INTO  TB_IOT_DEV_COL_RULE
+			(	
+				DEVRULE_SEQ,
+				API_SEQ,
+				DEV_SEQ,
+				RULE_MSG_TYPE,
+				RULE_COL_TYPE,
+				RULE_SEQ,
+				RULE_REQUEST,
+				RULE_SOURCEKEY,
+				RULE_KIND,
+				RULE_BYTE_POSI,
+				RULE_BIT_POSI,
+				RULE_NUMBER,
+				RULE_POINT,
+				RULE_TARGETKEY,
+				RULE_DEV_TYPE,
+				REG_USR_ID,
+				REG_DTTM
+			)
+		VALUES
+			(
+				#{devruleSeq},
+				#{apiSeq},
+				#{devSeq},
+				#{ruleMsgType},
+				#{ruleColType},
+				#{ruleSeq},
+				#{ruleRequest},
+				#{ruleSourcekey},
+				#{ruleKind},
+				#{ruleBytePosi},
+				#{ruleBitPosi},
+				#{ruleNumber},
+				#{rulePoint},
+				#{ruleTargetkey},
+				#{ruleDevType},
+				#{regUsrId},
+		    	DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)
+	</insert>
+			
+	<insert id="insertParseInfoAll" parameterType="java.util.List">
+		
+			INSERT INTO TB_IOT_DEV_COL_RULE
+			(	
+				DEVRULE_SEQ,
+				API_SEQ,
+				DEV_SEQ,
+				RULE_MSG_TYPE,
+				RULE_COL_TYPE,
+				RULE_SEQ,
+				RULE_REQUEST,
+				RULE_SOURCEKEY,
+				RULE_KIND,
+				RULE_BYTE_POSI,
+				RULE_BIT_POSI,
+				RULE_NUMBER,
+				RULE_POINT,
+				RULE_TARGETKEY,
+				RULE_DEV_TYPE,
+				REG_USR_ID,
+				REG_DTTM
+			)
+		VALUES
+		<foreach collection="list" item="item" index="index"  separator=","> 
+			(
+				#{item.devruleSeq},
+				#{item.apiSeq},
+				#{item.devSeq},
+				#{item.ruleMsgType},
+				#{item.ruleColType},
+				#{item.ruleSeq},
+				#{item.ruleRequest},
+				#{item.ruleSourcekey},
+				#{item.ruleKind},
+				#{item.ruleBytePosi},
+				#{item.ruleBitPosi},
+				#{item.ruleNumber},
+				#{item.rulePoint},
+				#{item.ruleTargetkey},
+				#{item.ruleDevType},
+				#{item.regUsrId},
+		    	DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)
+		</foreach>
+	</insert>
+			
+	<update id="updateParseInfo" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceMappigDTO">
+		UPDATE TB_IOT_DEV_COL_RULE	SET
+			API_SEQ		    = #{apiSeq},
+			DEV_SEQ			= #{devSeq},
+			RULE_MSG_TYPE	= #{ruleMsgType},
+			RULE_COL_TYPE	= #{ruleColType},
+			RULE_SEQ		= #{ruleSeq},
+			RULE_REQUEST	= #{ruleRequest},
+			RULE_SOURCEKEY	= #{ruleSourcekey},
+			RULE_KIND		= #{ruleKind},
+			RULE_BYTE_POSI	= #{ruleBytePosi},
+			RULE_BIT_POSI	= #{ruleBitPosi},
+			RULE_NUMBER		= #{ruleNumber},
+			RULE_POINT		= #{rulePoint},
+			RULE_TARGETKEY	= #{ruleTargetkey},
+			RULE_DEV_TYPE   = #{ruleDevType},
+			MOD_USR_ID      = #{regUsrId},
+			MOD_DTTM        = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		WHERE
+			DEVRULE_SEQ		= #{devruleSeq}
+	</update> 
+	
+
+	<select id="validCount" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceValidDTO" resultType="Integer">
+		SELECT COUNT(*) as cnt
+	 	FROM TB_IOT_VAL_RULE
+        WHERE DEV_SEQ = #{devSeq}
+		AND API_SEQ = #{apiSeq}
+		AND VAL_RULE_SEQ = #{valRuleSeq}
+	</select>
+	 
+	<delete id="deleteValidInfo" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceValidDTO">
+	    DELETE FROM TB_IOT_VAL_RULE   
+		WHERE VAL_RULE_SEQ = #{valRuleSeq}
+	</delete>  
+	
+	<delete id="deleteValidInfoAll" parameterType="java.util.List">
+	    DELETE FROM TB_IOT_VAL_RULE   
+		WHERE VAL_RULE_SEQ IN 
+		<foreach collection="list" item="item" index="index"  open="(" separator="," close=")" >  
+		 #{item.valRuleSeq} 
+		</foreach>
+	</delete>
+	
+	<insert id="insertValidInfo" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceValidDTO">
+		INSERT INTO  TB_IOT_VAL_RULE
+		(
+			API_SEQ,
+			DEV_SEQ,
+			VAL_RULE_SEQ,
+			VAL_RULE_NAME,
+			RULE_MSG_TYPE,
+			RULE_KIND,
+			DEFAULT_YN,
+			NULL_YN,
+			EMPTY_YN,
+			DATA_TYPE,
+			DATA_SIZE,
+			DATA_MIN,
+			DATA_MAX,
+			ALLOW_REGEX,
+			NOTALLOW_REGEX,
+			REG_USR_ID,
+			REG_DTTM
+		)
+		VALUES
+		(
+			#{apiSeq},
+			#{devSeq},
+			#{valRuleSeq},
+			#{valRuleName},
+			#{ruleMsgType},
+			#{ruleKind},
+			#{defaultYn},
+			#{nullYn},
+			#{emptyYn},
+			#{dataType},
+			#{dataSize},
+			#{dataMin},
+			#{dataMax},
+			#{allowRegex},
+			#{notallowRegex},
+			#{regUsrId},
+			DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		)
+	</insert>
+	
+	<insert id="insertValidInfoAll" parameterType="java.util.List">
+		
+			INSERT INTO  TB_IOT_VAL_RULE
+			(
+				API_SEQ,
+				DEV_SEQ,
+				VAL_RULE_SEQ,
+				VAL_RULE_NAME,
+				RULE_MSG_TYPE,
+				RULE_KIND,
+				DEFAULT_YN,
+				NULL_YN,
+				EMPTY_YN,
+				DATA_TYPE,
+				DATA_SIZE,
+				DATA_MIN,
+				DATA_MAX,
+				ALLOW_REGEX,
+				NOTALLOW_REGEX,
+				REG_USR_ID,
+				REG_DTTM
+			)
+			VALUES
+			<foreach collection="list" item="item" index="index" separator=","> 
+			(
+				#{item.apiSeq},
+				#{item.devSeq},
+				#{item.valRuleSeq},
+				#{item.valRuleName},
+				#{item.ruleMsgType},
+				#{item.ruleKind},
+				#{item.defaultYn},
+				#{item.nullYn},
+				#{item.emptyYn},
+				#{item.dataType},
+				#{item.dataSize},
+				#{item.dataMin},
+				#{item.dataMax},
+				#{item.allowRegex},
+				#{item.notallowRegex},
+				#{item.regUsrId},				
+	            DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)
+		
+		</foreach>
+	</insert>
+	
+	<update id="updateValidInfo" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceValidDTO">
+		UPDATE TB_IOT_VAL_RULE	SET
+			VAL_RULE_NAME      = #{valRuleName},
+			RULE_MSG_TYPE      = #{ruleMsgType},
+			RULE_KIND          = #{ruleKind},
+			DEFAULT_YN         = #{defaultYn},
+			NULL_YN            = #{nullYn},
+			EMPTY_YN           = #{emptyYn},
+			DATA_TYPE          = #{dataType},
+			DATA_SIZE          = #{dataSize},
+			DATA_MIN           = #{dataMin},
+			DATA_MAX           = #{dataMax},
+			ALLOW_REGEX        = #{allowRegex},
+			NOTALLOW_REGEX     = #{notallowRegex},
+			MOD_USR_ID         = #{regUsrId},
+			MOD_DTTM           = DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		WHERE
+			DEV_SEQ = #{devSeq}
+		AND API_SEQ = #{apiSeq}
+		AND VAL_RULE_SEQ = #{valRuleSeq}
+	</update> 
+	
+	<select id="ruleserviceCount" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceRuleServiceDTO" resultType="java.lang.Integer">
+		SELECT COUNT(*) as cnt
+	 	FROM TB_IOT_DEV_API_RULE
+        WHERE DEV_SEQ = #{devSeq}
+		AND API_SEQ = #{apiSeq}
+		AND CALL_API_SEQ = #{callApiSeq}
+	</select>
+	 
+	<delete id="deleteRuleserviceInfo" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceRuleServiceDTO">
+	    DELETE FROM TB_IOT_DEV_API_RULE   
+		WHERE CALL_API_SEQ = #{callApiSeq}
+	</delete>  
+	
+	<delete id="deleteRuleserviceInfoAll" parameterType="java.util.List">
+	    DELETE FROM TB_IOT_DEV_API_RULE   
+		WHERE CALL_API_SEQ IN 
+		<foreach collection="list" item="item" index="index"  open="(" separator="," close=")" >  
+		 #{item.callApiSeq} 
+		</foreach>
+	</delete>
+	
+	<insert id="insertRuleserviceInfo" parameterType="kr.co.scp.common.iotInsert.dto.TbIotInsertServiceRuleServiceDTO">
+		INSERT INTO  TB_IOT_DEV_API_RULE
+		(
+			API_SEQ,
+			DEV_SEQ,
+			CALL_API_SEQ,
+			REG_USR_ID,
+			REG_DTTM
+		)
+		VALUES
+		(
+			#{apiSeq},
+			#{devSeq},
+			#{callApiSeq},
+			#{regUsrId},
+	        DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+		)
+	</insert>
+	
+	<insert id="insertRuleserviceInfoAll" parameterType="java.util.List">
+		
+			INSERT INTO  TB_IOT_DEV_API_RULE
+			(
+				API_SEQ,
+				DEV_SEQ,
+				CALL_API_SEQ,
+				REG_USR_ID,
+				REG_DTTM
+			)
+			VALUES
+			<foreach collection="list" item="item" index="index" separator=","> 
+			(
+				#{item.apiSeq},
+				#{item.devSeq},
+				#{item.callApiSeq},
+				#{item.regUsrId},
+	            DATE_FORMAT(NOW(), '%Y%m%d%H%i%S')
+			)
+		
+		</foreach>
+	</insert>
+</mapper>

@@ -1,0 +1,134 @@
+HTTP_HEADER: 
+  Content-Type:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: N
+  X-APIVERSION:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LOGKEY:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-CHANNEL:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-AUTH:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-VNAME:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LANG:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-MID:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+HTTP_BODY: 
+  svcCd:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y   
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    minLength : 1
+    maxLength: 10 
+  devClsCd:
+    dataType: STRING
+    requiredKey: N
+    notNull: N   
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    maxLength: 10
+  svcLevel:
+    dataType: STRING
+    requiredKey: Y
+    accept: ^[0-9]*$
+  upSvcSeq:
+    dataType: STRING
+    requiredKey: Y
+    accept: ^[0-9]*$    
+  langSet:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y    
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9]*$
+  cdNm:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y   
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    minLength : 1
+    maxLength : 16
+  cdDesc:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N
+    comPatternSkip: Y
+    maxLength : 85      
+  cdId:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y   
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    minLength : 1
+    maxLength: 10
+  firstCdId:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y   
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    minLength : 1
+    maxLength: 10
+  parentCdId:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y   
+    noWhitespace: Y
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    minLength : 1
+    maxLength: 10  
+  paramKey:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    maxLength: 85         
+  paramVal:
+    dataType: STRING
+    requiredKey: N
+    notNull: N       
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    maxLength: 85      
+  cdSeq:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    accept: ^[0-9]*$
+  useYn:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+    accept: ^[a-zA-Z]*$
+    minLength : 1
+    maxLength : 1     

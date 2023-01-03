@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotDev.dao.IotDevDAO">
+
+	<!-- 장비 목록 조회 -->
+	<select id="retrieveIotDev" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO">
+		SELECT
+				  A.S_DEV_SEQ AS DEV_SEQ
+				, A.DEV_CLS_CD
+				, B.CD_NM AS DEV_CLS_CD_NM
+				, A.DEV_MDL_CD
+				, A.DEV_MDL_NM
+				, A.USE_YN
+				, A.PARENT_DEV_SEQ
+				, A.VENDOR_NM
+				, A.REG_USR_ID
+				, A.REG_DTTM
+				, A.MOD_USR_ID
+				, A.MOD_DTTM
+				, A.NORMAL_ICON_FILE
+				, A.ABNORMAL_ICON_FILE
+				, A.ABNORMAL_ICON_FILE2
+				, A.DEV_MDL_VAL
+				, A.DAILY_COL_CNT
+		 FROM TB_IOT_SVC_DEV_M A
+		 INNER JOIN TB_IOT_CM_CD B
+			        ON A.DEV_CLS_CD = B.CD_ID
+		WHERE 1=1
+			AND A.STATUS_CD != 'C'
+			AND B.LANG_SET = #{langset}
+		<if test="devSeq != null">
+			AND A.S_DEV_SEQ = #{devSeq}
+		</if>
+		<if test="devClsCdNm != null">
+			AND A.DEV_CLS_CD = #{devClsCdNm}
+		</if>
+		<if test="devClsCd != null">
+			AND A.DEV_CLS_CD = #{devClsCd}
+		</if>
+		<if test='entrYn eq "Y"'>
+ 			AND A.DEV_MDL_CD LIKE 'LGE_%'
+		</if>
+		<if test='entrYn neq "Y"'>
+			AND A.DEV_MDL_CD NOT LIKE 'LGE_%'
+		</if>
+		<if test="entrYn != null and devMdlCd != null">
+			AND A.DEV_MDL_CD LIKE CONCAT('LGE_', #{devMdlCd})
+		</if>
+		<if test="entrYn == null and devMdlCd != null">
+			AND A.DEV_MDL_CD = #{devMdlCd}
+		</if>
+		<if test="entrYn != null and devMdlCd == null">
+			AND A.DEV_MDL_CD LIKE 'LGE_%'
+		</if>
+		<if test="entrYn == null and devMdlCd == null">
+			AND A.DEV_MDL_CD NOT LIKE 'LGE_%'
+		</if>
+		<if test="useYn != null">
+			AND A.USE_YN LIKE CONCAT(#{useYn}, '%')
+		</if>
+		<if test="devMdlNm != null">
+			AND A.DEV_MDL_NM LIKE CONCAT(#{devMdlNm}, '%')
+		</if>
+		<if test="vendorNm != null">
+			AND A.VENDOR_NM LIKE CONCAT(#{vendorNm}, '%')
+		</if>
+		<if test='isParent == "Y"'>
+			AND A.PARENT_DEV_SEQ IS NULL
+		</if>
+		ORDER BY IFNULL (A.MOD_DTTM,A.REG_DTTM) DESC
+		<if test="null != startPage" >
+			LIMIT ${startPage - 1}, #{displayRowCount}
+		</if>
+	</select>
+
+	<select id="retrieveIotDevCount" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO" resultType="java.lang.Integer">
+
+		SELECT COUNT(*)
+		FROM TB_IOT_SVC_DEV_M
+		WHERE 1=1
+		AND STATUS_CD != 'C'
+		<if test="devSeq != null">
+			AND S_DEV_SEQ = #{devSeq}
+		</if>
+		<if test="devClsCdNm != null">
+			AND DEV_CLS_CD_NM = #{devClsCdNm}
+		</if>
+		<if test="devClsCd != null">
+			AND DEV_CLS_CD = #{devClsCd}
+		</if>
+		<if test="entrYn != null and devMdlCd != null">
+			AND DEV_MDL_CD LIKE CONCAT('LGE_', #{devMdlCd})
+		</if>
+		<if test="entrYn == null and devMdlCd != null">
+			AND DEV_MDL_CD = #{devMdlCd}
+		</if>
+		<if test="entrYn != null and devMdlCd == null">
+			AND DEV_MDL_CD LIKE 'LGE_%'
+		</if>
+		<if test="entrYn == null and devMdlCd == null">
+			AND DEV_MDL_CD NOT LIKE 'LGE_%'
+		</if>
+		<if test="useYn != null">
+			AND USE_YN LIKE CONCAT(#{useYn}, '%')
+		</if>
+		<if test="devMdlNm != null">
+			AND DEV_MDL_NM LIKE CONCAT(#{devMdlNm}, '%')
+		</if>
+		<if test="vendorNm != null">
+			AND VENDOR_NM LIKE CONCAT(#{vendorNm}, '%')
+		</if>
+		<if test='isParent == "Y"'>
+			AND PARENT_DEV_SEQ IS NULL
+		</if>
+
+	</select>
+
+	<select id="retrieveIotDevCount1" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO" resultType="java.lang.Integer">
+
+		SELECT COUNT(*)
+		FROM TB_IOT_SVC_DEV_M
+		WHERE 1=1
+	    <if test="devClsCdNm != null">
+			AND DEV_CLS_CD_NM LIKE CONCAT(#{devClsCdNm}, '%')
+		</if>
+		<if test="devClsCd != null">
+			AND DEV_CLS_CD = #{devClsCd}
+		</if>
+			<if test="entrYn != null and devMdlCd != null">
+            AND DEV_MDL_CD LIKE CONCAT('LGE_', #{devMdlCd})
+			</if>
+			<if test="entrYn == null and devMdlCd != null">
+			 AND DEV_MDL_CD = #{devMdlCd}
+			</if>
+			 <if test="entrYn != null and devMdlCd == null">
+			 AND DEV_MDL_CD LIKE 'LGE_%'
+			</if>
+      <if test="entrYn == null and devMdlCd == null">
+		   AND DEV_MDL_CD NOT LIKE 'LGE_%'
+	  </if>
+		<if test="devMdlNm != null">
+			AND DEV_MDL_NM LIKE CONCAT(#{devMdlNm}, '%')
+		</if>
+		<if test="useYn != null">
+			AND USE_YN = #{useYn}
+		</if>
+		<if test="vendorNm != null">
+			AND VENDOR_NM LIKE CONCAT(#{vendorNm}, '%')
+		</if>
+
+		AND PARENT_DEV_SEQ IS NULL
+	</select>
+
+	<!-- 장비 유형 목록 조회 -->
+	<select id="retrieveIotDevCls" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO">
+		SELECT
+			CD_ID AS	"devClsCd"
+			, CD_NM AS "devClsCdNm"
+		FROM TB_IOT_CM_CD
+		WHERE PARENT_CD_ID = 'SD00000002'
+		AND LANG_SET = #{langSet}
+	</select>
+
+	<!-- 장비 모델 목록 조회 -->
+	<select id="retrieveDevMdlList" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO"	resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO">
+		SELECT
+			DEV_MDL_CD "devMdlCd"
+			, DEV_MDL_NM "devMdlNm"
+		FROM TB_IOT_SVC_DEV_M
+		WHERE 1=1
+			AND DEV_MDL_CD NOT LIKE 'LGE_%'
+		<if test="devClsCd != null">
+			AND DEV_CLS_CD = #{devClsCd}
+		</if>
+
+	</select>
+
+	<!-- 서비스 유형 목록 조회 -->
+	<select id="retrieveIotDevSvc" parameterType="kr.co.scp.common.iotSvc.dto.TbIotSvcDto" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO">
+		SELECT CD_ID AS "devSvcCd"
+			 , CD_NM AS "devSvcCdNm"
+		FROM TB_IOT_CM_CD
+		WHERE PARENT_CD_ID = 'SD00000001'
+		AND LANG_SET = #{langSet}
+		AND USE_YN = 'Y'
+	</select>
+
+	<!-- 장비 등록 -->
+
+	<insert id="insertIotDev" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO" >
+		<selectKey keyProperty="devSeq" resultType="String" order="BEFORE">
+			SELECT MAX(S_DEV_SEQ) + 1 FROM TB_IOT_SVC_DEV_M
+		</selectKey>
+		INSERT INTO TB_IOT_SVC_DEV_M (
+			S_DEV_SEQ
+			,SVC_CD
+			,DEV_CLS_CD
+			,DEV_CLS_CD_NM
+			,DEV_MDL_CD
+			,DEV_MDL_NM
+			,DEV_SEQ
+			,USE_YN
+			,STATUS_CD
+			,PARENT_DEV_SEQ
+			,VENDOR_NM
+			,NORMAL_ICON_FILE
+			,ABNORMAL_ICON_FILE
+			,ABNORMAL_ICON_FILE2
+			,REG_USR_ID
+			,REG_DTTM
+			,MOD_USR_ID
+			,MOD_DTTM
+			,DEV_MDL_VAL
+			,DAILY_COL_CNT
+              )
+		VALUES (
+			#{devSeq}
+			,#{svcCd}
+			,#{devClsCd}
+			,(SELECT A.CD_NM FROM TB_IOT_CM_CD A WHERE CD_ID = #{devClsCd} AND LANG_SET = #{langset} LIMIT 1)
+			,#{devMdlCd}
+			,#{devMdlNm}
+			,#{devSeq}
+			,#{useYn}
+			,(SELECT PARAM_KEY
+				FROM TB_IOT_CM_CD
+				WHERE CD_ID = 'GN00000148'
+				AND LANG_SET = #{langset}
+		     )
+			,#{parentDevSeq}
+			,#{vendorNm}
+			,#{normalIconFile}
+			,#{abnormalIconFile}
+			,#{abnormalIconFile2}
+			,#{regUsrId}
+	        ,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			,null
+			,null
+			,#{devMdlVal}
+			,#{dailyColCnt}
+		)
+<!--		<selectKey resultType="String" keyProperty="devSeq" order="AFTER">-->
+<!--			SELECT LAST_INSERT_ID()-->
+<!--		</selectKey>-->
+	</insert>
+	<!--장비 업데이트 -->
+	<update id="updateIotDev">
+
+		UPDATE TB_IOT_SVC_DEV_M
+		SET DEV_CLS_CD = #{devClsCd}
+          , DEV_CLS_CD_NM = #{devClsCdNm}
+          , DEV_MDL_CD = #{devMdlCd}
+          , DEV_MDL_NM = #{devMdlNm}
+          , USE_YN = #{useYn}
+          , PARENT_DEV_SEQ = #{parentDevSeq}
+          , VENDOR_NM = #{vendorNm}
+          , NORMAL_ICON_FILE = #{normalIconFile}
+          , ABNORMAL_ICON_FILE = #{abnormalIconFile}
+          , ABNORMAL_ICON_FILE2 = #{abnormalIconFile2}
+          , MOD_USR_ID = #{regUsrId}
+          , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+          , DEV_MDL_VAL = #{devMdlVal}
+          , DAILY_COL_CNT = #{dailyColCnt}
+		WHERE S_DEV_SEQ = #{devSeq}
+
+	</update>
+	<!--장비 속성 업데이트 -->
+	<update id="updateIotDevAtb">
+
+		UPDATE TB_IOT_S_DEV_ATB
+		SET DEV_MDL_CD = #{devMdlCd}
+          , MOD_USR_ID = #{regUsrId}
+          , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		WHERE S_DEV_SEQ = #{devSeq}
+
+	</update>
+
+	<!--장비 삭제 업데이트 -->
+	<update id="deleteIotDev" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO">
+
+		UPDATE TB_IOT_SVC_DEV_M SET
+			USE_YN = 'N'
+			,STATUS_CD = 'C'
+			,MOD_USR_ID = #{modUsrId}
+			,MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		WHERE S_DEV_SEQ = #{devSeq}
+			<!-- 	<foreach collection="devSeq" item="item" index="index" separator="," open="(" close=")">
+			//	#{item}
+			//	</foreach> -->
+	</update>
+
+	<!-- 장비 등록 -->
+	<insert id="insertIotDevAll">
+
+		INSERT INTO TB_IOT_SVC_DEV_M (
+			DEV_CLS_CD
+			,DEV_CLS_CD_NM
+			,DEV_MDL_CD
+			,DEV_MDL_NM
+			,USE_YN
+			,STATUS_CD
+			,PARENT_DEV_SEQ
+			,VENDOR_NM
+			,NORMAL_ICON_FILE
+			,ABNORMAL_ICON_FILE
+			,ABNORMAL_ICON_FILE2
+			,REG_USR_ID
+			,REG_DTTM
+			,MOD_USR_ID
+			,MOD_DTTM
+			,DEV_MDL_VAL
+			,DAILY_COL_CNT
+			)
+		VALUES (
+			#{devClsCd}
+			,(SELECT A.CD_NM FROM TB_IOT_CM_CD A WHERE CD_ID = #{devClsCd} AND LANG_SET = #{langSet} LIMIT 1)
+			,#{devMdlCd}
+			,#{devMdlNm}
+			,#{useYn}
+			,(SELECT PARAM_KEY FROM TB_IOT_CM_CD WHERE CD_ID = 'GN00000148' AND LANG_SET = #{langSet} LIMIT 1)
+			,#{parentDevSeq}
+			,#{vendorNm}
+			,#{normalIconFile}
+			,#{abnormalIconFile}
+			,#{abnormalIconFile2}
+			,#{regUsrId}
+			,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			,null
+			,null
+			,#{devMdlVal}
+			,#{dailyColCnt}
+		)
+
+	</insert>
+
+	<select id="retrieveIotDevAllCdId" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO" resultType="java.lang.Integer" >
+		SELECT COUNT(*) FROM TB_IOT_CM_CD A
+			WHERE CD_ID = #{devClsCd}
+			  AND LANG_SET = #{langSet}
+	</select>
+
+   	<select id="retrieveIotDevAllCdNm" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO" resultType="java.lang.Integer" >
+		SELECT COUNT(*) FROM TB_IOT_CM_CD A
+			WHERE CD_NM = #{devClsCdNm}
+			  AND LANG_SET = #{langSet}
+	</select>
+
+	<!-- 장비 마스터 명 변경  2019-08-13 -->
+	<select id="updateDlsCdNm" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDTO">
+		UPDATE TB_IOT_SVC_DEV_M
+		   SET DEV_CLS_CD_NM = #{devClsCdNm}
+		     , MOD_USR_ID = #{modUserId}
+		     , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		  WHERE DEV_CLS_CD = #{devClsCd}
+	</select>
+
+	<select id="retrieveIotDupE" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO" resultType="java.lang.Integer">
+           SELECT COUNT(*)
+             FROM TB_IOT_SVC_DEV_M
+            WHERE DEV_MDL_CD = #{devMdlCd}
+              AND STATUS_CD != 'C'
+              AND STATUS_CD = 'A'
+	          AND 1=1
+	</select>
+
+    	<select id="retrieveIotMdlDupE" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevExcelDTO" resultType="java.lang.Integer">
+           SELECT COUNT(*)
+             FROM TB_IOT_SVC_DEV_M
+            WHERE DEV_MDL_NM = #{devMdlNm}
+              AND STATUS_CD = 'A'
+	          AND 1=1
+	</select>
+
+</mapper>

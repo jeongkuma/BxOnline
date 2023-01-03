@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotDev.dao.IotDevAttrSetDAO">
+
+ 	<select id="retrieveIotDevAttrSet" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrSetDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrSetDTO">
+
+		SELECT
+		        B.S_DEV_ATTB_SET_SEQ AS DEV_ATTB_SET_SEQ
+		       ,B.DEV_ATTB_SET_CD_ID
+		       ,(SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.CD_ID = B.DEV_ATTB_SET_CD_ID AND LANG_SET = 'ko') AS DEV_ATTB_SET_CD_NM
+		       ,B.STATUS_CD
+		       ,B.DEV_ATTB_SET_VAL
+               ,B.SET_PARENT_CD_ID
+		  FROM  TB_IOT_S_DEV_ATB A
+		       ,TB_IOT_S_DEV_ATB_SET B
+		 WHERE  A.S_DEV_ATTB_SEQ = B.S_DEV_ATTB_SEQ
+		   AND  B.STATUS_CD != 'C'
+		   AND  A.S_DEV_ATTB_SEQ  = #{devAttbSeq}
+		   ORDER BY B.S_DEV_ATTB_SET_SEQ ASC
+	</select>
+
+
+
+
+<!-- 장비 속성SET 등록 -->
+<insert id="insertIotDevAttrSetAll" >
+    INSERT INTO TB_IOT_S_DEV_ATB_SET
+          (
+			S_DEV_ATTB_SEQ
+           ,DEV_ATTB_SET_CD_ID
+           ,DEV_ATTB_SET_CD_NM
+           ,STATUS_CD
+           ,DEV_ATTB_SET_VAL
+           ,SET_PARENT_CD_ID
+           ,REG_USR_ID
+           ,REG_DTTM
+           ,MOD_USR_ID
+           ,MOD_DTTM
+          )
+    VALUES
+          (
+			#{devAttbSeq}
+            ,#{devAttbSetCdId}
+            ,#{devAttbSetCdNm}
+            ,(SELECT A.PARAM_KEY
+	             FROM TB_IOT_CM_CD A
+	            WHERE A.CD_ID = 'GN00000148')
+            ,#{devAttbSetVal}
+            ,#{setParentCdId}
+            ,#{regUsrId}
+            ,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+            ,null
+            ,null
+          )
+</insert>
+
+<select id="retrieveIotDevSetAllCdId" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrSetDTO" resultType="java.lang.Integer" >
+		SELECT COUNT(*) FROM TB_IOT_CM_CD A
+			WHERE CD_ID = #{devAttbSetCdId}
+</select>
+<select id="retrieveIotDevSetAllCdNm" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrSetDTO" resultType="java.lang.Integer" >
+		SELECT COUNT(*) FROM TB_IOT_CM_CD A
+			WHERE CD_NM = #{devAttbSetCdNm}
+</select>
+<select id="retrieveIotDevPSetAllCdId" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevAttrSetDTO" resultType="java.lang.Integer" >
+		SELECT COUNT(*) FROM TB_IOT_CM_CD A
+			WHERE CD_ID = #{setParentCdId}
+</select>
+
+
+
+</mapper>

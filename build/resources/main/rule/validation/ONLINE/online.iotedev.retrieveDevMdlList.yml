@@ -1,0 +1,86 @@
+# header dataType : STRING, NUMBER, DATE
+# body dataType : STRING, NUMBER, BOOLEAN, DATE, OBJECT, ARRAY
+#                      : SHORT, INTEGER, LONG, FLOAT, DOUBLE, BIGDECIMAL
+# 1. STRING일 경우 (String)
+#   requiredKey : Y, N (Default Y)
+#   notNull : Y, N 
+#   length : 데이터 길이
+#   minLength : 최소길이
+#   maxLength : 최대길이
+#   accept : 허용하는 정규표현식
+#   reject : 허용하지 않는 정규표현식
+#   noWhitespace : Y, N --> 공백 허용하지 않음
+# 2. NUMBER일 경우 (String,Number)
+#   requiredKey : Y, N (Default Y)
+#   notNull : Y, N
+#   minLength : 최소길이
+#   maxLength : 최대길이
+#   minValue : 최소값
+#   maxValue : 최대값
+# 3. BOOLEAN일 경우 (Boolean) 
+#   requiredKey : Y, N (Default Y)
+#   notNull : Y, N
+# 4. DATE일 경우 (String)
+#   requiredKey : Y, N (Default Y)
+#   notNull : Y, N
+#   format : yyyy-MM-dd HH:mm:ss (format 항목이 없으면 오류)
+# 5. OBJECT일 경우 
+#   requiredKey : Y, N (Default Y)
+#   notNull : Y, N
+# 6. ARRAY일 경우 (OBJECT ARRAY만 가능)
+#   requiredKey : Y, N (Default Y)
+#   notNull : Y, N
+# 7. SHORT, INTEGER, LONG, FLOAT, DOUBLE, BIGDECIMAL일 경우
+#   requiredKey : Y, N (Default Y)
+#   notNull : Y, N
+#   minValue : 최소값
+#   maxValue : 최대값
+# 정규식 예제
+#   찾아서 넣어줘 
+HTTP_HEADER: 
+  Content-Type:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-APIVERSION:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LOGKEY:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-CHANNEL:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    noWhitespace: Y
+#  X-AUTH:
+#    dataType: STRING
+#    requiredKey: N
+#    notNull: Y
+#    noWhitespace: Y
+  X-VNAME:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LANG:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-MID:
+    dataType: STRING
+    requiredKey: N
+    notNull: Y
+    noWhitespace: Y 
+HTTP_BODY: 
+  devClsCd:
+    dataType: STRING
+    requiredKey: N  
+    notNull: Y
+    noWhitespace: Y 

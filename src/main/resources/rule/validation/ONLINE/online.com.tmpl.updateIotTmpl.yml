@@ -1,0 +1,69 @@
+HTTP_HEADER: 
+  Content-Type:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: N
+  X-APIVERSION:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LOGKEY:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-CHANNEL:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-AUTH:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-VNAME:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LANG:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-MID:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+HTTP_BODY:
+  tmplSeq:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+  progSeq:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+  tmplCdId:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+  tmplCdNm:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+  colCnt:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+  tmplGubun:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+  tbIotTmplHdrJqgridList:
+    dataType: ARRAY
+    requiredKey: Y

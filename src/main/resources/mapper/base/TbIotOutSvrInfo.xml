@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotManage.dao.OutSvrInfoDAO">
+
+    <select id="retrieveOutSvrInfoMList" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO" resultType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO">
+    SELECT  SM.OUT_SVR_SEQ,
+        CM.CUST_NM ,
+        CM.CUST_SEQ ,
+        SM.SVC_CD ,
+        SM.SERVER_NM ,
+        SM.CERT_KEY ,
+        SM.REG_USR_ID ,
+        SM.REG_DTTM ,
+        SM.MOD_USR_ID ,
+        SM.MOD_DTTM ,
+        (SELECT SI.PROTOCOL FROM TB_IOT_OUT_SVR_INFO SI WHERE SI.OUT_SVR_SEQ = SM.OUT_SVR_SEQ AND ROWNUM <![CDATA[<]]> 2  ) PROTOCOL,
+        (SELECT SI.IP       FROM TB_IOT_OUT_SVR_INFO SI WHERE SI.OUT_SVR_SEQ = SM.OUT_SVR_SEQ AND ROWNUM <![CDATA[<]]> 2  ) IP      ,
+        (SELECT SI.PORT     FROM TB_IOT_OUT_SVR_INFO SI WHERE SI.OUT_SVR_SEQ = SM.OUT_SVR_SEQ AND ROWNUM <![CDATA[<]]> 2  ) PORT
+	  FROM TB_IOT_OUT_SVR_M SM
+	  LEFT JOIN TB_IOT_CUST_M CM
+	  ON SM.CUST_SEQ =CM.CUST_SEQ
+       <where>
+            <if test='custSeq != null and custSeq != "" '>
+                sm.cust_seq in (select cust_seq from tb_iot_cust_m where cust_seq = #{custSeq})
+            </if>
+            <if test='serverNm != null and serverNm != "" '>
+                and sm.server_nm like '%' || #{serverNm} || '%'
+            </if>
+        </where>
+        ORDER BY out_svr_seq DESC
+        OFFSET ${(startPage-1)} ROWS FETCH NEXT ${displayRowCount} ROWS ONLY
+    </select>
+
+    <select id="retrieveOutSvrM" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO" resultType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO">
+        SELECT
+            OUT_SVR_SEQ,
+            CUST_SEQ,
+            SVC_CD,
+            SERVER_NM,
+            INOUT_CD,
+            CERT_KEY,
+            USE_YN,
+            REG_USR_ID,
+            REG_DTTM,
+            MOD_USR_ID,
+            MOD_DTTM
+        FROM tb_iot_out_svr_m
+        <where>
+            <if test='outSvrSeq != null and outSvrSeq != "" '>
+                OUT_SVR_SEQ = #{outSvrSeq}
+            </if>
+        </where>
+    </select>
+
+    <select id="retrieveOutSvrInfo" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO" resultType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO">
+        SELECT
+		OUT_SVR_INFO_SEQ ,
+		OUT_SVR_SEQ ,
+		TRAN_CD ,
+		PROTOCOL ,
+		PROXY_YN ,
+		IP ,
+		PORT ,
+		CALL_BACK_PROTOCOL ,
+		CALL_BACK_IP ,
+		CALL_BACK_PORT ,
+		USE_YN
+		FROM TB_IOT_OUT_SVR_INFO
+        <where>
+            <if test='outSvrInfoSeq != null and outSvrInfoSeq != "" '>
+                OUT_SVR_INFO_SEQ = #{outSvrInfoSeq}
+            </if>
+        </where>
+    </select>
+
+    <select id="retrieveIotOutSvrInfoMCount" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO" resultType="Integer">
+        SELECT COUNT(out_svr_seq) FROM
+        (SELECT DISTINCT sm.out_svr_seq
+        FROM tb_iot_out_svr_m sm
+        left join tb_iot_cust_m cm
+        ON sm.cust_seq = cm.cust_seq,
+        (SELECT protocol,
+        ip,
+        port,
+        cert_key
+        FROM tb_iot_out_svr_info
+        ORDER BY out_svr_info_seq ASC) si
+        <where>
+            <if test='custSeq != null and custSeq != "" '>
+                sm.cust_seq in (select cust_seq from tb_iot_cust_m where svc_cd = #{custSeq})
+            </if>
+            <if test='serverNm != null and serverNm != "" '>
+                and sm.server_nm like '%' || #{serverNm} || '%'
+            </if>
+        </where>
+        ORDER BY out_svr_seq DESC) T
+    </select>
+
+    <select id="retrieveOutSvrInfoList" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO" resultType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO">
+        SELECT
+            OUT_SVR_INFO_SEQ,
+            OUT_SVR_SEQ,
+            TRAN_CD,
+            PROTOCOL,
+            PROXY_YN,
+            IP,
+            PORT,
+            CERT_KEY,
+            USE_YN,
+            REG_USR_ID,
+            REG_DTTM,
+            MOD_USR_ID,
+            MOD_DTTM
+            FROM TB_IOT_OUT_SVR_INFO
+         <where>
+            <if test='outSvrInfoSeq != null and outSvrInfoSeq != "" '>
+                OUT_SVR_INFO_SEQ = #{outSvrInfoSeq}
+            </if>
+            <if test='outSvrSeq != null and outSvrSeq != "" '>
+                AND OUT_SVR_SEQ = #{outSvrSeq}
+            </if>
+        </where>
+        OFFSET ${(startPage-1)} ROWS FETCH NEXT ${displayRowCount} ROWS ONLY
+    </select>
+
+    <select id="retrieveIotOutSvrInfoCount" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO" resultType="Integer">
+        SELECT
+            COUNT(OUT_SVR_INFO_SEQ)
+        FROM
+        TB_IOT_OUT_SVR_INFO
+        <where>
+            <if test='outSvrInfoSeq != null and outSvrInfoSeq != "" '>
+                OUT_SVR_INFO_SEQ = #{outSvrInfoSeq}
+            </if>
+            <if test='outSvrSeq != null and outSvrSeq != "" '>
+                AND OUT_SVR_SEQ = #{outSvrSeq}
+            </if>
+        </where>
+    </select>
+
+    <insert id="registerOutSvrM" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO">
+    	<selectKey keyProperty="outSvrSeq" resultType="Long" order="BEFORE">
+			SELECT SEQ_IOT_OUT_SVR_M.NEXTVAL FROM DUAL
+		</selectKey>
+        INSERT INTO TB_IOT_OUT_SVR_M (OUT_SVR_SEQ,
+                                      CUST_SEQ,
+                                      SVC_CD,
+                                      SERVER_NM,
+                                      INOUT_CD,
+                                      CERT_KEY,
+                                      USE_YN,
+                                      REG_USR_ID,
+                                      REG_DTTM)
+        VALUES (#{outSvrSeq},
+                #{custSeq},
+                #{svcCd},
+                #{serverNm},
+                #{inoutCd},
+                #{certKey},
+                #{useYn},
+                #{regUsrId},
+                TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'))
+    </insert>
+
+    <insert id="registerOutSvrInfo" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO">
+    	<selectKey keyProperty="outSvrInfoSeq" resultType="Long" order="BEFORE">
+			SELECT SEQ_IOT_OUT_SVR_INFO.NEXTVAL FROM DUAL
+		</selectKey>
+        INSERT INTO TB_IOT_OUT_SVR_INFO (OUT_SVR_INFO_SEQ,
+                                      OUT_SVR_SEQ,
+                                      TRAN_CD,
+                                      PROTOCOL,
+                                      PROXY_YN,
+                                      IP,
+                                      PORT,
+                                      CERT_KEY,
+                                      USE_YN,
+                                      REG_USR_ID,
+                                      REG_DTTM)
+        VALUES (#{outSvrInfoSeq},
+                #{outSvrSeq},
+                #{tranCd},
+                #{protocol},
+                #{proxyYn},
+                #{ip},
+                #{port},
+                #{certKey},
+                #{useYn},
+                #{regUsrId},
+                TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'))
+    </insert>
+
+    <update id="updateTbIotOutSvrM" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO">
+        UPDATE TB_IOT_OUT_SVR_M
+        <set>
+            <if test='serverNm != null and serverNm != "" '>
+                server_nm = #{serverNm}
+            </if>
+            <if test='inoutCd != null and inoutCd != "" '>
+                , inout_cd = #{inoutCd}
+            </if>
+            <if test='certKey != null and certKey != "" '>
+                , cert_key = #{certKey}
+            </if>
+            <if test='useYn != null and useYn != "" '>
+                , use_yn = #{useYn}
+            </if>
+                , mod_usr_id = #{regUsrId}
+                , mod_dttm = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        </set>
+        <where>
+                out_svr_seq = #{outSvrSeq}
+        </where>
+    </update>
+
+    <update id="updateTbIotOutSvrInfo" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO">
+        UPDATE TB_IOT_OUT_SVR_INFO
+        <set>
+            <if test='tranCd != null and tranCd != "" '>
+                tran_cd = #{tranCd}
+            </if>
+            <if test='proxyYn != null and proxyYn != "" '>
+                , proxy_yn = #{proxyYn}
+            </if>
+            <if test='protocol != null and protocol != "" '>
+                , protocol = #{protocol}
+            </if>
+            <if test='ip != null and ip != "" '>
+                , ip = #{ip}
+            </if>
+            <if test='port != null and port != "" '>
+                , port = #{port}
+            </if>
+            <if test='cbProtocol != null and cbProtocol != "" '>
+                , call_back_protocol = #{cbProtocol}
+            </if>
+            <if test='cbIp != null and cbIp != "" '>
+                , call_back_ip = #{cbIp}
+            </if>
+            <if test='cbPort != null and cbPort != "" '>
+                , call_back_port = #{cbPort}
+            </if>
+            <if test='certKey != null and certKey != "" '>
+                , cert_key = #{certKey}
+            </if>
+            <if test='useYn != null and useYn != "" '>
+                , use_yn = #{useYn}
+            </if>
+                , mod_usr_id = #{regUsrId}
+                , mod_dttm = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+        </set>
+        <where>
+                out_svr_info_seq = #{outSvrInfoSeq}
+        </where>
+    </update>
+
+    <delete id="deleteTbIotOutSvrM" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO">
+        DELETE FROM TB_IOT_OUT_SVR_M WHERE OUT_SVR_SEQ = #{outSvrSeq}
+    </delete>
+
+    <delete id="deleteTbIotOutSvrInfo" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO">
+        DELETE FROM TB_IOT_OUT_SVR_INFO WHERE OUT_SVR_SEQ = #{outSvrSeq}
+    </delete>
+     <select id="retrieveOutSvrInfoMSvcList" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO" resultType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO">
+        SELECT DISTINCT sm.svc_cd,
+        cm.cust_nm,
+        cm.cust_seq,
+        sm.server_nm,
+        si.protocol,
+        si.ip,
+        si.port,
+        si.cert_key,
+        sm.reg_usr_id,
+        sm.reg_dttm,
+        sm.mod_usr_id,
+        sm.mod_dttm
+        FROM tb_iot_out_svr_m sm
+        left join tb_iot_cust_m cm
+        ON sm.cust_seq = cm.cust_seq,
+        (SELECT protocol,
+        ip,
+        port,
+        cert_key
+        FROM tb_iot_out_svr_info
+        ORDER BY out_svr_info_seq ASC) si
+        <where>
+                sm.cust_seq in (select cust_seq from tb_iot_cust_m where cust_seq = #{custSeq})
+        </where>
+        OFFSET ${(startPage-1)} ROWS FETCH NEXT ${displayRowCount} ROWS ONLY
+    </select>
+    <!-- 서버명 중복조회 -->
+	<select id="retrieveDuplicatedSvrNm" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO" resultType="Integer">
+		SELECT COUNT(SERVER_NM) FROM
+        TB_IOT_OUT_SVR_M
+        WHERE CUST_SEQ = #{custSeq}
+        AND SERVER_NM = #{serverNm}
+	</select>
+    <!-- token -->
+	<select id="retrieveMakeToken" parameterType="kr.co.scp.ccp.iotManage.dto.TbIotOutSvrEDTO" resultType="Integer">
+		 SELECT  COUNT(CERT_KEY) FROM TB_IOT_OUT_SVR_M
+         <where>
+            <if test='outSvrSeq != null and outSvrSeq != "" '>
+                OUT_SVR_SEQ = #{outSvrSeq}
+            </if>
+        </where>
+	</select>
+</mapper>

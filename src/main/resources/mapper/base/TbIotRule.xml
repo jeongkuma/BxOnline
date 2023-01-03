@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.common.rule.dao.TbIotRuleDAO">
+<!--
+	파일명    : /mapper/TbIoTDevColRul.xml
+-->
+	<!--  실행 피일 조회	-->
+<!-- 	<select id="retrieveIotRule" parameterType="kr.co.scp.common.rule.dto.TbIotRuleDTO" resultType="tbIotCmCdOptionDTO">
+		SELECT RULE_SEQ AS cdId
+		     , RULE_NAME AS cdNm
+		 FROM TB_IOT_RULE
+		WHERE CHAR_SET = #{charSet}
+		  AND RULE_GUBUN = #{runGubun}
+		ORDER BY RULE_NAME
+	</select> -->
+
+	<!-- 수집 -->
+	<select id="retrieveIotColAttb" parameterType="kr.co.scp.common.rule.dto.TbIotRuleDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT B.DEV_ATTB_CD_ID AS cdId
+		    ,  CONCAT( B.DEV_ATTB_CD_NM, "(" , B.COL_NM_CD ,")" )  AS cdNm
+		  FROM TB_IOT_SVC_DEV_M A
+		     , TB_IOT_S_DEV_ATB B
+		 WHERE A.DEV_SEQ = B.DEV_SEQ
+		   AND A.DEV_SEQ = #{devSeq}
+		   AND B.COL_NM_CD IS NOT NULL
+	</select>
+
+	<!-- 제어 -->
+	<select id="retrieveIotConAttb" parameterType="kr.co.scp.common.rule.dto.TbIotRuleDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT B.DEV_ATTB_CD_ID AS cdId
+		    ,  CONCAT( B.DEV_ATTB_CD_NM, "(" , B.CON_NM_CD ,")" )  AS cdNm
+		  FROM TB_IOT_SVC_DEV_M A
+		     , TB_IOT_S_DEV_ATB B
+		 WHERE A.DEV_SEQ = B.DEV_SEQ
+		   AND A.DEV_SEQ = #{devSeq}
+		   AND B.CON_NM_CD IS NOT NULL
+	</select>
+
+	<!-- 통계  -->
+	<select id="retrieveIotStaAvgAttb" parameterType="kr.co.scp.common.rule.dto.TbIotRuleDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT B.DEV_ATTB_CD_ID AS cdId
+		    ,  CONCAT( B.DEV_ATTB_CD_NM, "(" , B.STA_AVG_NM_CD ,")" )  AS cdNm
+		  FROM TB_IOT_SVC_DEV_M A
+		     , TB_IOT_S_DEV_ATB B
+		 WHERE A.DEV_SEQ = B.DEV_SEQ
+		   AND A.DEV_SEQ = #{devSeq}
+		   AND B.STA_AVG_NM_CD IS NOT NULL
+	</select>
+
+	<!-- 통계  -->
+	<select id="retrieveIotStaSumAttb" parameterType="kr.co.scp.common.rule.dto.TbIotRuleDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT B.DEV_ATTB_CD_ID AS cdId
+		    ,  CONCAT( B.DEV_ATTB_CD_NM, "(" , B.STA_SUM_NM_CD ,")" )  AS cdNm
+		  FROM TB_IOT_SVC_DEV_M A
+		     , TB_IOT_S_DEV_ATB B
+		 WHERE A.DEV_SEQ = B.DEV_SEQ
+		   AND A.DEV_SEQ = #{devSeq}
+		   AND B.STA_SUM_NM_CD IS NOT NULL
+	</select>
+
+	<!-- 이상징후 -->
+	<select id="retrieveIotDetNmCd" parameterType="kr.co.scp.common.rule.dto.TbIotRuleDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT B.DEV_ATTB_CD_ID AS cdId
+		    ,  CONCAT( B.DEV_ATTB_CD_NM, "(" , B.DET_NM_CD ,")" )  AS cdNm
+		  FROM TB_IOT_SVC_DEV_M A
+		     , TB_IOT_S_DEV_ATB B
+		 WHERE A.DEV_SEQ = B.DEV_SEQ
+		   AND A.DEV_SEQ = #{devSeq}
+		   AND B.DET_NM_CD IS NOT NULL
+	</select>
+
+	<!--  실행 피일 조회	-->
+	<select id="retrieveTbIotRuleInfoList" parameterType="kr.co.scp.common.rule.dto.TbIotRuleDTO" resultType="kr.co.scp.common.iotCmCd.dto.TbIotCmCdOptionDTO">
+		SELECT RULE_SEQ        as ruleSeq
+				,RULE_GUBUN    as ruleGubun
+				,CHAR_SET      as charSet
+				,RULE_NAME     as ruleName
+				,RULE_TYPE     as ruleType
+				,RULE_OBJECT   as ruleObject
+				,REG_USR_ID    as regUsrId
+				,REG_DTTM      as regDttm
+				,MOD_USR_ID    as modUsrId
+				,MOD_DTTM      as modDttm
+		 FROM TB_IOT_RULE
+		WHERE 1=1
+		<if test="ruleName != null">
+		  AND RULE_NAME LIKE CONCAT(#{ruleName},'%')
+		  </if>
+		ORDER BY RULE_NAME
+	</select>
+
+	<insert id="insertIotRule" parameterType="kr.co.scp.common.rule.dto.TbIotRuleDTO">
+		INSERT INTO   TB_IOT_RULE
+		(
+			RULE_SEQ,
+			RULE_GUBUN,
+			CHAR_SET,
+			RULE_NAME,
+			RULE_TYPE,
+			RULE_OBJECT,
+			REG_USR_ID,
+			REG_DTTM
+		)
+		VALUES
+		(
+			(SELECT MAX(A.RULE_SEQ) + 1  FROM TB_IOT_RULE A),
+			#{ruleGubun},
+			#{charSet},
+			#{ruleName},
+			#{ruleType},
+			#{rullObject},
+			#{inputId},
+			DATE_FORMAT(now(),'%Y%m%d%H%i%s')
+		)
+	</insert>
+
+	<delete id="deleteIotRule" parameterType="kr.co.scp.common.rule.dto.TbIotRuleDTO">
+		DELETE FROM TB_IOT_RULE
+		WHERE RULE_SEQ = #{ruleSeq}
+	</delete>
+
+</mapper>

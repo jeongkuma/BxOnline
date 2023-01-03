@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.login.dao.LoginHistDAO">
+	<!--
+		로그인 이력 생성
+	-->
+	<insert id="insertTbIotLoginHist" parameterType="kr.co.scp.ccp.login.dto.TbIoTLoginHistDTO">
+
+	INSERT INTO TB_IOT_LOGIN_HIST(
+    	   HIST_REG_DTTM
+    	 , USR_SEQ
+    	 , USR_LOGIN_ID
+     	 , LOGIN_SUCC_YN
+     	 , CLIENT_IP
+ 	 	<if test="null != loginFailReason">
+	 	 , LOGIN_FAIL_REASON
+		 </if>
+     	 , USR_OS
+     	 , USR_BROWSER
+     	 , REG_USR_ID
+     	 , REG_DTTM)
+	VALUES (NOW()
+		, #{usrSeq}
+		, #{usrLoginId}
+		, #{loginSuccYn}
+		, #{clientIp}
+		<if test="null != loginFailReason">
+		, (SELECT	a.PARAM_VAL
+			FROM	TB_IOT_CM_CD a
+			WHERE	a.PARAM_KEY = #{loginFailReason})
+		</if>
+		, #{usrOs}
+		, #{usrBrowser}
+		, #{usrLoginId}
+		, DATE_FORMAT(NOW(),'%Y%m%d%H%i%s'))
+	</insert>
+
+	<select id="retrieveLoginHist"  parameterType="kr.co.scp.ccp.login.dto.TbIoTLoginHistDTO" resultType="kr.co.scp.ccp.login.dto.TbIoTLoginHistDTO">
+	    SELECT		H.USR_LOGIN_ID ,
+	                HIST_REG_DTTM ,
+	                LOGIN_SUCC_YN,
+	                CLIENT_IP ,
+	                USR_OS ,
+	                USR_BROWSER ,
+	                LOGIN_FAIL_REASON
+	    FROM		TB_IOT_LOGIN_HIST H
+        INNER JOIN TB_IOT_USR_M M
+        ON H.USR_SEQ = M.USR_SEQ
+        INNER JOIN TB_IOT_CUST_M C
+        ON M.CUST_SEQ = C.CUST_SEQ
+		<if test="roleCdId == 'GN00000035' or roleCdId == 'GN00000036' or roleCdId == 'GN00000037' or roleCdId == 'GN00000039'">
+		AND M.CUST_SEQ = #{custSeq}
+		</if>
+	    WHERE		HIST_REG_DTTM <![CDATA[>]]> SUBDATE(NOW(), INTERVAL 6 MONTH)
+	    AND			C.SVC_CD = #{svcCd}
+		<choose>
+	    	<when test="searchCondition != 'all'">
+	    		<if test="searchCondition == 'id' and null != inputValue">
+	    			AND H.USR_LOGIN_ID LIKE CONCAT(#{inputValue},'%')
+	   			 </if>
+	   			 <if test="searchCondition == 'ip' and null != inputValue">
+	    			AND H.CLIENT_IP LIKE CONCAT(#{inputValue},'%')
+	   			 </if>
+	    	</when>
+	    	<when test="searchCondition == 'all' and null != inputValue">
+	    		AND	(H.USR_LOGIN_ID LIKE CONCAT(#{inputValue},'%') OR H.CLIENT_IP LIKE CONCAT(#{inputValue},'%'))
+	    	</when>
+	    </choose>
+	    <if test="'all' != selectedValue and null != selectedValue">
+	    	AND H.LOGIN_SUCC_YN = #{selectedValue}
+	    </if>
+	  	<if test="searchStartDttm != null">
+			AND HIST_REG_DTTM BETWEEN STR_TO_DATE(#{searchStartDttm},'%Y%m%d%H%i%s') AND DATE_ADD(STR_TO_DATE(#{searchEndDttm},'%Y%m%d%H%i%s'), INTERVAL +1 DAY)
+		</if>
+	    ORDER BY	HIST_REG_DTTM DESC
+	    LIMIT		${startPage-1}, ${displayRowCount}
+	</select>
+
+	<select id="retrieveLoginHistCount"  parameterType="kr.co.scp.ccp.login.dto.TbIoTLoginHistDTO" resultType="java.lang.Integer">
+	    SELECT		COUNT(HIST_REG_DTTM) AS CNT
+	    FROM		TB_IOT_LOGIN_HIST H
+        INNER JOIN 	TB_IOT_USR_M M
+        ON 			H.USR_SEQ = M.USR_SEQ
+        INNER JOIN TB_IOT_CUST_M C
+        ON M.CUST_SEQ = C.CUST_SEQ
+		<if test="roleCdId == 'GN00000035' or roleCdId == 'GN00000036' or roleCdId == 'GN00000037' or roleCdId == 'GN00000039'">
+ 		AND 		M.CUST_SEQ = #{custSeq}
+		</if>
+	    WHERE		HIST_REG_DTTM > SUBDATE(NOW(), INTERVAL 6 MONTH)
+	    AND			C.SVC_CD = #{svcCd}
+		<choose>
+	    	<when test="searchCondition != 'all'">
+	    		<if test="searchCondition == 'id' and null != inputValue">
+	    			AND H.USR_LOGIN_ID LIKE CONCAT(#{inputValue},'%')
+	   			 </if>
+	   			 <if test="searchCondition == 'ip' and null != inputValue">
+	    			AND H.CLIENT_IP LIKE CONCAT(#{inputValue},'%')
+	   			 </if>
+	    	</when>
+	    	<when test="searchCondition == 'all' and null != inputValue">
+	    		AND	(H.USR_LOGIN_ID LIKE CONCAT(#{inputValue},'%') OR H.CLIENT_IP LIKE CONCAT(#{inputValue},'%'))
+	    	</when>
+	    </choose>
+	    <if test="'all' != selectedValue and null != selectedValue">
+	    	AND H.LOGIN_SUCC_YN = #{selectedValue}
+	    </if>
+	  	<if test="searchStartDttm != null">
+			AND HIST_REG_DTTM BETWEEN STR_TO_DATE(#{searchStartDttm},'%Y%m%d%H%i%s') AND DATE_ADD(STR_TO_DATE(#{searchEndDttm},'%Y%m%d%H%i%s'), INTERVAL +1 DAY)
+		</if>
+	    ORDER BY	HIST_REG_DTTM DESC
+	</select>
+
+
+	<select id="retrieveIotLoginHistNotPage"  parameterType="kr.co.scp.ccp.login.dto.TbIoTLoginHistDTO" resultType="kr.co.scp.ccp.login.dto.TbIoTLoginHistDTO">
+	    SELECT		H.USR_LOGIN_ID ,
+	                DATE_FORMAT(HIST_REG_DTTM,'%Y-%m-%d %H:%i:%S') AS HIST_REG_DTTM ,
+	                CASE
+						WHEN LOGIN_SUCC_YN = 0 then '성공'
+						WHEN LOGIN_SUCC_YN = 1 then '실패'
+					END AS LOGIN_SUCC_YN,
+	                CLIENT_IP ,
+	                USR_OS ,
+	                USR_BROWSER ,
+	                LOGIN_FAIL_REASON
+	    FROM		TB_IOT_LOGIN_HIST H
+        INNER JOIN 	TB_IOT_USR_M M
+        ON 			H.USR_SEQ = M.USR_SEQ
+        INNER JOIN TB_IOT_CUST_M C
+        ON M.CUST_SEQ = C.CUST_SEQ
+		<if test="roleCdId == 'GN00000035' or roleCdId == 'GN00000036' or roleCdId == 'GN00000037' or roleCdId == 'GN00000039'">
+ 		AND M.CUST_SEQ = #{custSeq}
+		</if>
+	    WHERE		DATE_FORMAT(HIST_REG_DTTM, '%Y%m%d') > DATE_FORMAT(SUBDATE(NOW(), INTERVAL 6 MONTH), '%Y%m%d')
+	    AND			C.SVC_CD = #{svcCd}
+		<choose>
+	    	<when test="searchCondition != 'all'">
+	    		<if test="searchCondition == 'id' and null != inputValue">
+	    			AND H.USR_LOGIN_ID LIKE CONCAT(#{inputValue},'%')
+	   			 </if>
+	   			 <if test="searchCondition == 'ip' and null != inputValue">
+	    			AND H.CLIENT_IP LIKE CONCAT(#{inputValue},'%')
+	   			 </if>
+	    	</when>
+	    	<when test="searchCondition == 'all' and null != inputValue">
+	    		AND	(H.USR_LOGIN_ID LIKE CONCAT(#{inputValue},'%') OR H.CLIENT_IP LIKE CONCAT(#{inputValue},'%'))
+	    	</when>
+	    </choose>
+	    <if test="'all' != selectedValue and null != selectedValue">
+	    	AND H.LOGIN_SUCC_YN = #{selectedValue}
+	    </if>
+	  	<if test="searchStartDttm != null">
+			AND HIST_REG_DTTM BETWEEN STR_TO_DATE(#{searchStartDttm},'%Y%m%d%H%i%s') AND DATE_ADD(STR_TO_DATE(#{searchEndDttm},'%Y%m%d%H%i%s'), INTERVAL +1 DAY)
+		</if>
+	    ORDER BY	HIST_REG_DTTM DESC
+	</select>
+
+
+
+</mapper>

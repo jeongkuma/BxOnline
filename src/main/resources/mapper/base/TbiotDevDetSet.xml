@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.ccp.iotDev.dao.IotDevDetSetDAO">
+
+	<!-- 장비 이상징후SET 등록 -->
+
+	<insert id="insertIotDevDetSetAll">
+		INSERT INTO TB_IOT_S_DEV_DET_SET
+		(
+			S_DEV_ATTB_SEQ
+			,DEV_DET_SET_CD_ID
+			,(SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.CD_ID = B.DEV_DET_SET_CD_ID AND C.LANG_SET = #{langSet}) AS DEV_DET_SET_CD_NM
+			,DET_SET_COND
+			,STATUS_CD
+			,ICON_URL
+			,DET_SET_DESC
+			,REG_USR_ID
+			,REG_DTTM
+			,MOD_USR_ID
+			,MOD_DTTM
+		)
+		VALUES
+		(
+			#{devAttbSeq}
+			,#{devDetSetCdId}
+			,#{devDetSetCdNm}
+			,#{detSetCond}
+			,(SELECT A.PARAM_KEY
+			FROM TB_IOT_CM_CD A
+			WHERE CD_ID = 'GN00000148')
+			,#{iconUrl}
+			,#{detSetDesc}
+			,#{regUsrId}
+			,DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+			,null
+			,null
+		)
+	</insert>
+
+
+	<select id="retrieveIotDevDetSet" parameterType="kr.co.scp.ccp.iotDev.dto.TbIotDevDetSetDTO" resultType="kr.co.scp.ccp.iotDev.dto.TbIotDevDetSetDTO">
+		SELECT
+			B.DEV_DET_SET_CD_ID
+			,(SELECT C.CD_NM FROM TB_IOT_CM_CD C WHERE C.CD_ID = B.DEV_DET_SET_CD_ID AND C.LANG_SET = 'ko') AS DEV_DET_SET_CD_NM
+			,B.DET_SET_COND
+			,B.STATUS_CD
+			,B.ICON_URL
+			,B.DET_SET_DESC
+			,B.S_DEV_DET_SET_SEQ AS DEV_DET_SET_SEQ
+		FROM TB_IOT_S_DEV_ATB A, TB_IOT_S_DEV_DET_SET B
+		WHERE A.S_DEV_ATTB_SEQ =
+		B.S_DEV_ATTB_SEQ
+			AND B.STATUS_CD != 'C'
+			AND B.S_DEV_ATTB_SEQ = #{devAttbSeq}
+		ORDER BY B.S_DEV_DET_SET_SEQ ASC
+	</select>
+
+</mapper>

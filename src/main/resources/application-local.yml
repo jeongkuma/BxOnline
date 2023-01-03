@@ -1,0 +1,204 @@
+############## Tomcat Container 설정 ##############
+tomcat:
+  host:
+    name: localhost
+  executor:
+    name: tomcatThreadPool
+    namePrefix: catalina-exec-
+    maxThreads: 500
+    minSpareThreads: 100
+  httpProtocol:
+    port: 8090
+    server: Server
+    maxSavePostSize: -1
+    maxKeepAliveRequests: 2000
+    connectionTimeout: 30000
+    acceptCount: 2000
+  ajp:
+    port: 8009
+    secure: false
+    allowTrace: false
+    scheme: http
+    maxPostSize: -1
+    maxParameterCount: 100
+    enableLookups: false
+    redirectPort: 8443
+    connectionTimeout: 30000
+    backlog: 2000
+  accesslog:
+    enabled: true
+    directory: ${loggerPath}/logs/ccp/was/mgmtSvc/was/tomcat/accesslog
+    prefix: mgmtSvr11_access.
+    suffix: .log
+    pattern: "%h %l %u %t %r %s %b %{Referer}i %{User-Agent}i\" %D %p %a %{remote}p %{X-Forwarded-For}i"
+    fileDateFormat: yyyy-MM-dd-HH
+
+############## server ##############
+server:
+  port: 8800
+  servlet:
+    context-path: /scp
+    session:
+      timeout: 1m
+
+
+############## spring ##############
+spring:
+  profiles:
+    active: local
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  messages:
+    basename: properties/test             # commma(,)로 구분해서 파일 적기 예)properties/test,properties/test2
+    encoding: UTF-8
+  datasource:
+    hikari1:
+      jdbc-url: "jdbc:log4jdbc:mysql://slc.conv.site:13205/SCLADM?autoReconnect=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&allowMultiQueries=true"
+      driver-class-name: "net.sf.log4jdbc.sql.jdbcapi.DriverSpy"
+      poolName: SCP_HikariCP1
+      username: scl_dev
+      password: scl2020!
+      minimumIdle: 5
+      maximumPoolSize: 20
+      idleTimeout: 30000
+      maxLifetime: 2000000
+      connectionTimeout: 30000
+      connection-test-query: select 1
+      auto-commit: false
+    hikari2:
+      jdbc-url: "jdbc:sqlserver://211.239.124.243:12206;database=SCLDB"
+      driver-class-name: "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+      poolName: SCP_HikariCP2
+      username: scl_dev
+      password: scl2020!
+      minimumIdle: 5
+      maximumPoolSize: 20
+      idleTimeout: 30000
+      maxLifetime: 2000000
+      connectionTimeout: 30000
+      connection-test-query: select 1
+      auto-commit: false
+  session:
+    store-type: none
+  main:
+    allow-bean-definition-overriding: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+
+############## logging ##############
+logging:
+  config: classpath:log4j/log4j2_local.xml
+
+############## log ##############
+log:
+  instanceName: ui
+  instanceCode: '001'
+  oms:
+    mappingPath: classpath:/oms
+    rolling: 60
+    filePath: ${loggerPath}/logs/omslog
+    isAsync: false
+    # isAsync가 false일 경우만 가능
+    isContainResponse: true
+  call:
+    rolling: 60
+    filePath: ${loggerPath}/logs/calllog
+    isAsync: true
+  hangCheck:
+    rolling: 60
+    writerTime: 1
+    filePath: ${loggerPath}/logs/hang
+  pool:
+    rolling: 60
+    filePath: ${loggerPath}/logs/pool
+    writerTime: 1
+
+#log.pool.rolling
+#log.pool.filePath
+#log.pool.writerTime
+#log.instanceName
+#log.instanceCode
+
+
+############## script ##############
+script:
+  filePath: script
+
+############## file ##############
+file:
+#  upload-dir: D:/ # All files uploaded through the REST API will be stored in this directory
+  upload-dir: /logs/ui/was/uploads # All files uploaded through the REST API will be stored in this directory
+  upload-dir-dashboard: /svc/ui/was/webdoc/ROOT/assets/dashboard/ # All files uploaded through the REST API will be stored in this directory
+  upload-dir-cust: /svc/pipeuisvc/was/webdoc/resources/custImgs/
+  upload-dir-devImg:  /svc/ui/was/webdoc/ROOT/assets/devImg/ # All files uploaded through the REST API will be stored in this directory
+  get-devImg: /ROOT/assets/devImg/
+  get-map-Img: /resources/map/
+  get-dashboard-img: /ROOT/assets/dashboard/
+  max-size: 5242880 # 1024 * 1024 * 5
+  upload-dir-faq: /logs/ui/was/upload/faq/
+  upload-dir-noti: /logs/ui/was/upload/noti/
+  upload-dir-post: /logs/ui/was/upload/post/
+  upload-dir-lib: /logs/ui/was/upload/lib/
+  upload-dir-map: /svc/pipeuisvc/was/webdoc/resources/map/
+  get-logo-img: /resources/custImgs/
+  upload-dir-usr: /svc/pipeuisvc/was/webdoc/resources/usr/
+
+############## map api call ##############
+map:
+  host: https://openapi.testmap.uplus.co.kr:18000
+#  host: http://localhost:12340
+#  proxyHost:
+#  proxyPort:
+  svcId: af50235e882442288295f81f09d1dea5
+  searchSQE:
+    path: /mapinfra/api/poi/searchSQE
+    authKey: 16742f23c7da409bbb23fe334f030901
+  searchPoiNumber:
+    path: /mapinfra/api/poi/searchPoiNumber
+    authKey: 16742f23c7da409bbb23fe334f030901
+  searchOldAddr:
+    path: /mapinfra/api/poi/searchOldAddr
+    authKey: 16742f23c7da409bbb23fe334f030901
+  searchNewAddr:
+    path: /mapinfra/api/poi/searchNewAddr
+    authKey: 16742f23c7da409bbb23fe334f030901
+  searchSubAddr:
+    path: /mapinfra/api/poi/searchSubAddr
+    authKey: 16742f23c7da409bbb23fe334f030901
+  revgeocoding:
+    path: /mapinfra/api/poi/revgeocoding
+    authKey: 16742f23c7da409bbb23fe334f030901
+  coords:
+    path: /mapinfra/api/coords/coords
+    authKey: 463946bcca1146f3a912262f6bd8078c
+
+############## 제어 api call ##############
+ctrl:
+  imm-api-url: http://slc.conv.site:13216/accurator/accurator/httpAccurator
+
+iag:
+  cctv:
+    uri: /scp/event/temp
+    url: http://localhost:10211/scp/event/temp
+    custSeq: 404
+    orgSeq: 404
+
+iot:
+  syncIntrnSvr:
+    url: http://211.239.124.246:17247/collector/serverInfo/initSetting
+  reSend:
+    url: http://127.0.0.1:11111/ouif/resendOutMsg
+
+init:
+  initMemoryC:
+    url: http://211.239.124.246:17247/collector/serverInfo/initRules,http://211.239.124.246:17247/collector/serverInfo/initRules
+  initMemoryA:
+    url: http://211.239.124.246:17250/accurator/serverInfo/initRules,http://211.239.124.246:17250/accurator/serverInfo/initRules
+  initSync:
+    url: http://211.239.124.246:17247/collector/serverInfo/initSetting,http://211.239.124.246:17247/collector/serverInfo/initSetting
+  initOuifSync:
+    url: http://localhost:10212/collector/serverInfo/initSetting,http://localhost:10212/collector/serverInfo/initSetting

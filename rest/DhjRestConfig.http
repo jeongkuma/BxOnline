@@ -1,0 +1,35 @@
+## 로그인
+POST http://localhost:10211/scp/online/iotlogin/processIotLogin
+Content-Type: application/json
+X-VNAME: ONLINE
+X-APIVERSION: 1
+X-CHANNEL: UI
+X-LOGKEY: 20200519_postman_jbs
+X-MID: P00049
+X-LANG: ko
+
+{
+  "custLoginId" : "scl",
+  "usrLoginId" : "scladmin",
+  "usrPwd" : "dGVzdDAwMDAhIQ==",
+  "authCdId": "GN00000058"
+}
+
+####
+
+## 로그인
+POST http://localhost:8800/scp/online/iotlogin/processIotLogin
+Content-Type: application/json
+X-VNAME: ONLINE
+X-APIVERSION: 1
+X-CHANNEL: UI
+X-LOGKEY: 20200519_postman_jbs
+X-MID: P00049
+X-LANG: ko
+
+{
+  "authCdId" : "GN00000058"
+  ,"custLoginId": "scl"
+  , "usrLoginId" : "scladmin"
+  , "usrPwd": "dGVzdDAwMCEh"
+}

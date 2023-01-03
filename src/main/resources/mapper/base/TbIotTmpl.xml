@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.scp.common.tmpl.dao.TbIotTmplDAO">
+
+    <select id="retrieveTbIotTmplList" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO"
+            resultType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO">
+        SELECT A.TMPL_SEQ
+        , A.TMPL_CD_ID
+        , A.TMPL_CD_NM
+        , A.COL_CNT
+        , A.PROG_SEQ
+        , A.TMPL_GUBUN
+        , A.TMPL_RULE_IMG
+        , B.PROG_NM
+        , CASE
+        WHEN A.REG_DTTM <![CDATA[ >= ]]>  IFNULL(A.MOD_DTTM, 0) THEN DATE_FORMAT(A.REG_DTTM,'%Y-%m-%d %H:%i:%S')
+        WHEN A.REG_DTTM <![CDATA[ < ]]>  A.MOD_DTTM THEN DATE_FORMAT(A.MOD_DTTM,'%Y-%m-%d %H:%i:%S')
+        END AS regDttm
+        , CASE
+        WHEN A.REG_DTTM <![CDATA[ >= ]]> IFNULL(A.MOD_DTTM, 0) THEN (SELECT USR_NM FROM TB_IOT_USR_M WHERE USR_LOGIN_ID
+        = A.REG_USR_ID)
+        WHEN A.REG_DTTM <![CDATA[ < ]]> A.MOD_DTTM THEN (SELECT USR_NM FROM TB_IOT_USR_M WHERE USR_LOGIN_ID =
+        A.MOD_USR_ID)
+        END AS regUserId
+        <!-- 			 , REG_USR_ID AS regUserId -->
+        <!-- 			 , DATE_FORMAT(REG_DTTM , '%Y-%m-%d %H:%i:%s') AS regDttm -->
+        , A.INIT_DATA
+        FROM TB_IOT_TMPL A
+        ,TB_IOT_PROG B
+        WHERE A.PROG_SEQ = B.PROG_SEQ
+        AND A.TMPL_GUBUN <![CDATA[ <> ]]> 'GN00000138'
+        <if test="progNm != null">
+            AND B.PROG_NM LIKE CONCAT(#{progNm},'%')
+        </if>
+        <if test="tmplCdNm != null">
+            AND A.TMPL_CD_NM LIKE CONCAT(#{tmplCdNm},'%')
+        </if>
+        ORDER BY A.REG_DTTM DESC
+        LIMIT ${currentPage-1}, ${displayRowCount}
+    </select>
+
+    <select id="retrieveTbIotTmplJqgridList" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO"
+            resultType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO">
+        SELECT A.TMPL_SEQ
+        , A.TMPL_CD_ID
+        , A.TMPL_CD_NM
+        , A.COL_CNT
+        , A.PROG_SEQ
+        , A.TMPL_GUBUN
+        , A.TMPL_RULE_IMG
+        , B.PROG_NM
+        , CASE
+        WHEN A.REG_DTTM <![CDATA[ >= ]]>  IFNULL(A.MOD_DTTM, 0) THEN DATE_FORMAT(A.REG_DTTM,'%Y-%m-%d %H:%i:%S')
+        WHEN A.REG_DTTM <![CDATA[ < ]]>  A.MOD_DTTM THEN DATE_FORMAT(A.MOD_DTTM,'%Y-%m-%d %H:%i:%S')
+        END AS regDttm
+        , CASE
+        WHEN A.REG_DTTM <![CDATA[ >= ]]> IFNULL(A.MOD_DTTM, 0) THEN (SELECT USR_NM FROM TB_IOT_USR_M WHERE USR_LOGIN_ID
+        = A.REG_USR_ID)
+        WHEN A.REG_DTTM <![CDATA[ < ]]> A.MOD_DTTM THEN (SELECT USR_NM FROM TB_IOT_USR_M WHERE USR_LOGIN_ID =
+        A.MOD_USR_ID)
+        END AS regUserId
+        <!-- 			 , REG_USR_ID AS regUserId -->
+        <!-- 			 , DATE_FORMAT(REG_DTTM , '%Y-%m-%d %H:%i:%s') AS regDttm -->
+        FROM TB_IOT_TMPL A
+        ,TB_IOT_PROG B
+        WHERE A.PROG_SEQ = B.PROG_SEQ
+        AND A.TMPL_GUBUN = 'GN00000138'
+        <if test="progNm != null">
+            AND B.PROG_NM LIKE CONCAT(#{progNm},'%')
+        </if>
+        <if test="tmplCdNm != null">
+            AND A.TMPL_CD_NM LIKE CONCAT(#{tmplCdNm},'%')
+        </if>
+        ORDER BY A.TMPL_SEQ DESC
+        LIMIT ${currentPage-1}, ${displayRowCount}
+    </select>
+
+    <select id="retrieveTbIotTmplDetail" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO"
+            resultType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO">
+		SELECT A.TMPL_SEQ
+			 , A.TMPL_CD_ID
+			 , A.TMPL_CD_NM
+			 , A.COL_CNT
+			 , A.PROG_SEQ
+			 , A.TMPL_GUBUN
+			 , A.TMPL_RULE_IMG
+			 , A.INIT_DATA
+			 , B.PROG_NM
+		FROM TB_IOT_TMPL A
+		    ,TB_IOT_PROG B
+		WHERE A.PROG_SEQ = B.PROG_SEQ
+		  AND A.TMPL_SEQ = #{tmplSeq}
+	</select>
+
+    <select id="retrieveTbIotTmplCount" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO" resultType="Integer">
+        SELECT COUNT(A.TMPL_SEQ)
+        FROM TB_IOT_TMPL A
+        ,TB_IOT_PROG B
+        WHERE A.PROG_SEQ = B.PROG_SEQ
+        AND A.TMPL_GUBUN <![CDATA[ <> ]]> 'GN00000138'
+        <if test="progNm != null">
+            AND B.PROG_NM LIKE CONCAT(#{progNm},'%')
+        </if>
+        <if test="tmplCdNm != null">
+            AND A.TMPL_CD_NM LIKE CONCAT(#{tmplCdNm},'%')
+        </if>
+        ORDER BY TMPL_SEQ
+    </select>
+
+    <select id="retrieveTbIotTmplJqgridCount" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO"
+            resultType="Integer">
+        SELECT COUNT(A.TMPL_SEQ)
+        FROM TB_IOT_TMPL A
+        ,TB_IOT_PROG B
+        WHERE A.PROG_SEQ = B.PROG_SEQ
+        AND A.TMPL_GUBUN = 'GN00000138'
+        <if test="progNm != null">
+            AND B.PROG_NM LIKE CONCAT(#{progNm},'%')
+        </if>
+        <if test="tmplCdNm != null">
+            AND A.TMPL_CD_NM LIKE CONCAT(#{tmplCdNm},'%')
+        </if>
+        ORDER BY TMPL_SEQ
+    </select>
+
+    <select id="retrieveTbIotDashboardTmplList" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO"
+            resultType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO">
+		SELECT A.TMPL_SEQ
+			 , A.TMPL_CD_ID
+			 , A.TMPL_CD_NM
+			 , A.COL_CNT
+			 , A.PROG_SEQ
+			 , A.TMPL_GUBUN
+			 , A.TMPL_RULE_IMG
+			 , A.INIT_DATA
+		FROM TB_IOT_TMPL A
+		WHERE A.PROG_SEQ = #{progSeq}
+		  AND A.TMPL_GUBUN <![CDATA[ <> ]]> 'GN00000138'
+		ORDER BY TMPL_SEQ
+	</select>
+
+    <insert id="insertTbIotTmpl" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO" keyProperty="tmplSeq">
+        <selectKey keyProperty="tmplSeq" resultType="String" order="BEFORE">
+            SELECT MAX(TMPL_SEQ)+1 FROM TB_IOT_TMPL
+        </selectKey>
+        INSERT INTO TB_IOT_TMPL(
+        TMPL_SEQ,
+        TMPL_CD_ID,
+        TMPL_CD_NM,
+        COL_CNT,
+        PROG_SEQ,
+        TMPL_GUBUN,
+        TMPL_RULE_IMG,
+        INIT_DATA,
+        REG_USR_ID,
+        REG_DTTM)
+        VALUES (
+        #{tmplSeq},
+        CONCAT('T', #{tmplSeq}),
+        #{tmplCdNm},
+        #{colCnt},
+        #{progSeq},
+        #{tmplGubun},
+        #{tmplRuleImg},
+        #{initData},
+        #{regUserId},
+        DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+        )
+        <!-- <selectKey keyProperty="tmplSeq" resultType="String" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey> -->
+    </insert>
+
+
+    <update id="updateTbIotTmpl" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO">
+		UPDATE TB_IOT_TMPL
+		  SET TMPL_CD_ID = #{tmplCdId}
+		    , TMPL_CD_NM = #{tmplCdNm}
+		    , COL_CNT = #{colCnt}
+		    , PROG_SEQ = #{progSeq}
+		    , TMPL_GUBUN = #{tmplGubun}
+			, INIT_DATA = #{initData}
+		    , MOD_USR_ID = #{modUserId}
+		    , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		WHERE TMPL_SEQ = #{tmplSeq}
+	</update>
+
+    <update id="updateTmplFileNm" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO">
+		UPDATE TB_IOT_TMPL
+		  SET TMPL_RULE_IMG = #{tmplRuleImg}
+		    , MOD_USR_ID = #{modUserId}
+		    , MOD_DTTM = DATE_FORMAT(NOW(),'%Y%m%d%H%i%S')
+		WHERE TMPL_SEQ = #{tmplSeq}
+	</update>
+
+    <delete id="deleteTbIotTmpl" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO">
+		DELETE FROM TB_IOT_TMPL
+		WHERE TMPL_SEQ = #{tmplSeq}
+	</delete>
+
+    <select id="retrieveTbIotTmplRule" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO"
+            resultType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO">
+		SELECT A.TMPL_SEQ
+			 , A.TMPL_CD_ID
+			 , A.TMPL_CD_NM
+			 , A.COL_CNT
+			 , A.PROG_SEQ
+			 , B.PROG_NM
+			 , A.TMPL_GUBUN
+			 , A.TMPL_RULE_IMG
+		FROM TB_IOT_TMPL A
+		    ,TB_IOT_PROG B
+		WHERE A.PROG_SEQ = B.PROG_SEQ
+		  AND TMPL_GUBUN = #{tmplGubun}
+		ORDER BY TMPL_SEQ
+	</select>
+
+    <select id="duplicationCheck" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO" resultType="Integer">
+		SELECT COUNT(TMPL_SEQ)
+		FROM TB_IOT_TMPL
+		WHERE TMPL_CD_ID = #{tmplCdId}
+	</select>
+
+    <select id="retrieveTbIotTmplCdId" parameterType="kr.co.scp.common.tmpl.dto.TbIotTmplDTO" resultType="String">
+		SELECT TMPL_CD_ID
+		FROM TB_IOT_TMPL
+		WHERE PROG_SEQ = #{progSeq}
+	</select>
+
+</mapper>

@@ -1,0 +1,66 @@
+HTTP_HEADER: 
+  Content-Type:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-APIVERSION:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LOGKEY:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-CHANNEL:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-AUTH:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-VNAME:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-LANG:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+  X-MID:
+    dataType: STRING
+    requiredKey: Y
+    notNull: Y
+    noWhitespace: Y
+HTTP_BODY:
+  lvl:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    noWhitespace: N 
+    accept: ^[0-9]*$   
+  firstCdId:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    maxLength: 10  
+  secondCdId:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    maxLength: 10   
+  thirdCdId:
+    dataType: STRING
+    requiredKey: N
+    notNull: N
+    accept: ^[ㄱ-ㅎ가-힣a-zA-Z0-9_-]*$
+    maxLength: 10   

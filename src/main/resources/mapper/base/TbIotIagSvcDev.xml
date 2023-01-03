@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="kr.co.scp.ccp.iagEvent.dao.IagSvcDevDAO">
+
+	<select id="retrieveTbIotIagSvcDev" parameterType="String" resultType="kr.co.scp.ccp.iagEvent.dto.TbIotIagSvcDevDTO">
+		<!--
+		SELECT A.DEV_CLS_CD,
+			   A.DEV_MDL_CD,
+			   A.STATUS_CD,
+			   A.SVC_CD,
+			   B.OM2M_SVC_CD
+		  FROM TB_IOT_SVC_DEV_M A, TB_IOT_OM2M_SVC_MAP B
+		 WHERE A.DEV_MDL_CD = #{devMdlCd}
+		   AND A.SVC_CD = B.SVC_CD
+		-->
+	</select>
+
+</mapper>
